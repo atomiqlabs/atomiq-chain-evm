@@ -77,7 +77,7 @@ export class EVMLpVault extends EVMSwapModule {
 
         const result: any = {};
         Object.keys(this.contract.claimHandlersByAddress).forEach((address, index) => {
-            const handler = this.contract.claimHandlersByAddress[address];
+            const handler = this.contract.claimHandlersByAddress[address.toLowerCase()];
             const handlerResp = resp[index];
             result[handler.getType()] = {
                 successVolume: handlerResp[0].amount,

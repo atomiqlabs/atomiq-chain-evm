@@ -229,6 +229,7 @@ export namespace ClaimedEvent {
         ownerAndVaultId: BytesLike,
         recipient: AddressLike,
         btcTxHash: BytesLike,
+        caller: AddressLike,
         executionHash: BytesLike,
         frontingAddress: AddressLike,
         withdrawCount: BigNumberish,
@@ -239,6 +240,7 @@ export namespace ClaimedEvent {
         ownerAndVaultId: string,
         recipient: string,
         btcTxHash: string,
+        caller: string,
         executionHash: string,
         frontingAddress: string,
         withdrawCount: bigint,
@@ -249,6 +251,7 @@ export namespace ClaimedEvent {
         ownerAndVaultId: string;
         recipient: string;
         btcTxHash: string;
+        caller: string;
         executionHash: string;
         frontingAddress: string;
         withdrawCount: bigint;
@@ -316,6 +319,7 @@ export namespace FrontedEvent {
         ownerAndVaultId: BytesLike,
         recipient: AddressLike,
         btcTxHash: BytesLike,
+        caller: AddressLike,
         executionHash: BytesLike,
         amount0: BigNumberish,
         amount1: BigNumberish
@@ -324,6 +328,7 @@ export namespace FrontedEvent {
         ownerAndVaultId: string,
         recipient: string,
         btcTxHash: string,
+        caller: string,
         executionHash: string,
         amount0: bigint,
         amount1: bigint
@@ -332,6 +337,7 @@ export namespace FrontedEvent {
         ownerAndVaultId: string;
         recipient: string;
         btcTxHash: string;
+        caller: string;
         executionHash: string;
         amount0: bigint;
         amount1: bigint;
@@ -621,7 +627,7 @@ export interface SpvVaultManager extends BaseContract {
     >;
 
     filters: {
-        "Claimed(bytes32,address,bytes32,bytes32,address,uint32,uint64,uint64)": TypedContractEvent<
+        "Claimed(bytes32,address,bytes32,address,bytes32,address,uint32,uint64,uint64)": TypedContractEvent<
             ClaimedEvent.InputTuple,
             ClaimedEvent.OutputTuple,
             ClaimedEvent.OutputObject
@@ -654,7 +660,7 @@ export interface SpvVaultManager extends BaseContract {
             DepositedEvent.OutputObject
         >;
 
-        "Fronted(bytes32,address,bytes32,bytes32,uint64,uint64)": TypedContractEvent<
+        "Fronted(bytes32,address,bytes32,address,bytes32,uint64,uint64)": TypedContractEvent<
             FrontedEvent.InputTuple,
             FrontedEvent.OutputTuple,
             FrontedEvent.OutputObject

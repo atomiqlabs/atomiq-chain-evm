@@ -1,7 +1,7 @@
 import {BitcoinNetwork, BitcoinRpc, BtcBlock, BtcRelay, RelaySynchronizer, StatePredictorUtils} from "@atomiqlabs/base";
 import {EVMBtcHeader} from "./headers/EVMBtcHeader";
 import {getLogger, tryWithRetries} from "../../utils/Utils";
-import { EVMContractBase } from "../contract/EVMContractBase";
+import {EVMContractBase, TypedFunctionCall} from "../contract/EVMContractBase";
 import {BtcRelay as BtcRelayTypechain} from "./BtcRelayTypechain";
 import {EVMBtcStoredHeader} from "./headers/EVMBtcStoredHeader";
 import {EVMSigner} from "../wallet/EVMSigner";
@@ -9,7 +9,7 @@ import {EVMTx, EVMTxTrace} from "../chain/modules/EVMTransactions";
 import {EVMFees} from "../chain/modules/EVMFees";
 import {EVMChainInterface} from "../chain/EVMChainInterface";
 import {BtcRelayAbi} from "./BtcRelayAbi";
-import {AbiCoder} from "ethers";
+import {AbiCoder, hexlify} from "ethers";
 
 function serializeBlockHeader(e: BtcBlock): EVMBtcHeader {
     return new EVMBtcHeader({
@@ -148,20 +148,20 @@ export class EVMBtcRelay<B extends BtcBlock>
     }
 
     private async findStoredBlockheaderInTraces(txTrace: EVMTxTrace, commitHash: string): Promise<EVMBtcStoredHeader> {
-        if(
-            txTrace.to.toLowerCase() === (await this.contract.getAddress()).toLowerCase()
-        ) {
+        if(txTrace.to.toLowerCase() === (await this.contract.getAddress()).toLowerCase()) {
+            const result = this.parseCalldata(txTrace.input);
             let dataBuffer: Buffer;
-            if(
-                txTrace.input.startsWith(this.contract.submitMainBlockheaders.fragment.selector) ||
-                txTrace.input.startsWith(this.contract.submitShortForkBlockheaders.fragment.selector)
-            ) {
-                const [data] = AbiCoder.defaultAbiCoder().decode(["bytes"], "0x"+txTrace.input.substring(10));
-                dataBuffer = Buffer.from(data.substring(2), "hex");
-            }
-            if(txTrace.input.startsWith(this.contract.submitForkBlockheaders.fragment.selector)) {
-                const [_, data] = AbiCoder.defaultAbiCoder().decode(["uint256", "bytes"], "0x"+txTrace.input.substring(10));
-                dataBuffer = Buffer.from(data.substring(2), "hex");
+            if(result!=null) {
+                if(result.name==="submitMainBlockheaders" || result.name==="submitShortForkBlockheaders") {
+                    const functionCall: TypedFunctionCall<
+                        typeof this.contract.submitMainBlockheaders |
+                        typeof this.contract.submitShortForkBlockheaders
+                    > = result;
+                    dataBuffer = Buffer.from(hexlify(functionCall.args[0]).substring(2), "hex");
+                } else if(result.name==="submitForkBlockheaders") {
+                    const functionCall: TypedFunctionCall<typeof this.contract.submitForkBlockheaders> = result;
+                    dataBuffer = Buffer.from(hexlify(functionCall.args[1]).substring(2), "hex");
+                }
             }
             if(dataBuffer!=null) {
                 let storedHeader = EVMBtcStoredHeader.deserialize(dataBuffer.subarray(0, 160));
@@ -171,19 +171,20 @@ export class EVMBtcRelay<B extends BtcBlock>
                     if(storedHeader.getCommitHash()===commitHash) return storedHeader;
                 }
             }
-        }
-        if(txTrace.to == null && txTrace.input.length > 322) {
+        } else if(txTrace.to == null && txTrace.input.length > 322) {
             //Contract deployment, read data from constructor params
             const dataBuffer = Buffer.from(txTrace.input.substring(txTrace.input.length-320), "hex");
             const storedHeader = EVMBtcStoredHeader.deserialize(dataBuffer);
             if(storedHeader.getCommitHash()===commitHash) return storedHeader;
         }
+
         if(txTrace.calls!=null) {
             for(let call of txTrace.calls) {
                 const result = await this.findStoredBlockheaderInTraces(call, commitHash);
                 if(result!=null) return result;
             }
         }
+
         return null;
     }
 

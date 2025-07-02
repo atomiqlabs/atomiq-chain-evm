@@ -44,6 +44,12 @@ export const SpvVaultContractAbi = [
             },
             {
                 "indexed": false,
+                "internalType": "address",
+                "name": "caller",
+                "type": "address"
+            },
+            {
+                "indexed": false,
                 "internalType": "bytes32",
                 "name": "executionHash",
                 "type": "bytes32"
@@ -158,6 +164,12 @@ export const SpvVaultContractAbi = [
                 "internalType": "bytes32",
                 "name": "btcTxHash",
                 "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "caller",
+                "type": "address"
             },
             {
                 "indexed": false,

@@ -3,7 +3,7 @@ import {BitcoinCommitmentData, IBitcoinClaimHandler} from "./IBitcoinClaimHandle
 import {BitcoinOutputWitnessData} from "./BitcoinOutputClaimHandler";
 import {Transaction} from "@scure/btc-signer";
 import {Buffer} from "buffer";
-import {keccak256, solidityPackedKeccak256} from "ethers/lib.esm";
+import {keccak256, solidityPackedKeccak256} from "ethers";
 import {EVMSwapData} from "../../../EVMSwapData";
 import {EVMTx} from "../../../../chain/modules/EVMTransactions";
 

@@ -1,0 +1,450 @@
+import type { BaseContract, BigNumberish, BytesLike, FunctionFragment, Result, Interface, EventFragment, AddressLike, ContractRunner, ContractMethod, Listener } from "ethers";
+import type { TypedContractEvent, TypedDeferredTopicFilter, TypedEventLog, TypedLogDescription, TypedListener, TypedContractMethod } from "../typechain/common";
+export type SpvVaultParametersStruct = {
+    btcRelayContract: AddressLike;
+    token0: AddressLike;
+    token1: AddressLike;
+    token0Multiplier: BigNumberish;
+    token1Multiplier: BigNumberish;
+    confirmations: BigNumberish;
+};
+export type SpvVaultParametersStructOutput = [
+    btcRelayContract: string,
+    token0: string,
+    token1: string,
+    token0Multiplier: bigint,
+    token1Multiplier: bigint,
+    confirmations: bigint
+] & {
+    btcRelayContract: string;
+    token0: string;
+    token1: string;
+    token0Multiplier: bigint;
+    token1Multiplier: bigint;
+    confirmations: bigint;
+};
+export type StoredBlockHeaderStruct = {
+    data: [BytesLike, BytesLike, BytesLike, BytesLike, BytesLike];
+};
+export type StoredBlockHeaderStructOutput = [
+    data: [string, string, string, string, string]
+] & {
+    data: [string, string, string, string, string];
+};
+export type BitcoinVaultTransactionDataStruct = {
+    recipient: AddressLike;
+    amount0: BigNumberish;
+    amount1: BigNumberish;
+    callerFee0: BigNumberish;
+    callerFee1: BigNumberish;
+    frontingFee0: BigNumberish;
+    frontingFee1: BigNumberish;
+    executionHandlerFeeAmount0: BigNumberish;
+    executionHash: BytesLike;
+    executionExpiry: BigNumberish;
+};
+export type BitcoinVaultTransactionDataStructOutput = [
+    recipient: string,
+    amount0: bigint,
+    amount1: bigint,
+    callerFee0: bigint,
+    callerFee1: bigint,
+    frontingFee0: bigint,
+    frontingFee1: bigint,
+    executionHandlerFeeAmount0: bigint,
+    executionHash: string,
+    executionExpiry: bigint
+] & {
+    recipient: string;
+    amount0: bigint;
+    amount1: bigint;
+    callerFee0: bigint;
+    callerFee1: bigint;
+    frontingFee0: bigint;
+    frontingFee1: bigint;
+    executionHandlerFeeAmount0: bigint;
+    executionHash: string;
+    executionExpiry: bigint;
+};
+export type SpvVaultStateStruct = {
+    spvVaultParametersCommitment: BytesLike;
+    utxoTxHash: BytesLike;
+    utxoVout: BigNumberish;
+    openBlockheight: BigNumberish;
+    withdrawCount: BigNumberish;
+    depositCount: BigNumberish;
+    token0Amount: BigNumberish;
+    token1Amount: BigNumberish;
+};
+export type SpvVaultStateStructOutput = [
+    spvVaultParametersCommitment: string,
+    utxoTxHash: string,
+    utxoVout: bigint,
+    openBlockheight: bigint,
+    withdrawCount: bigint,
+    depositCount: bigint,
+    token0Amount: bigint,
+    token1Amount: bigint
+] & {
+    spvVaultParametersCommitment: string;
+    utxoTxHash: string;
+    utxoVout: bigint;
+    openBlockheight: bigint;
+    withdrawCount: bigint;
+    depositCount: bigint;
+    token0Amount: bigint;
+    token1Amount: bigint;
+};
+export interface SpvVaultManagerInterface extends Interface {
+    getFunction(nameOrSignature: "claim" | "deposit" | "front" | "getFronterAddress" | "getFronterById" | "getVault" | "open" | "parseBitcoinTx"): FunctionFragment;
+    getEvent(nameOrSignatureOrTopic: "Claimed" | "Closed" | "Deposited" | "Fronted" | "Opened"): EventFragment;
+    encodeFunctionData(functionFragment: "claim", values: [
+        AddressLike,
+        BigNumberish,
+        SpvVaultParametersStruct,
+        BytesLike,
+        StoredBlockHeaderStruct,
+        BytesLike[],
+        BigNumberish
+    ]): string;
+    encodeFunctionData(functionFragment: "deposit", values: [
+        AddressLike,
+        BigNumberish,
+        SpvVaultParametersStruct,
+        BigNumberish,
+        BigNumberish
+    ]): string;
+    encodeFunctionData(functionFragment: "front", values: [
+        AddressLike,
+        BigNumberish,
+        SpvVaultParametersStruct,
+        BigNumberish,
+        BytesLike,
+        BitcoinVaultTransactionDataStruct
+    ]): string;
+    encodeFunctionData(functionFragment: "getFronterAddress", values: [
+        AddressLike,
+        BigNumberish,
+        BytesLike,
+        BitcoinVaultTransactionDataStruct
+    ]): string;
+    encodeFunctionData(functionFragment: "getFronterById", values: [AddressLike, BigNumberish, BytesLike]): string;
+    encodeFunctionData(functionFragment: "getVault", values: [AddressLike, BigNumberish]): string;
+    encodeFunctionData(functionFragment: "open", values: [BigNumberish, SpvVaultParametersStruct, BytesLike, BigNumberish]): string;
+    encodeFunctionData(functionFragment: "parseBitcoinTx", values: [BytesLike]): string;
+    decodeFunctionResult(functionFragment: "claim", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "front", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getFronterAddress", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getFronterById", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "getVault", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "open", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "parseBitcoinTx", data: BytesLike): Result;
+}
+export declare namespace ClaimedEvent {
+    type InputTuple = [
+        ownerAndVaultId: BytesLike,
+        recipient: AddressLike,
+        btcTxHash: BytesLike,
+        caller: AddressLike,
+        executionHash: BytesLike,
+        frontingAddress: AddressLike,
+        withdrawCount: BigNumberish,
+        amount0: BigNumberish,
+        amount1: BigNumberish
+    ];
+    type OutputTuple = [
+        ownerAndVaultId: string,
+        recipient: string,
+        btcTxHash: string,
+        caller: string,
+        executionHash: string,
+        frontingAddress: string,
+        withdrawCount: bigint,
+        amount0: bigint,
+        amount1: bigint
+    ];
+    interface OutputObject {
+        ownerAndVaultId: string;
+        recipient: string;
+        btcTxHash: string;
+        caller: string;
+        executionHash: string;
+        frontingAddress: string;
+        withdrawCount: bigint;
+        amount0: bigint;
+        amount1: bigint;
+    }
+    type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+    type Filter = TypedDeferredTopicFilter<Event>;
+    type Log = TypedEventLog<Event>;
+    type LogDescription = TypedLogDescription<Event>;
+}
+export declare namespace ClosedEvent {
+    type InputTuple = [
+        owner: AddressLike,
+        vaultId: BigNumberish,
+        btcTxHash: BytesLike,
+        error: BytesLike
+    ];
+    type OutputTuple = [
+        owner: string,
+        vaultId: bigint,
+        btcTxHash: string,
+        error: string
+    ];
+    interface OutputObject {
+        owner: string;
+        vaultId: bigint;
+        btcTxHash: string;
+        error: string;
+    }
+    type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+    type Filter = TypedDeferredTopicFilter<Event>;
+    type Log = TypedEventLog<Event>;
+    type LogDescription = TypedLogDescription<Event>;
+}
+export declare namespace DepositedEvent {
+    type InputTuple = [
+        ownerAndVaultId: BytesLike,
+        depositCount: BigNumberish,
+        amount0: BigNumberish,
+        amount1: BigNumberish
+    ];
+    type OutputTuple = [
+        ownerAndVaultId: string,
+        depositCount: bigint,
+        amount0: bigint,
+        amount1: bigint
+    ];
+    interface OutputObject {
+        ownerAndVaultId: string;
+        depositCount: bigint;
+        amount0: bigint;
+        amount1: bigint;
+    }
+    type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+    type Filter = TypedDeferredTopicFilter<Event>;
+    type Log = TypedEventLog<Event>;
+    type LogDescription = TypedLogDescription<Event>;
+}
+export declare namespace FrontedEvent {
+    type InputTuple = [
+        ownerAndVaultId: BytesLike,
+        recipient: AddressLike,
+        btcTxHash: BytesLike,
+        caller: AddressLike,
+        executionHash: BytesLike,
+        amount0: BigNumberish,
+        amount1: BigNumberish
+    ];
+    type OutputTuple = [
+        ownerAndVaultId: string,
+        recipient: string,
+        btcTxHash: string,
+        caller: string,
+        executionHash: string,
+        amount0: bigint,
+        amount1: bigint
+    ];
+    interface OutputObject {
+        ownerAndVaultId: string;
+        recipient: string;
+        btcTxHash: string;
+        caller: string;
+        executionHash: string;
+        amount0: bigint;
+        amount1: bigint;
+    }
+    type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+    type Filter = TypedDeferredTopicFilter<Event>;
+    type Log = TypedEventLog<Event>;
+    type LogDescription = TypedLogDescription<Event>;
+}
+export declare namespace OpenedEvent {
+    type InputTuple = [
+        owner: AddressLike,
+        vaultId: BigNumberish,
+        btcTxHash: BytesLike,
+        vout: BigNumberish,
+        params: SpvVaultParametersStruct
+    ];
+    type OutputTuple = [
+        owner: string,
+        vaultId: bigint,
+        btcTxHash: string,
+        vout: bigint,
+        params: SpvVaultParametersStructOutput
+    ];
+    interface OutputObject {
+        owner: string;
+        vaultId: bigint;
+        btcTxHash: string;
+        vout: bigint;
+        params: SpvVaultParametersStructOutput;
+    }
+    type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+    type Filter = TypedDeferredTopicFilter<Event>;
+    type Log = TypedEventLog<Event>;
+    type LogDescription = TypedLogDescription<Event>;
+}
+export interface SpvVaultManager extends BaseContract {
+    connect(runner?: ContractRunner | null): SpvVaultManager;
+    waitForDeployment(): Promise<this>;
+    interface: SpvVaultManagerInterface;
+    queryFilter<TCEvent extends TypedContractEvent>(event: TCEvent, fromBlockOrBlockhash?: string | number | undefined, toBlock?: string | number | undefined): Promise<Array<TypedEventLog<TCEvent>>>;
+    queryFilter<TCEvent extends TypedContractEvent>(filter: TypedDeferredTopicFilter<TCEvent>, fromBlockOrBlockhash?: string | number | undefined, toBlock?: string | number | undefined): Promise<Array<TypedEventLog<TCEvent>>>;
+    on<TCEvent extends TypedContractEvent>(event: TCEvent, listener: TypedListener<TCEvent>): Promise<this>;
+    on<TCEvent extends TypedContractEvent>(filter: TypedDeferredTopicFilter<TCEvent>, listener: TypedListener<TCEvent>): Promise<this>;
+    once<TCEvent extends TypedContractEvent>(event: TCEvent, listener: TypedListener<TCEvent>): Promise<this>;
+    once<TCEvent extends TypedContractEvent>(filter: TypedDeferredTopicFilter<TCEvent>, listener: TypedListener<TCEvent>): Promise<this>;
+    listeners<TCEvent extends TypedContractEvent>(event: TCEvent): Promise<Array<TypedListener<TCEvent>>>;
+    listeners(eventName?: string): Promise<Array<Listener>>;
+    removeAllListeners<TCEvent extends TypedContractEvent>(event?: TCEvent): Promise<this>;
+    claim: TypedContractMethod<[
+        owner: AddressLike,
+        vaultId: BigNumberish,
+        vaultParams: SpvVaultParametersStruct,
+        transaction: BytesLike,
+        blockheader: StoredBlockHeaderStruct,
+        merkleProof: BytesLike[],
+        position: BigNumberish
+    ], [
+        void
+    ], "nonpayable">;
+    deposit: TypedContractMethod<[
+        owner: AddressLike,
+        vaultId: BigNumberish,
+        vaultParams: SpvVaultParametersStruct,
+        rawToken0: BigNumberish,
+        rawToken1: BigNumberish
+    ], [
+        void
+    ], "payable">;
+    front: TypedContractMethod<[
+        owner: AddressLike,
+        vaultId: BigNumberish,
+        vaultParams: SpvVaultParametersStruct,
+        withdrawalSequence: BigNumberish,
+        btcTxHash: BytesLike,
+        data: BitcoinVaultTransactionDataStruct
+    ], [
+        void
+    ], "payable">;
+    getFronterAddress: TypedContractMethod<[
+        owner: AddressLike,
+        vaultId: BigNumberish,
+        btcTxHash: BytesLike,
+        data: BitcoinVaultTransactionDataStruct
+    ], [
+        string
+    ], "view">;
+    getFronterById: TypedContractMethod<[
+        owner: AddressLike,
+        vaultId: BigNumberish,
+        frontingId: BytesLike
+    ], [
+        string
+    ], "view">;
+    getVault: TypedContractMethod<[
+        owner: AddressLike,
+        vaultId: BigNumberish
+    ], [
+        SpvVaultStateStructOutput
+    ], "view">;
+    open: TypedContractMethod<[
+        vaultId: BigNumberish,
+        vaultParams: SpvVaultParametersStruct,
+        utxoTxHash: BytesLike,
+        utxoVout: BigNumberish
+    ], [
+        void
+    ], "nonpayable">;
+    parseBitcoinTx: TypedContractMethod<[
+        transaction: BytesLike
+    ], [
+        BitcoinVaultTransactionDataStructOutput
+    ], "view">;
+    getFunction<T extends ContractMethod = ContractMethod>(key: string | FunctionFragment): T;
+    getFunction(nameOrSignature: "claim"): TypedContractMethod<[
+        owner: AddressLike,
+        vaultId: BigNumberish,
+        vaultParams: SpvVaultParametersStruct,
+        transaction: BytesLike,
+        blockheader: StoredBlockHeaderStruct,
+        merkleProof: BytesLike[],
+        position: BigNumberish
+    ], [
+        void
+    ], "nonpayable">;
+    getFunction(nameOrSignature: "deposit"): TypedContractMethod<[
+        owner: AddressLike,
+        vaultId: BigNumberish,
+        vaultParams: SpvVaultParametersStruct,
+        rawToken0: BigNumberish,
+        rawToken1: BigNumberish
+    ], [
+        void
+    ], "payable">;
+    getFunction(nameOrSignature: "front"): TypedContractMethod<[
+        owner: AddressLike,
+        vaultId: BigNumberish,
+        vaultParams: SpvVaultParametersStruct,
+        withdrawalSequence: BigNumberish,
+        btcTxHash: BytesLike,
+        data: BitcoinVaultTransactionDataStruct
+    ], [
+        void
+    ], "payable">;
+    getFunction(nameOrSignature: "getFronterAddress"): TypedContractMethod<[
+        owner: AddressLike,
+        vaultId: BigNumberish,
+        btcTxHash: BytesLike,
+        data: BitcoinVaultTransactionDataStruct
+    ], [
+        string
+    ], "view">;
+    getFunction(nameOrSignature: "getFronterById"): TypedContractMethod<[
+        owner: AddressLike,
+        vaultId: BigNumberish,
+        frontingId: BytesLike
+    ], [
+        string
+    ], "view">;
+    getFunction(nameOrSignature: "getVault"): TypedContractMethod<[
+        owner: AddressLike,
+        vaultId: BigNumberish
+    ], [
+        SpvVaultStateStructOutput
+    ], "view">;
+    getFunction(nameOrSignature: "open"): TypedContractMethod<[
+        vaultId: BigNumberish,
+        vaultParams: SpvVaultParametersStruct,
+        utxoTxHash: BytesLike,
+        utxoVout: BigNumberish
+    ], [
+        void
+    ], "nonpayable">;
+    getFunction(nameOrSignature: "parseBitcoinTx"): TypedContractMethod<[
+        transaction: BytesLike
+    ], [
+        BitcoinVaultTransactionDataStructOutput
+    ], "view">;
+    getEvent(key: "Claimed"): TypedContractEvent<ClaimedEvent.InputTuple, ClaimedEvent.OutputTuple, ClaimedEvent.OutputObject>;
+    getEvent(key: "Closed"): TypedContractEvent<ClosedEvent.InputTuple, ClosedEvent.OutputTuple, ClosedEvent.OutputObject>;
+    getEvent(key: "Deposited"): TypedContractEvent<DepositedEvent.InputTuple, DepositedEvent.OutputTuple, DepositedEvent.OutputObject>;
+    getEvent(key: "Fronted"): TypedContractEvent<FrontedEvent.InputTuple, FrontedEvent.OutputTuple, FrontedEvent.OutputObject>;
+    getEvent(key: "Opened"): TypedContractEvent<OpenedEvent.InputTuple, OpenedEvent.OutputTuple, OpenedEvent.OutputObject>;
+    filters: {
+        "Claimed(bytes32,address,bytes32,address,bytes32,address,uint32,uint64,uint64)": TypedContractEvent<ClaimedEvent.InputTuple, ClaimedEvent.OutputTuple, ClaimedEvent.OutputObject>;
+        Claimed: TypedContractEvent<ClaimedEvent.InputTuple, ClaimedEvent.OutputTuple, ClaimedEvent.OutputObject>;
+        "Closed(address,uint96,bytes32,bytes)": TypedContractEvent<ClosedEvent.InputTuple, ClosedEvent.OutputTuple, ClosedEvent.OutputObject>;
+        Closed: TypedContractEvent<ClosedEvent.InputTuple, ClosedEvent.OutputTuple, ClosedEvent.OutputObject>;
+        "Deposited(bytes32,uint32,uint64,uint64)": TypedContractEvent<DepositedEvent.InputTuple, DepositedEvent.OutputTuple, DepositedEvent.OutputObject>;
+        Deposited: TypedContractEvent<DepositedEvent.InputTuple, DepositedEvent.OutputTuple, DepositedEvent.OutputObject>;
+        "Fronted(bytes32,address,bytes32,address,bytes32,uint64,uint64)": TypedContractEvent<FrontedEvent.InputTuple, FrontedEvent.OutputTuple, FrontedEvent.OutputObject>;
+        Fronted: TypedContractEvent<FrontedEvent.InputTuple, FrontedEvent.OutputTuple, FrontedEvent.OutputObject>;
+        "Opened(address,uint96,bytes32,uint32,tuple)": TypedContractEvent<OpenedEvent.InputTuple, OpenedEvent.OutputTuple, OpenedEvent.OutputObject>;
+        Opened: TypedContractEvent<OpenedEvent.InputTuple, OpenedEvent.OutputTuple, OpenedEvent.OutputObject>;
+    };
+}

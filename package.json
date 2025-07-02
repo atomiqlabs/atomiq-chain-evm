@@ -1,6 +1,6 @@
 {
   "name": "@atomiqlabs/chain-evm",
-  "version": "1.0.0",
+  "version": "1.0.0-dev.0",
   "description": "EVM specific base implementation",
   "main": "./dist/index.js",
   "types:": "./dist/index.d.ts",
@@ -23,12 +23,15 @@
   "author": "adambor",
   "license": "Apache-2.0",
   "dependencies": {
-    "@atomiqlabs/base": "^9.1.0",
+    "@atomiqlabs/base": "github:atomiqlabs/atomiq-base#add-evm",
     "@noble/hashes": "^1.8.0",
-    "@scure/btc-signer": "1.6",
+    "@scure/btc-signer": "1.6.0",
     "buffer": "6.0.3"
   },
   "peerDependencies": {
-    "ethers": "^6.14.4"
+    "ethers": "^6.15.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
   }
 }

@@ -1,6 +1,6 @@
 import {SwapData, ChainSwapType} from "@atomiqlabs/base";
-import {AbiCoder, keccak256, ZeroHash} from "ethers";
-import {EscrowDataStruct} from "./EscrowManagerTypechain";
+import {AbiCoder, hexlify, keccak256, ZeroHash} from "ethers";
+import {EscrowDataStruct, EscrowDataStructOutput} from "./EscrowManagerTypechain";
 import {IClaimHandler} from "./handlers/claim/ClaimHandlers";
 import {TimelockRefundHandler} from "./handlers/refund/TimelockRefundHandler";
 
@@ -336,36 +336,27 @@ export class EVMSwapData extends SwapData {
         }
     }
 
-    static deserializeFromBuffer(buffer: Buffer, claimHandlerImpl: IClaimHandler<any, any>): EVMSwapData {
-        const [
-            offerer, claimer, amount, token, flags,
-            claimHandler, claimData, refundHandler, refundData,
-            securityDeposit, claimerBounty, depositToken, successActionCommitment
-        ] = AbiCoder.defaultAbiCoder().decode(
-            ["address", "address", "uint256", "address", "uint256", "address", "bytes32", "address", "bytes32", "uint256", "uint256", "address", "bytes32"],
-            buffer
-        );
+    static deserializeFromStruct(struct: EscrowDataStruct, claimHandlerImpl: IClaimHandler<any, any>): EVMSwapData {
+        const {payOut, payIn, reputation, sequence} = EVMSwapData.toFlags(BigInt(struct.flags));
 
-        const {payOut, payIn, reputation, sequence} = EVMSwapData.toFlags(flags);
-
-        if(successActionCommitment !== ZeroHash) // throw new Error("Success action not allowed!");
+        if(struct.successActionCommitment !== ZeroHash) // throw new Error("Success action not allowed!");
 
         return new EVMSwapData(
-            offerer,
-            claimer,
-            token,
-            refundHandler,
-            claimHandler,
+            struct.offerer as string,
+            struct.claimer as string,
+            struct.token as string,
+            struct.refundHandler as string,
+            struct.claimHandler as string,
             payOut,
             payIn,
             reputation,
             sequence,
-            claimData,
-            refundData,
-            amount,
-            depositToken,
-            securityDeposit,
-            claimerBounty,
+            hexlify(struct.claimData),
+            hexlify(struct.refundData),
+            BigInt(struct.amount),
+            struct.depositToken as string,
+            BigInt(struct.securityDeposit),
+            BigInt(struct.claimerBounty),
             claimHandlerImpl.getType(),
             null
         );

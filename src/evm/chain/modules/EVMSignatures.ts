@@ -1,8 +1,7 @@
 import {EVMSigner} from "../../wallet/EVMSigner";
 import {EVMModule} from "../EVMModule";
 import {EVMChainInterface} from "../EVMChainInterface";
-import {sha256, verifyTypedData} from "ethers";
-import {TypedDataField} from "ethers/src.ts/hash/typed-data";
+import {sha256, verifyTypedData, TypedDataField} from "ethers";
 
 const DataHash = [
     { name: "dataHash", type: "bytes32" }

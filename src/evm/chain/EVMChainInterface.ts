@@ -1,6 +1,6 @@
 import {ChainInterface, TransactionConfirmationOptions} from "@atomiqlabs/base";
 import {getLogger, LoggerType} from "../../utils/Utils";
-import {JsonRpcApiProvider, Provider, Transaction, TransactionRequest, Wallet} from "ethers";
+import {JsonRpcApiProvider, Transaction, TransactionRequest, Wallet} from "ethers";
 import {EVMBlocks, EVMBlockTag} from "./modules/EVMBlocks";
 import {EVMEvents} from "./modules/EVMEvents";
 import {EVMFees} from "./modules/EVMFees";
@@ -17,7 +17,8 @@ export type EVMRetryPolicy = {
 }
 
 export type EVMConfiguration = {
-    safeBlockTag?: EVMBlockTag
+    safeBlockTag: EVMBlockTag,
+    maxLogsBlockRange: number
 };
 
 export class EVMChainInterface<ChainId extends string = string, EVMChainId extends number = number> implements ChainInterface {

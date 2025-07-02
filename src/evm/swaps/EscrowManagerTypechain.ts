@@ -309,17 +309,23 @@ export namespace InitializeEvent {
     export type InputTuple = [
         offerer: AddressLike,
         claimer: AddressLike,
-        escrowHash: BytesLike
+        escrowHash: BytesLike,
+        claimHandler: AddressLike,
+        refundHandler: AddressLike
     ];
     export type OutputTuple = [
         offerer: string,
         claimer: string,
-        escrowHash: string
+        escrowHash: string,
+        claimHandler: string,
+        refundHandler: string
     ];
     export interface OutputObject {
         offerer: string;
         claimer: string;
         escrowHash: string;
+        claimHandler: string;
+        refundHandler: string;
     }
     export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
     export type Filter = TypedDeferredTopicFilter<Event>;
@@ -692,7 +698,7 @@ export interface EscrowManager extends BaseContract {
             ExecutionErrorEvent.OutputObject
         >;
 
-        "Initialize(address,address,bytes32)": TypedContractEvent<
+        "Initialize(address,address,bytes32,address,address)": TypedContractEvent<
             InitializeEvent.InputTuple,
             InitializeEvent.OutputTuple,
             InitializeEvent.OutputObject

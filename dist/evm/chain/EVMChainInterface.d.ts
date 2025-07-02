@@ -1,0 +1,51 @@
+import { ChainInterface, TransactionConfirmationOptions } from "@atomiqlabs/base";
+import { LoggerType } from "../../utils/Utils";
+import { JsonRpcApiProvider, Transaction, TransactionRequest } from "ethers";
+import { EVMBlocks, EVMBlockTag } from "./modules/EVMBlocks";
+import { EVMEvents } from "./modules/EVMEvents";
+import { EVMFees } from "./modules/EVMFees";
+import { EVMTokens } from "./modules/EVMTokens";
+import { EVMTransactions } from "./modules/EVMTransactions";
+import { EVMSignatures } from "./modules/EVMSignatures";
+import { EVMSigner } from "../wallet/EVMSigner";
+export type EVMRetryPolicy = {
+    maxRetries?: number;
+    delay?: number;
+    exponential?: boolean;
+};
+export type EVMConfiguration = {
+    safeBlockTag: EVMBlockTag;
+    maxLogsBlockRange: number;
+};
+export declare class EVMChainInterface<ChainId extends string = string, EVMChainId extends number = number> implements ChainInterface {
+    readonly chainId: ChainId;
+    readonly provider: JsonRpcApiProvider;
+    readonly retryPolicy: EVMRetryPolicy;
+    readonly evmChainId: EVMChainId;
+    readonly config: EVMConfiguration;
+    Fees: EVMFees;
+    readonly Tokens: EVMTokens;
+    readonly Transactions: EVMTransactions;
+    readonly Signatures: EVMSignatures;
+    readonly Events: EVMEvents;
+    readonly Blocks: EVMBlocks;
+    protected readonly logger: LoggerType;
+    constructor(chainId: ChainId, evmChainId: EVMChainId, provider: JsonRpcApiProvider, config: EVMConfiguration, retryPolicy?: EVMRetryPolicy, evmFeeEstimator?: EVMFees);
+    getBalance(signer: string, tokenAddress: string): Promise<bigint>;
+    getNativeCurrencyAddress(): string;
+    isValidToken(tokenIdentifier: string): boolean;
+    isValidAddress(address: string): boolean;
+    offBeforeTxReplace(callback: (oldTx: string, oldTxId: string, newTx: string, newTxId: string) => Promise<void>): boolean;
+    onBeforeTxReplace(callback: (oldTx: string, oldTxId: string, newTx: string, newTxId: string) => Promise<void>): void;
+    onBeforeTxSigned(callback: (tx: TransactionRequest) => Promise<void>): void;
+    offBeforeTxSigned(callback: (tx: TransactionRequest) => Promise<void>): boolean;
+    randomAddress(): string;
+    randomSigner(): EVMSigner;
+    sendAndConfirm(signer: EVMSigner, txs: TransactionRequest[], waitForConfirmation?: boolean, abortSignal?: AbortSignal, parallel?: boolean, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>): Promise<string[]>;
+    serializeTx(tx: Transaction): Promise<string>;
+    deserializeTx(txData: string): Promise<Transaction>;
+    getTxIdStatus(txId: string): Promise<"not_found" | "pending" | "success" | "reverted">;
+    getTxStatus(tx: string): Promise<"not_found" | "pending" | "success" | "reverted">;
+    txsTransfer(signer: string, token: string, amount: bigint, dstAddress: string, feeRate?: string): Promise<TransactionRequest[]>;
+    transfer(signer: EVMSigner, token: string, amount: bigint, dstAddress: string, txOptions?: TransactionConfirmationOptions): Promise<string>;
+}

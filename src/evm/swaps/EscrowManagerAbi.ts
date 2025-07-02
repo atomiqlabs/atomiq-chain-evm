@@ -108,6 +108,18 @@ export const EscrowManagerAbi = [
                 "internalType": "bytes32",
                 "name": "escrowHash",
                 "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "claimHandler",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "refundHandler",
+                "type": "address"
             }
         ],
         "name": "Initialize",
@@ -967,4 +979,4 @@ export const EscrowManagerAbi = [
         "stateMutability": "nonpayable",
         "type": "function"
     }
-] as const;
+];

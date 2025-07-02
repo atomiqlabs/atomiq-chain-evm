@@ -3,8 +3,6 @@ import {Log} from "ethers";
 
 export class EVMEvents extends EVMModule<any> {
 
-    public readonly MAX_BLOCK_RANGE = 500;
-
     /**
      * Returns the all the events occuring in a block range as identified by the contract and keys
      *
@@ -28,11 +26,11 @@ export class EVMEvents extends EVMModule<any> {
             });
         } else if(endBlock==null) {
             const safeBlock = await this.root.provider.getBlock(this.root.config.safeBlockTag);
-            if(safeBlock.number - startBlock > this.MAX_BLOCK_RANGE) {
-                for(let i = startBlock + this.MAX_BLOCK_RANGE; i < safeBlock.number; i += this.MAX_BLOCK_RANGE) {
+            if(safeBlock.number - startBlock > this.root.config.maxLogsBlockRange) {
+                for(let i = startBlock + this.root.config.maxLogsBlockRange; i < safeBlock.number; i += this.root.config.maxLogsBlockRange) {
                     events.push(...await this.root.provider.getLogs({
                         address: contract,
-                        fromBlock: i - this.MAX_BLOCK_RANGE,
+                        fromBlock: i - this.root.config.maxLogsBlockRange,
                         toBlock: i,
                         topics
                     }));
@@ -47,11 +45,11 @@ export class EVMEvents extends EVMModule<any> {
             }));
         } else {
             //Both numeric
-            if(endBlock - startBlock > this.MAX_BLOCK_RANGE) {
-                for(let i = startBlock + this.MAX_BLOCK_RANGE; i < endBlock; i += this.MAX_BLOCK_RANGE) {
+            if(endBlock - startBlock > this.root.config.maxLogsBlockRange) {
+                for(let i = startBlock + this.root.config.maxLogsBlockRange; i < endBlock; i += this.root.config.maxLogsBlockRange) {
                     events.push(...await this.root.provider.getLogs({
                         address: contract,
-                        fromBlock: i - this.MAX_BLOCK_RANGE,
+                        fromBlock: i - this.root.config.maxLogsBlockRange,
                         toBlock: i,
                         topics
                     }));
@@ -85,11 +83,11 @@ export class EVMEvents extends EVMModule<any> {
     ): Promise<T> {
         const {number: latestBlockNumber} = await this.provider.getBlock(this.root.config.safeBlockTag);
 
-        for(let blockNumber = latestBlockNumber; blockNumber >= 0; blockNumber-=this.MAX_BLOCK_RANGE) {
+        for(let blockNumber = latestBlockNumber; blockNumber >= 0; blockNumber-=this.root.config.maxLogsBlockRange) {
             const eventsResult = await this.provider.getLogs({
                 address: contract,
                 topics,
-                fromBlock: Math.max(blockNumber-this.MAX_BLOCK_RANGE, 0),
+                fromBlock: Math.max(blockNumber-this.root.config.maxLogsBlockRange, 0),
                 toBlock: blockNumber===latestBlockNumber ? this.root.config.safeBlockTag : blockNumber
             });
 
@@ -117,12 +115,12 @@ export class EVMEvents extends EVMModule<any> {
     ): Promise<T> {
         const {number: latestBlockNumber} = await this.provider.getBlock(this.root.config.safeBlockTag);
 
-        for(let blockNumber = 0; blockNumber < latestBlockNumber; blockNumber += this.MAX_BLOCK_RANGE) {
+        for(let blockNumber = 0; blockNumber < latestBlockNumber; blockNumber += this.root.config.maxLogsBlockRange) {
             const eventsResult = await this.provider.getLogs({
                 address: contract,
                 topics,
                 fromBlock: blockNumber,
-                toBlock: (blockNumber + this.MAX_BLOCK_RANGE) > latestBlockNumber ? this.root.config.safeBlockTag : blockNumber + this.MAX_BLOCK_RANGE
+                toBlock: (blockNumber + this.root.config.maxLogsBlockRange) > latestBlockNumber ? this.root.config.safeBlockTag : blockNumber + this.root.config.maxLogsBlockRange
             });
 
             abortSignal.throwIfAborted();

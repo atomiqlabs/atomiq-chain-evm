@@ -11,8 +11,8 @@ import {
     SpvVaultParametersStruct,
     SpvVaultStateStruct
 } from "./SpvVaultContractTypechain";
-import {hexlify} from "ethers/src.ts/utils/data";
-import {AbiCoder, keccak256} from "ethers/lib.esm";
+import {hexlify} from "ethers";
+import {AbiCoder, keccak256} from "ethers";
 
 export function getVaultParamsCommitment(vaultParams: SpvVaultParametersStruct) {
     return keccak256(AbiCoder.defaultAbiCoder().encode(

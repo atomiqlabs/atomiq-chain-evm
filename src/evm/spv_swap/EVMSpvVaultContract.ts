@@ -35,12 +35,12 @@ function decodeUtxo(utxo: string): {txHash: string, vout: bigint} {
     }
 }
 
-function packOwnerAndVaultId(owner: string, vaultId: bigint): string {
+export function packOwnerAndVaultId(owner: string, vaultId: bigint): string {
     if(owner.length!==42) throw new Error("Invalid owner address");
     return owner.toLowerCase() + BigIntBufferUtils.toBuffer(vaultId, "be", 12).toString("hex");
 }
 
-function unpackOwnerAndVaultId(data: string): [string, bigint] {
+export function unpackOwnerAndVaultId(data: string): [string, bigint] {
     return [data.substring(0, 82), BigInt("0x"+data.substring(82, 130))];
 }
 
@@ -256,11 +256,11 @@ export class EVMSpvVaultContract<ChainId extends string>
                         const [ownerFront, vaultIdFront] = unpackOwnerAndVaultId(frontedEvent.args.ownerAndVaultId);
                         result = {
                             type: SpvWithdrawalStateType.FRONTED,
-                            txId: event.args.btcTxHash.substring(2),
+                            txId: event.transactionHash,
                             owner: ownerFront,
                             vaultId: vaultIdFront,
                             recipient: frontedEvent.args.recipient,
-                            fronter: null //TODO: Fronter address is not emitted
+                            fronter: frontedEvent.args.caller
                         };
                         break;
                     case "Claimed":
@@ -268,11 +268,11 @@ export class EVMSpvVaultContract<ChainId extends string>
                         const [ownerClaim, vaultIdClaim] = unpackOwnerAndVaultId(claimedEvent.args.ownerAndVaultId);
                         result = {
                             type: SpvWithdrawalStateType.CLAIMED,
-                            txId: event.args.btcTxHash.substring(2),
+                            txId: event.transactionHash,
                             owner: ownerClaim,
                             vaultId: vaultIdClaim,
                             recipient: claimedEvent.args.recipient,
-                            claimer: null, //TODO: Claimer address is not emitted
+                            claimer: claimedEvent.args.caller,
                             fronter: claimedEvent.args.frontingAddress
                         };
                         break;
@@ -280,7 +280,7 @@ export class EVMSpvVaultContract<ChainId extends string>
                         const closedEvent = event as TypedEventLog<SpvVaultManager["filters"]["Closed"]>;
                         result = {
                             type: SpvWithdrawalStateType.CLOSED,
-                            txId: event.args.btcTxHash.substring(2),
+                            txId: event.transactionHash,
                             owner: closedEvent.args.owner,
                             vaultId: closedEvent.args.vaultId,
                             error: closedEvent.args.error

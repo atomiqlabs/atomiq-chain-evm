@@ -1,4 +1,4 @@
-import {SignatureVerificationError, SwapCommitStatus, SwapDataVerificationError} from "@atomiqlabs/base";
+import {SignatureVerificationError, SwapCommitStateType, SwapDataVerificationError} from "@atomiqlabs/base";
 import {Buffer} from "buffer";
 import { EVMSwapModule } from "../EVMSwapModule";
 import {EVMSwapData} from "../EVMSwapData";
@@ -247,7 +247,7 @@ export class EVMSwapInit extends EVMSwapModule {
                 ),
                 tryWithRetries(() => this.contract.getCommitStatus(sender, swapData), this.retryPolicy)
             ]);
-            if(payStatus!==SwapCommitStatus.NOT_COMMITED) throw new SwapDataVerificationError("Invoice already being paid for or paid");
+            if(payStatus.type!==SwapCommitStateType.NOT_COMMITED) throw new SwapDataVerificationError("Invoice already being paid for or paid");
         }
 
         feeRate ??= await this.root.Fees.getFeeRate();

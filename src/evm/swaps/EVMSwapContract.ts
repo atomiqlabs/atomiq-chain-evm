@@ -3,8 +3,7 @@ import {
     ChainSwapType,
     IntermediaryReputationType,
     RelaySynchronizer,
-    SignatureData,
-    SwapCommitStatus,
+    SignatureData, SwapCommitState, SwapCommitStateType,
     SwapContract,
     TransactionConfirmationOptions
 } from "@atomiqlabs/base";
@@ -97,12 +96,12 @@ export class EVMSwapContract<ChainId extends string = string>
 
         claimHandlersList.forEach(handlerCtor => {
             const handler = new handlerCtor(handlerAddresses.claim[handlerCtor.type]);
-            this.claimHandlersByAddress[handler.address] = handler;
+            this.claimHandlersByAddress[handler.address.toLowerCase()] = handler;
             this.claimHandlersBySwapType[handlerCtor.type] = handler;
         });
 
         this.timelockRefundHandler = new TimelockRefundHandler(handlerAddresses.refund.timelock);
-        this.refundHandlersByAddress[this.timelockRefundHandler.address] = this.timelockRefundHandler;
+        this.refundHandlersByAddress[this.timelockRefundHandler.address.toLowerCase()] = this.timelockRefundHandler;
     }
 
     async start(): Promise<void> {
@@ -267,30 +266,52 @@ export class EVMSwapContract<ChainId extends string = string>
      * @param signer
      * @param data
      */
-    async getCommitStatus(signer: string, data: EVMSwapData): Promise<SwapCommitStatus> {
+    async getCommitStatus(signer: string, data: EVMSwapData): Promise<SwapCommitState> {
         const escrowHash = data.getEscrowHash();
         const stateData = await this.contract.getHashState("0x"+escrowHash);
         const state = Number(stateData.state);
+        const blockHeight = Number(stateData.finishBlockheight);
         switch(state) {
             case ESCROW_STATE_COMMITTED:
-                if(data.isOfferer(signer) && await this.isExpired(signer,data)) return SwapCommitStatus.REFUNDABLE;
-                return SwapCommitStatus.COMMITED;
+                if(data.isOfferer(signer) && await this.isExpired(signer,data)) return {type: SwapCommitStateType.REFUNDABLE};
+                return {type: SwapCommitStateType.COMMITED};
             case ESCROW_STATE_CLAIMED:
-                return SwapCommitStatus.PAID;
+                return {
+                    type: SwapCommitStateType.PAID,
+                    getTxBlock: async () => {
+                        return {
+                            blockTime: await this.Chain.Blocks.getBlockTime(blockHeight),
+                            blockHeight: blockHeight
+                        };
+                    },
+                    getClaimTxId: async () => {
+                        const events = await this.Events.getContractBlockEvents(
+                            ["Claim"],
+                            [null, null, "0x"+escrowHash],
+                            blockHeight, blockHeight
+                        );
+                        return events.length===0 ? null : events[0].transactionHash;
+                    }
+                };
             default:
-                if(await this.isExpired(signer, data)) return SwapCommitStatus.EXPIRED;
-                return SwapCommitStatus.NOT_COMMITED;
+                return {
+                    type: await this.isExpired(signer, data) ? SwapCommitStateType.EXPIRED : SwapCommitStateType.NOT_COMMITED,
+                    getTxBlock: async () => {
+                        return {
+                            blockTime: await this.Chain.Blocks.getBlockTime(blockHeight),
+                            blockHeight: blockHeight
+                        };
+                    },
+                    getRefundTxId: async () => {
+                        const events = await this.Events.getContractBlockEvents(
+                            ["Refund"],
+                            [null, null, "0x"+escrowHash],
+                            blockHeight, blockHeight
+                        );
+                        return events.length===0 ? null : events[0].transactionHash;
+                    }
+                };
         }
-    }
-
-    /**
-     * Checks the status of the specific payment hash
-     *
-     * @param paymentHash
-     */
-    async getPaymentHashStatus(paymentHash: string): Promise<SwapCommitStatus> {
-        //TODO: Noop
-        return SwapCommitStatus.NOT_COMMITED;
     }
 
     /**
