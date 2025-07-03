@@ -52,6 +52,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         this.provider = chainInterface.provider;
         this.evmSwapContract = evmSwapContract;
         this.evmSpvVaultContract = evmSpvVaultContract;
+        this.pollIntervalSeconds = pollIntervalSeconds;
     }
 
     findInitSwapData(call: EVMTxTrace, escrowHash: string, claimHandler: IClaimHandler<any, any>): EVMSwapData {

@@ -20,6 +20,7 @@ class EVMChainEventsBrowser {
         this.provider = chainInterface.provider;
         this.evmSwapContract = evmSwapContract;
         this.evmSpvVaultContract = evmSpvVaultContract;
+        this.pollIntervalSeconds = pollIntervalSeconds;
     }
     findInitSwapData(call, escrowHash, claimHandler) {
         if (call.to.toLowerCase() === this.evmSwapContract.contractAddress.toLowerCase()) {
