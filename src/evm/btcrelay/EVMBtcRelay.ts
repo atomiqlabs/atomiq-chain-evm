@@ -171,7 +171,7 @@ export class EVMBtcRelay<B extends BtcBlock>
                 let storedHeader = EVMBtcStoredHeader.deserialize(dataBuffer.subarray(0, 160));
                 if(storedHeader.getCommitHash()===commitHash) return storedHeader;
                 for(let i = 160; i < dataBuffer.length; i+=48) {
-                    const blockHeader = EVMBtcHeader.deserialize(dataBuffer.subarray(160 + i, 160 + i + 48));
+                    const blockHeader = EVMBtcHeader.deserialize(dataBuffer.subarray(i, i + 48));
                     storedHeader = storedHeader.computeNext(blockHeader);
                     if(storedHeader.getCommitHash()===commitHash) return storedHeader;
                 }
