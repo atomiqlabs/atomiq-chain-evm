@@ -4,10 +4,10 @@ exports.EVMChainEvents = void 0;
 //@ts-ignore
 const fs = require("fs/promises");
 const EVMChainEventsBrowser_1 = require("./EVMChainEventsBrowser");
-const BLOCKHEIGHT_FILENAME = "/evm-blockheight.txt";
 class EVMChainEvents extends EVMChainEventsBrowser_1.EVMChainEventsBrowser {
     constructor(directory, chainInterface, evmSwapContract, evmSpvVaultContract, pollIntervalSeconds) {
         super(chainInterface, evmSwapContract, evmSpvVaultContract, pollIntervalSeconds);
+        this.BLOCKHEIGHT_FILENAME = "/" + chainInterface.chainId + "-blockheight.txt";
         this.directory = directory;
     }
     /**
@@ -17,7 +17,7 @@ class EVMChainEvents extends EVMChainEventsBrowser_1.EVMChainEventsBrowser {
      */
     async getLastEventData() {
         try {
-            const txt = (await fs.readFile(this.directory + BLOCKHEIGHT_FILENAME)).toString();
+            const txt = (await fs.readFile(this.directory + this.BLOCKHEIGHT_FILENAME)).toString();
             const arr = txt.split(";");
             return arr.map(val => {
                 const stateResult = val.split(",");
@@ -50,7 +50,7 @@ class EVMChainEvents extends EVMChainEventsBrowser_1.EVMChainEventsBrowser {
      * @private
      */
     saveLastEventData(newState) {
-        return fs.writeFile(this.directory + BLOCKHEIGHT_FILENAME, newState.map(val => {
+        return fs.writeFile(this.directory + this.BLOCKHEIGHT_FILENAME, newState.map(val => {
             if (val.lastEvent == null) {
                 return val.lastBlockNumber.toString(10);
             }

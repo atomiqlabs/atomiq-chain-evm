@@ -4,6 +4,7 @@ import { EVMSwapContract } from "../swaps/EVMSwapContract";
 import { EVMSpvVaultContract } from "../spv_swap/EVMSpvVaultContract";
 export declare class EVMChainEvents extends EVMChainEventsBrowser {
     private readonly directory;
+    private readonly BLOCKHEIGHT_FILENAME;
     constructor(directory: string, chainInterface: EVMChainInterface, evmSwapContract: EVMSwapContract, evmSpvVaultContract: EVMSpvVaultContract<any>, pollIntervalSeconds?: number);
     /**
      * Retrieves last signature & slot from filesystem

@@ -5,11 +5,11 @@ import {EVMChainInterface} from "../chain/EVMChainInterface";
 import {EVMSwapContract} from "../swaps/EVMSwapContract";
 import {EVMSpvVaultContract} from "../spv_swap/EVMSpvVaultContract";
 
-const BLOCKHEIGHT_FILENAME = "/evm-blockheight.txt";
 
 export class EVMChainEvents extends EVMChainEventsBrowser {
 
     private readonly directory: string;
+    private readonly BLOCKHEIGHT_FILENAME: string;
 
     constructor(
         directory: string,
@@ -19,6 +19,7 @@ export class EVMChainEvents extends EVMChainEventsBrowser {
         pollIntervalSeconds?: number
     ) {
         super(chainInterface, evmSwapContract, evmSpvVaultContract, pollIntervalSeconds);
+        this.BLOCKHEIGHT_FILENAME = "/"+chainInterface.chainId+"-blockheight.txt";
         this.directory = directory;
     }
 
@@ -29,7 +30,7 @@ export class EVMChainEvents extends EVMChainEventsBrowser {
      */
     private async getLastEventData(): Promise<EVMEventListenerState[]> {
         try {
-            const txt: string = (await fs.readFile(this.directory+BLOCKHEIGHT_FILENAME)).toString();
+            const txt: string = (await fs.readFile(this.directory+this.BLOCKHEIGHT_FILENAME)).toString();
             const arr = txt.split(";");
             return arr.map(val => {
                 const stateResult = val.split(",");
@@ -60,7 +61,7 @@ export class EVMChainEvents extends EVMChainEventsBrowser {
      * @private
      */
     private saveLastEventData(newState: EVMEventListenerState[]): Promise<void> {
-        return fs.writeFile(this.directory+BLOCKHEIGHT_FILENAME, newState.map(val => {
+        return fs.writeFile(this.directory+this.BLOCKHEIGHT_FILENAME, newState.map(val => {
             if(val.lastEvent==null) {
                 return val.lastBlockNumber.toString(10);
             } else {
