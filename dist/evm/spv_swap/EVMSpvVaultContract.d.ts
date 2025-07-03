@@ -26,7 +26,8 @@ export declare class EVMSpvVaultContract<ChainId extends string> extends EVMCont
         warn: (msg: any, ...args: any[]) => void;
         error: (msg: any, ...args: any[]) => void;
     };
-    constructor(chainInterface: EVMChainInterface<ChainId>, btcRelay: EVMBtcRelay<any>, bitcoinRpc: BitcoinRpc<any>, contractAddress: string);
+    readonly contractDeploymentHeight: number;
+    constructor(chainInterface: EVMChainInterface<ChainId>, btcRelay: EVMBtcRelay<any>, bitcoinRpc: BitcoinRpc<any>, contractAddress: string, contractDeploymentHeight?: number);
     protected Open(signer: string, vault: EVMSpvVaultData, feeRate: string): Promise<TransactionRequest>;
     protected Deposit(signer: string, vault: EVMSpvVaultData, rawAmounts: bigint[], feeRate: string): Promise<TransactionRequest>;
     protected Front(signer: string, vault: EVMSpvVaultData, data: EVMSpvWithdrawalData, withdrawalSequence: number, feeRate: string): Promise<TransactionRequest>;

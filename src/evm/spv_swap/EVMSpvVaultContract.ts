@@ -69,15 +69,19 @@ export class EVMSpvVaultContract<ChainId extends string>
 
     readonly logger = getLogger("EVMSpvVaultContract: ");
 
+    readonly contractDeploymentHeight: number;
+
     constructor(
         chainInterface: EVMChainInterface<ChainId>,
         btcRelay: EVMBtcRelay<any>,
         bitcoinRpc: BitcoinRpc<any>,
-        contractAddress: string
+        contractAddress: string,
+        contractDeploymentHeight: number = 0
     ) {
         super(chainInterface, contractAddress, SpvVaultContractAbi);
         this.btcRelay = btcRelay;
         this.bitcoinRpc = bitcoinRpc;
+        this.contractDeploymentHeight = contractDeploymentHeight;
     }
 
     //Transactions
@@ -223,7 +227,7 @@ export class EVMSpvVaultContract<ChainId extends string>
                     openedVaults.delete(vaultIdentifier);
                 }
                 return null;
-            }
+            }, undefined, this.contractDeploymentHeight
         );
         const vaults: EVMSpvVaultData[] = [];
         for(let [identifier, vaultParams] of openedVaults.entries()) {

@@ -107,15 +107,17 @@ export class EVMEvents extends EVMModule<any> {
      * @param processor called for every batch of returned signatures, should return a value if the correct signature
      *  was found, or null if the search should continue
      * @param abortSignal
+     * @param startHeight Blockheight at which to start
      */
     public async findInEventsForward<T>(
         contract: string, topics: (string[] | string | null)[],
         processor: (signatures: Log[]) => Promise<T>,
-        abortSignal?: AbortSignal
+        abortSignal?: AbortSignal,
+        startHeight?: number
     ): Promise<T> {
         const {number: latestBlockNumber} = await this.provider.getBlock(this.root.config.safeBlockTag);
 
-        for(let blockNumber = 0; blockNumber < latestBlockNumber; blockNumber += this.root.config.maxLogsBlockRange) {
+        for(let blockNumber = startHeight ?? 0; blockNumber < latestBlockNumber; blockNumber += this.root.config.maxLogsBlockRange) {
             const eventsResult = await this.provider.getLogs({
                 address: contract,
                 topics,

@@ -13,6 +13,7 @@ export type CitreaOptions = {
     swapContract?: string;
     btcRelayContract?: string;
     spvVaultContract?: string;
+    spvVaultDeploymentHeight?: number;
     handlerContracts?: {
         refund?: {
             timelock?: string;

@@ -22,6 +22,7 @@ const CitreaContractAddresses = {
         swapContract: "",
         btcRelayContract: "",
         spvVaultContract: "",
+        spvVaultDeploymentHeight: 0,
         handlerContracts: {
             refund: {
                 timelock: ""
@@ -39,6 +40,7 @@ const CitreaContractAddresses = {
         swapContract: "0xBbf7755b674dD107d59F0650D1A3fA9C60bf6Fe6",
         btcRelayContract: "0xaCeEF9bf23b41D4898516D2Fdcd7b4BDc22444D7",
         spvVaultContract: "0x9Bf990C6088F716279797a602b05941c40591533",
+        spvVaultDeploymentHeight: 12346223,
         handlerContracts: {
             refund: {
                 timelock: "0x4699450973c21d6Fe09e36A8A475EaE4D78a3137"
@@ -81,7 +83,7 @@ function initializeCitrea(options, bitcoinRpc, network) {
             ...options?.handlerContracts?.claim
         }
     });
-    const spvVaultContract = new EVMSpvVaultContract_1.EVMSpvVaultContract(chainInterface, btcRelay, bitcoinRpc, options.spvVaultContract ?? defaultContractAddresses.spvVaultContract);
+    const spvVaultContract = new EVMSpvVaultContract_1.EVMSpvVaultContract(chainInterface, btcRelay, bitcoinRpc, options.spvVaultContract ?? defaultContractAddresses.spvVaultContract, options.spvVaultDeploymentHeight ?? defaultContractAddresses.spvVaultDeploymentHeight);
     const chainEvents = new EVMChainEventsBrowser_1.EVMChainEventsBrowser(chainInterface, swapContract, spvVaultContract);
     return {
         chainId: "CITREA",

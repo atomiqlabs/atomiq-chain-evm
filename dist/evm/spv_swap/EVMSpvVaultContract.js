@@ -30,12 +30,13 @@ function unpackOwnerAndVaultId(data) {
 }
 exports.unpackOwnerAndVaultId = unpackOwnerAndVaultId;
 class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
-    constructor(chainInterface, btcRelay, bitcoinRpc, contractAddress) {
+    constructor(chainInterface, btcRelay, bitcoinRpc, contractAddress, contractDeploymentHeight = 0) {
         super(chainInterface, contractAddress, SpvVaultContractAbi_1.SpvVaultContractAbi);
         this.claimTimeout = 180;
         this.logger = (0, Utils_1.getLogger)("EVMSpvVaultContract: ");
         this.btcRelay = btcRelay;
         this.bitcoinRpc = bitcoinRpc;
+        this.contractDeploymentHeight = contractDeploymentHeight;
     }
     //Transactions
     async Open(signer, vault, feeRate) {
@@ -135,7 +136,7 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
                 openedVaults.delete(vaultIdentifier);
             }
             return null;
-        });
+        }, undefined, this.contractDeploymentHeight);
         const vaults = [];
         for (let [identifier, vaultParams] of openedVaults.entries()) {
             const [owner, vaultIdStr] = identifier.split(":");
