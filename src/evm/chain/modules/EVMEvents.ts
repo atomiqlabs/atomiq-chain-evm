@@ -91,7 +91,7 @@ export class EVMEvents extends EVMModule<any> {
                 toBlock: blockNumber===latestBlockNumber ? this.root.config.safeBlockTag : blockNumber
             });
 
-            abortSignal.throwIfAborted();
+            if(abortSignal!=null) abortSignal.throwIfAborted();
 
             const result: T = await processor(eventsResult.reverse()); //Newest events first
             if(result!=null) return result;
@@ -123,7 +123,7 @@ export class EVMEvents extends EVMModule<any> {
                 toBlock: (blockNumber + this.root.config.maxLogsBlockRange) > latestBlockNumber ? this.root.config.safeBlockTag : blockNumber + this.root.config.maxLogsBlockRange
             });
 
-            abortSignal.throwIfAborted();
+            if(abortSignal!=null) abortSignal.throwIfAborted();
 
             const result: T = await processor(eventsResult); //Oldest events first
             if(result!=null) return result;

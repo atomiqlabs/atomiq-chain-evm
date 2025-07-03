@@ -71,7 +71,7 @@ function initializeCitrea(options, bitcoinRpc, network) {
         maxLogsBlockRange: options.maxLogsBlockRange ?? 500
     }, options.retryPolicy, Fees);
     const btcRelay = new EVMBtcRelay_1.EVMBtcRelay(chainInterface, bitcoinRpc, network, options.btcRelayContract ?? defaultContractAddresses.btcRelayContract);
-    const swapContract = new EVMSwapContract_1.EVMSwapContract(chainInterface, btcRelay, options.swapContract, {
+    const swapContract = new EVMSwapContract_1.EVMSwapContract(chainInterface, btcRelay, options.swapContract ?? defaultContractAddresses.swapContract, {
         refund: {
             ...defaultContractAddresses.handlerContracts.refund,
             ...options?.handlerContracts?.refund

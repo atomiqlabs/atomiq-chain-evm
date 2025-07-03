@@ -12,6 +12,7 @@ export type EVMTxTrace = {
     error: string;
     revertReason: string;
     calls: EVMTxTrace[];
+    type: "CREATE" | "CALL" | "STATICCALL";
 };
 export declare class EVMTransactions extends EVMModule<any> {
     private readonly latestConfirmedNonces;

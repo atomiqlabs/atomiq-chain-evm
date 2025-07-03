@@ -86,7 +86,7 @@ class EVMBtcStoredHeader {
     serialize() {
         const buffer = buffer_1.Buffer.alloc(160);
         this.blockheader.serialize().copy(buffer, 0, 0, 80);
-        base_1.BigIntBufferUtils.toBuffer(this.chainWork).copy(buffer, 80, 0, 32);
+        base_1.BigIntBufferUtils.toBuffer(this.chainWork, "be", 32).copy(buffer, 80, 0, 32);
         buffer.writeUint32BE(this.blockHeight, 112);
         buffer.writeUint32BE(this.lastDiffAdjustment, 116);
         for (let i = 0; i < 10; i++) {

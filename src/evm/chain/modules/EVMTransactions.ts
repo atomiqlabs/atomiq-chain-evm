@@ -14,7 +14,8 @@ export type EVMTxTrace = {
     output: string,
     error: string,
     revertReason: string,
-    calls: EVMTxTrace[]
+    calls: EVMTxTrace[],
+    type: "CREATE" | "CALL" | "STATICCALL"
 };
 
 export class EVMTransactions extends EVMModule<any> {

@@ -117,20 +117,27 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
     }
     async findStoredBlockheaderInTraces(txTrace, commitHash) {
         if (txTrace.to.toLowerCase() === (await this.contract.getAddress()).toLowerCase()) {
-            const result = this.parseCalldata(txTrace.input);
             let dataBuffer;
-            if (result != null) {
-                if (result.name === "submitMainBlockheaders" || result.name === "submitShortForkBlockheaders") {
-                    const functionCall = result;
-                    dataBuffer = Buffer.from((0, ethers_1.hexlify)(functionCall.args[0]).substring(2), "hex");
-                }
-                else if (result.name === "submitForkBlockheaders") {
-                    const functionCall = result;
-                    dataBuffer = Buffer.from((0, ethers_1.hexlify)(functionCall.args[1]).substring(2), "hex");
+            if (txTrace.type === "CREATE") {
+                dataBuffer = Buffer.from(txTrace.input.substring(txTrace.input.length - 384, txTrace.input.length - 64), "hex");
+            }
+            else {
+                const result = this.parseCalldata(txTrace.input);
+                if (result != null) {
+                    if (result.name === "submitMainBlockheaders" || result.name === "submitShortForkBlockheaders") {
+                        const functionCall = result;
+                        dataBuffer = Buffer.from((0, ethers_1.hexlify)(functionCall.args[0]).substring(2), "hex");
+                    }
+                    else if (result.name === "submitForkBlockheaders") {
+                        const functionCall = result;
+                        dataBuffer = Buffer.from((0, ethers_1.hexlify)(functionCall.args[1]).substring(2), "hex");
+                    }
                 }
             }
             if (dataBuffer != null) {
                 let storedHeader = EVMBtcStoredHeader_1.EVMBtcStoredHeader.deserialize(dataBuffer.subarray(0, 160));
+                if (storedHeader.getCommitHash() === commitHash)
+                    return storedHeader;
                 for (let i = 160; i < dataBuffer.length; i += 48) {
                     const blockHeader = EVMBtcHeader_1.EVMBtcHeader.deserialize(dataBuffer.subarray(160 + (i * 48), 160 + ((i + 1) * 48)));
                     storedHeader = storedHeader.computeNext(blockHeader);
@@ -138,13 +145,6 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
                         return storedHeader;
                 }
             }
-        }
-        else if (txTrace.to == null && txTrace.input.length > 322) {
-            //Contract deployment, read data from constructor params
-            const dataBuffer = Buffer.from(txTrace.input.substring(txTrace.input.length - 320), "hex");
-            const storedHeader = EVMBtcStoredHeader_1.EVMBtcStoredHeader.deserialize(dataBuffer);
-            if (storedHeader.getCommitHash() === commitHash)
-                return storedHeader;
         }
         if (txTrace.calls != null) {
             for (let call of txTrace.calls) {

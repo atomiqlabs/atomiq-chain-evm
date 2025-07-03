@@ -149,33 +149,33 @@ export class EVMBtcRelay<B extends BtcBlock>
 
     private async findStoredBlockheaderInTraces(txTrace: EVMTxTrace, commitHash: string): Promise<EVMBtcStoredHeader> {
         if(txTrace.to.toLowerCase() === (await this.contract.getAddress()).toLowerCase()) {
-            const result = this.parseCalldata(txTrace.input);
             let dataBuffer: Buffer;
-            if(result!=null) {
-                if(result.name==="submitMainBlockheaders" || result.name==="submitShortForkBlockheaders") {
-                    const functionCall: TypedFunctionCall<
-                        typeof this.contract.submitMainBlockheaders |
-                        typeof this.contract.submitShortForkBlockheaders
-                    > = result;
-                    dataBuffer = Buffer.from(hexlify(functionCall.args[0]).substring(2), "hex");
-                } else if(result.name==="submitForkBlockheaders") {
-                    const functionCall: TypedFunctionCall<typeof this.contract.submitForkBlockheaders> = result;
-                    dataBuffer = Buffer.from(hexlify(functionCall.args[1]).substring(2), "hex");
+            if(txTrace.type==="CREATE") {
+                dataBuffer = Buffer.from(txTrace.input.substring(txTrace.input.length-384, txTrace.input.length-64), "hex");
+            } else {
+                const result = this.parseCalldata(txTrace.input);
+                if(result!=null) {
+                    if(result.name==="submitMainBlockheaders" || result.name==="submitShortForkBlockheaders") {
+                        const functionCall: TypedFunctionCall<
+                            typeof this.contract.submitMainBlockheaders |
+                            typeof this.contract.submitShortForkBlockheaders
+                        > = result;
+                        dataBuffer = Buffer.from(hexlify(functionCall.args[0]).substring(2), "hex");
+                    } else if(result.name==="submitForkBlockheaders") {
+                        const functionCall: TypedFunctionCall<typeof this.contract.submitForkBlockheaders> = result;
+                        dataBuffer = Buffer.from(hexlify(functionCall.args[1]).substring(2), "hex");
+                    }
                 }
             }
             if(dataBuffer!=null) {
                 let storedHeader = EVMBtcStoredHeader.deserialize(dataBuffer.subarray(0, 160));
+                if(storedHeader.getCommitHash()===commitHash) return storedHeader;
                 for(let i = 160; i < dataBuffer.length; i+=48) {
                     const blockHeader = EVMBtcHeader.deserialize(dataBuffer.subarray(160 + (i*48), 160 + ((i+1) * 48)));
                     storedHeader = storedHeader.computeNext(blockHeader);
                     if(storedHeader.getCommitHash()===commitHash) return storedHeader;
                 }
             }
-        } else if(txTrace.to == null && txTrace.input.length > 322) {
-            //Contract deployment, read data from constructor params
-            const dataBuffer = Buffer.from(txTrace.input.substring(txTrace.input.length-320), "hex");
-            const storedHeader = EVMBtcStoredHeader.deserialize(dataBuffer);
-            if(storedHeader.getCommitHash()===commitHash) return storedHeader;
         }
 
         if(txTrace.calls!=null) {

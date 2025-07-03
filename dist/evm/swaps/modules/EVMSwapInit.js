@@ -115,7 +115,7 @@ class EVMSwapInit extends EVMSwapModule_1.EVMSwapModule {
      */
     async isSignatureValid(sender, swapData, timeout, prefix, signature, preFetchData) {
         if (!swapData.isOfferer(sender) && !swapData.isClaimer(sender))
-            throw new Error("TX sender not offerer nor claimer");
+            throw new base_1.SignatureVerificationError("TX sender not offerer nor claimer");
         const signer = swapData.isOfferer(sender) ? swapData.claimer : swapData.offerer;
         if (await this.contract.isExpired(sender, swapData)) {
             throw new base_1.SignatureVerificationError("Swap will expire too soon!");
@@ -192,6 +192,9 @@ class EVMSwapInit extends EVMSwapModule_1.EVMSwapModule {
      */
     async txsInit(sender, swapData, timeout, prefix, signature, skipChecks, feeRate) {
         var _a;
+        if (swapData.isClaimer(sender) && swapData.isPayIn() &&
+            swapData.isToken(this.root.getNativeCurrencyAddress()))
+            throw new Error("Cannot initialize as claimer for payIn=true and native currency!");
         if (!skipChecks) {
             const [_, payStatus] = await Promise.all([
                 swapData.isOfferer(sender) && !swapData.reputation ? Promise.resolve() : (0, Utils_1.tryWithRetries)(() => this.isSignatureValid(sender, swapData, timeout, prefix, signature), this.retryPolicy, (e) => e instanceof base_1.SignatureVerificationError),
@@ -203,7 +206,7 @@ class EVMSwapInit extends EVMSwapModule_1.EVMSwapModule {
         feeRate ?? (feeRate = await this.root.Fees.getFeeRate());
         const txs = [];
         const requiredApprovals = {};
-        if (swapData.payIn) {
+        if (swapData.payIn && swapData.isOfferer(sender)) {
             if (!swapData.isToken(this.root.getNativeCurrencyAddress())) {
                 requiredApprovals[swapData.token.toLowerCase()] = swapData.amount;
             }

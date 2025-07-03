@@ -107,7 +107,7 @@ export function initializeCitrea(
     );
 
     const swapContract = new EVMSwapContract(
-        chainInterface, btcRelay, options.swapContract, {
+        chainInterface, btcRelay, options.swapContract ?? defaultContractAddresses.swapContract, {
             refund: {
                 ...defaultContractAddresses.handlerContracts.refund,
                 ...options?.handlerContracts?.refund
