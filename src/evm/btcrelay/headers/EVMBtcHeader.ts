@@ -61,7 +61,7 @@ export class EVMBtcHeader implements BtcHeader {
     }
 
     serializeCompact(): Buffer {
-        const buffer = Buffer.alloc(80);
+        const buffer = Buffer.alloc(48);
         buffer.writeUInt32LE(this.version, 0);
         this.merkleRoot.copy(buffer, 4);
         buffer.writeUInt32LE(this.timestamp, 36);

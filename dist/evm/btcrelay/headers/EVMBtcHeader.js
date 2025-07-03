@@ -35,7 +35,7 @@ class EVMBtcHeader {
         return buffer_1.Buffer.from((0, sha2_1.sha256)((0, sha2_1.sha256)(this.serialize())));
     }
     serializeCompact() {
-        const buffer = buffer_1.Buffer.alloc(80);
+        const buffer = buffer_1.Buffer.alloc(48);
         buffer.writeUInt32LE(this.version, 0);
         this.merkleRoot.copy(buffer, 4);
         buffer.writeUInt32LE(this.timestamp, 36);

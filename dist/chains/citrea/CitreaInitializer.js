@@ -38,7 +38,7 @@ const CitreaContractAddresses = {
     TESTNET4: {
         executionContract: "0x9e289512965A0842b342A6BB3F3c41F22a555Cfe",
         swapContract: "0xBbf7755b674dD107d59F0650D1A3fA9C60bf6Fe6",
-        btcRelayContract: "0xaCeEF9bf23b41D4898516D2Fdcd7b4BDc22444D7",
+        btcRelayContract: "0xfd0FbA128244f502678251b07dEa0fb4EcE959F3",
         spvVaultContract: "0x9Bf990C6088F716279797a602b05941c40591533",
         spvVaultDeploymentHeight: 12346223,
         handlerContracts: {
