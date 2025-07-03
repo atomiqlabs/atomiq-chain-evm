@@ -21,7 +21,7 @@ function serializeBlockHeader(e) {
     });
 }
 const GAS_PER_BLOCKHEADER = 30000;
-const GAS_BASE_MAIN = 7500;
+const GAS_BASE_MAIN = 15000;
 const GAS_PER_BLOCKHEADER_FORK = 65000;
 const GAS_PER_BLOCKHEADER_FORKED = 10000;
 const GAS_BASE_FORK = 25000;

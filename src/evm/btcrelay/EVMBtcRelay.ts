@@ -24,7 +24,7 @@ function serializeBlockHeader(e: BtcBlock): EVMBtcHeader {
 }
 
 const GAS_PER_BLOCKHEADER = 30_000;
-const GAS_BASE_MAIN = 7_500;
+const GAS_BASE_MAIN = 15_000;
 const GAS_PER_BLOCKHEADER_FORK = 65_000;
 const GAS_PER_BLOCKHEADER_FORKED = 10_000;
 const GAS_BASE_FORK = 25_000;
