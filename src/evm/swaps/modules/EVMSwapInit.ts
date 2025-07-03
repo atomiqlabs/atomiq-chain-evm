@@ -143,7 +143,7 @@ export class EVMSwapInit extends EVMSwapModule {
         preFetchData?: EVMPreFetchVerification
     ): Promise<null> {
         if(!swapData.isOfferer(sender) && !swapData.isClaimer(sender))
-            throw new Error("TX sender not offerer nor claimer");
+            throw new SignatureVerificationError("TX sender not offerer nor claimer");
 
         const signer = swapData.isOfferer(sender) ? swapData.claimer : swapData.offerer;
 
@@ -239,6 +239,11 @@ export class EVMSwapInit extends EVMSwapModule {
         skipChecks?: boolean,
         feeRate?: string
     ): Promise<EVMTx[]> {
+        if(
+            swapData.isClaimer(sender) && swapData.isPayIn() &&
+            swapData.isToken(this.root.getNativeCurrencyAddress())
+        ) throw new Error("Cannot initialize as claimer for payIn=true and native currency!");
+
         if(!skipChecks) {
             const [_, payStatus] = await Promise.all([
                 swapData.isOfferer(sender) && !swapData.reputation ? Promise.resolve() : tryWithRetries(
@@ -254,7 +259,7 @@ export class EVMSwapInit extends EVMSwapModule {
 
         const txs: EVMTx[] = [];
         const requiredApprovals: {[address: string]: bigint} = {};
-        if(swapData.payIn) {
+        if(swapData.payIn && swapData.isOfferer(sender)) {
             if(!swapData.isToken(this.root.getNativeCurrencyAddress())) {
                 requiredApprovals[swapData.token.toLowerCase()] = swapData.amount;
             }
