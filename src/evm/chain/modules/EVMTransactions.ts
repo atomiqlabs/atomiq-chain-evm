@@ -69,6 +69,7 @@ export class EVMTransactions extends EVMModule<any> {
 
         for(let i=0;i<txs.length;i++) {
             const tx = txs[i];
+            tx.chainId = this.root.evmChainId;
             tx.from = signer.getAddress();
             if(tx.nonce!=null) nonce = tx.nonce; //Take the nonce from last tx
             if(nonce==null) nonce = await this.root.provider.getTransactionCount(signer.getAddress(), "pending"); //Fetch the nonce
