@@ -93,7 +93,7 @@ export class EVMSwapInit extends EVMSwapModule {
         swapData: EVMSwapData,
         authorizationTimeout: number
     ): Promise<{prefix: string, timeout: string, signature: string}> {
-        const authTimeout = Math.floor(Date.now()/1000)+authorizationTimeout;
+        const authExpiry = Math.floor(Date.now()/1000)+authorizationTimeout;
 
         const signature = await this.root.Signatures.signTypedMessage(this.contract.contractAddress, signer, Initialize, "Initialize", {
             "swapHash": "0x"+swapData.getEscrowHash(),
@@ -112,13 +112,13 @@ export class EVMSwapInit extends EVMSwapModule {
             "claimerBounty": swapData.claimerBounty,
             "depositToken": swapData.depositToken,
             "claimActionHash": ZeroHash,
-            "deadline": authorizationTimeout,
+            "deadline": authExpiry,
             "extraDataHash": keccak256("0x"+(swapData.extraData ?? ""))
         });
 
         return {
             prefix: this.getAuthPrefix(swapData),
-            timeout: authTimeout.toString(10),
+            timeout: authExpiry.toString(10),
             signature
         };
     }
