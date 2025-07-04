@@ -44,7 +44,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
      * @private
      */
     async prepareTransactions(signer, txs) {
-        let nonce = await signer.getNonce();
+        let nonce = (await signer.getNonce()) ?? await this.root.provider.getTransactionCount(signer.getAddress(), "pending");
         const latestConfirmedNonce = this.latestConfirmedNonces[signer.getAddress()];
         if (latestConfirmedNonce != null && latestConfirmedNonce > nonce) {
             console.debug("StarknetTransactions: prepareTransactions(): Using nonce from local cache!");
