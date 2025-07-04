@@ -264,7 +264,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
 
     protected async checkEventsEcrowManager(currentBlock: Block, lastProcessedEvent?: {blockHash: string, logIndex: number}, lastBlockNumber?: number): Promise<[{blockHash: string, logIndex: number}, number]> {
         lastBlockNumber ??= currentBlock.number;
-        this.logger.debug(`checkEvents(EscrowManager): Requesting logs: ${lastBlockNumber}...${currentBlock.number}`);
+        // this.logger.debug(`checkEvents(EscrowManager): Requesting logs: ${lastBlockNumber}...${currentBlock.number}`);
         let events = await this.evmSwapContract.Events.getContractBlockEvents(
             ["Initialize", "Claim", "Refund"],
             [],
@@ -295,7 +295,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
 
     protected async checkEventsSpvVaults(currentBlock: Block, lastProcessedEvent?: {blockHash: string, logIndex: number}, lastBlockNumber?: number): Promise<[{blockHash: string, logIndex: number}, number]> {
         lastBlockNumber ??= currentBlock.number;
-        this.logger.debug(`checkEvents(SpvVaults): Requesting logs: ${lastBlockNumber}...${currentBlock.number}`);
+        // this.logger.debug(`checkEvents(SpvVaults): Requesting logs: ${lastBlockNumber}...${currentBlock.number}`);
         let events = await this.evmSpvVaultContract.Events.getContractBlockEvents(
             ["Opened", "Deposited", "Closed", "Fronted", "Claimed"],
             [],

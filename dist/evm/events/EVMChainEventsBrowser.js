@@ -184,7 +184,7 @@ class EVMChainEventsBrowser {
     }
     async checkEventsEcrowManager(currentBlock, lastProcessedEvent, lastBlockNumber) {
         lastBlockNumber ?? (lastBlockNumber = currentBlock.number);
-        this.logger.debug(`checkEvents(EscrowManager): Requesting logs: ${lastBlockNumber}...${currentBlock.number}`);
+        // this.logger.debug(`checkEvents(EscrowManager): Requesting logs: ${lastBlockNumber}...${currentBlock.number}`);
         let events = await this.evmSwapContract.Events.getContractBlockEvents(["Initialize", "Claim", "Refund"], [], lastBlockNumber, currentBlock.number);
         if (lastProcessedEvent != null) {
             const latestProcessedEventIndex = events.findIndex(val => val.blockHash === lastProcessedEvent.blockHash && val.index === lastProcessedEvent.logIndex);
@@ -211,7 +211,7 @@ class EVMChainEventsBrowser {
     }
     async checkEventsSpvVaults(currentBlock, lastProcessedEvent, lastBlockNumber) {
         lastBlockNumber ?? (lastBlockNumber = currentBlock.number);
-        this.logger.debug(`checkEvents(SpvVaults): Requesting logs: ${lastBlockNumber}...${currentBlock.number}`);
+        // this.logger.debug(`checkEvents(SpvVaults): Requesting logs: ${lastBlockNumber}...${currentBlock.number}`);
         let events = await this.evmSpvVaultContract.Events.getContractBlockEvents(["Opened", "Deposited", "Closed", "Fronted", "Claimed"], [], lastBlockNumber, currentBlock.number);
         if (lastProcessedEvent != null) {
             const latestProcessedEventIndex = events.findIndex(val => val.blockHash === lastProcessedEvent.blockHash && val.index === lastProcessedEvent.logIndex);
