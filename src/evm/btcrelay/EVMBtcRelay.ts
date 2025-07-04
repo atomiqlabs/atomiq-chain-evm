@@ -75,9 +75,10 @@ export class EVMBtcRelay<B extends BtcBlock>
         chainInterface: EVMChainInterface<any>,
         bitcoinRpc: BitcoinRpc<B>,
         bitcoinNetwork: BitcoinNetwork,
-        contractAddress: string
+        contractAddress: string,
+        contractDeploymentHeight?: number
     ) {
-        super(chainInterface, contractAddress, BtcRelayAbi);
+        super(chainInterface, contractAddress, BtcRelayAbi, contractDeploymentHeight);
         this.bitcoinRpc = bitcoinRpc;
     }
 

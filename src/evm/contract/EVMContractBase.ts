@@ -29,16 +29,19 @@ export class EVMContractBase<T extends BaseContract> {
     public readonly Chain: EVMChainInterface<any>;
 
     public readonly contractAddress: string;
+    public readonly contractDeploymentHeight: number;
 
     constructor(
         chainInterface: EVMChainInterface<any>,
         contractAddress: string,
-        contractAbi: any
+        contractAbi: any,
+        contractDeploymentHeight?: number,
     ) {
         this.Chain = chainInterface;
         this.contract = new Contract(contractAddress, contractAbi, chainInterface.provider) as unknown as T;
         this.Events = new EVMContractEvents<T>(chainInterface, this);
         this.contractAddress = contractAddress;
+        this.contractDeploymentHeight = contractDeploymentHeight;
     }
 
     toTypedEvent<TEventName extends keyof T["filters"] = keyof T["filters"]>(log: Log): TypedEventLog<T["filters"][TEventName]> {

@@ -12,6 +12,7 @@ export type CitreaOptions = {
     maxLogsBlockRange?: number;
     swapContract?: string;
     btcRelayContract?: string;
+    btcRelayDeploymentHeight?: number;
     spvVaultContract?: string;
     spvVaultDeploymentHeight?: number;
     handlerContracts?: {

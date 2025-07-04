@@ -69,19 +69,16 @@ export class EVMSpvVaultContract<ChainId extends string>
 
     readonly logger = getLogger("EVMSpvVaultContract: ");
 
-    readonly contractDeploymentHeight: number;
-
     constructor(
         chainInterface: EVMChainInterface<ChainId>,
         btcRelay: EVMBtcRelay<any>,
         bitcoinRpc: BitcoinRpc<any>,
         contractAddress: string,
-        contractDeploymentHeight: number = 0
+        contractDeploymentHeight?: number
     ) {
-        super(chainInterface, contractAddress, SpvVaultContractAbi);
+        super(chainInterface, contractAddress, SpvVaultContractAbi, contractDeploymentHeight);
         this.btcRelay = btcRelay;
         this.bitcoinRpc = bitcoinRpc;
-        this.contractDeploymentHeight = contractDeploymentHeight;
     }
 
     //Transactions
@@ -227,7 +224,7 @@ export class EVMSpvVaultContract<ChainId extends string>
                     openedVaults.delete(vaultIdentifier);
                 }
                 return null;
-            }, undefined, this.contractDeploymentHeight
+            }
         );
         const vaults: EVMSpvVaultData[] = [];
         for(let [identifier, vaultParams] of openedVaults.entries()) {
@@ -243,10 +240,7 @@ export class EVMSpvVaultContract<ChainId extends string>
 
     async getWithdrawalState(btcTxId: string): Promise<SpvWithdrawalState> {
         const txHash = Buffer.from(btcTxId, "hex").reverse();
-        let result: SpvWithdrawalState = {
-            type: SpvWithdrawalStateType.NOT_FOUND
-        };
-        await this.Events.findInContractEvents(
+        let result: SpvWithdrawalState = await this.Events.findInContractEvents(
             ["Fronted", "Claimed", "Closed"],
             [
                 null,
@@ -258,7 +252,7 @@ export class EVMSpvVaultContract<ChainId extends string>
                     case "Fronted":
                         const frontedEvent = event as TypedEventLog<SpvVaultManager["filters"]["Fronted"]>;
                         const [ownerFront, vaultIdFront] = unpackOwnerAndVaultId(frontedEvent.args.ownerAndVaultId);
-                        result = {
+                        return {
                             type: SpvWithdrawalStateType.FRONTED,
                             txId: event.transactionHash,
                             owner: ownerFront,
@@ -266,11 +260,10 @@ export class EVMSpvVaultContract<ChainId extends string>
                             recipient: frontedEvent.args.recipient,
                             fronter: frontedEvent.args.caller
                         };
-                        break;
                     case "Claimed":
                         const claimedEvent = event as TypedEventLog<SpvVaultManager["filters"]["Claimed"]>;
                         const [ownerClaim, vaultIdClaim] = unpackOwnerAndVaultId(claimedEvent.args.ownerAndVaultId);
-                        result = {
+                        return {
                             type: SpvWithdrawalStateType.CLAIMED,
                             txId: event.transactionHash,
                             owner: ownerClaim,
@@ -279,20 +272,21 @@ export class EVMSpvVaultContract<ChainId extends string>
                             claimer: claimedEvent.args.caller,
                             fronter: claimedEvent.args.frontingAddress
                         };
-                        break;
                     case "Closed":
                         const closedEvent = event as TypedEventLog<SpvVaultManager["filters"]["Closed"]>;
-                        result = {
+                        return {
                             type: SpvWithdrawalStateType.CLOSED,
                             txId: event.transactionHash,
                             owner: closedEvent.args.owner,
                             vaultId: closedEvent.args.vaultId,
                             error: closedEvent.args.error
-                        }
-                        break;
+                        };
                 }
             }
         );
+        result ??= {
+            type: SpvWithdrawalStateType.NOT_FOUND
+        };
         return result;
     }
 

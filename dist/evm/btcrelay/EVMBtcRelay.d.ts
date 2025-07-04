@@ -16,7 +16,7 @@ export declare class EVMBtcRelay<B extends BtcBlock> extends EVMContractBase<Btc
     readonly maxHeadersPerTx: number;
     readonly maxForkHeadersPerTx: number;
     readonly maxShortForkHeadersPerTx: number;
-    constructor(chainInterface: EVMChainInterface<any>, bitcoinRpc: BitcoinRpc<B>, bitcoinNetwork: BitcoinNetwork, contractAddress: string);
+    constructor(chainInterface: EVMChainInterface<any>, bitcoinRpc: BitcoinRpc<B>, bitcoinNetwork: BitcoinNetwork, contractAddress: string, contractDeploymentHeight?: number);
     /**
      * Computes subsequent commited headers as they will appear on the blockchain when transactions
      *  are submitted & confirmed

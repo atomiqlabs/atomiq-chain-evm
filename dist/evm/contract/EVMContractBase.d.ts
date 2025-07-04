@@ -14,7 +14,8 @@ export declare class EVMContractBase<T extends BaseContract> {
     readonly Events: EVMContractEvents<T>;
     readonly Chain: EVMChainInterface<any>;
     readonly contractAddress: string;
-    constructor(chainInterface: EVMChainInterface<any>, contractAddress: string, contractAbi: any);
+    readonly contractDeploymentHeight: number;
+    constructor(chainInterface: EVMChainInterface<any>, contractAddress: string, contractAbi: any, contractDeploymentHeight?: number);
     toTypedEvent<TEventName extends keyof T["filters"] = keyof T["filters"]>(log: Log): TypedEventLog<T["filters"][TEventName]>;
     parseCalldata<TMethod extends TypedContractMethod>(calldata: string): TypedFunctionCall<TMethod>;
 }

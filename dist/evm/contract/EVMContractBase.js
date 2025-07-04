@@ -7,11 +7,12 @@ const EVMContractEvents_1 = require("./modules/EVMContractEvents");
  * Base class providing program specific utilities
  */
 class EVMContractBase {
-    constructor(chainInterface, contractAddress, contractAbi) {
+    constructor(chainInterface, contractAddress, contractAbi, contractDeploymentHeight) {
         this.Chain = chainInterface;
         this.contract = new ethers_1.Contract(contractAddress, contractAbi, chainInterface.provider);
         this.Events = new EVMContractEvents_1.EVMContractEvents(chainInterface, this);
         this.contractAddress = contractAddress;
+        this.contractDeploymentHeight = contractDeploymentHeight;
     }
     toTypedEvent(log) {
         let foundFragment;

@@ -54,8 +54,8 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         EVMFees_1.EVMFees.applyFeeRate(tx, GAS_BASE_FORK + (GAS_PER_BLOCKHEADER_FORK * forkHeaders.length) + (GAS_PER_BLOCKHEADER_FORKED * totalForkHeaders), feeRate);
         return tx;
     }
-    constructor(chainInterface, bitcoinRpc, bitcoinNetwork, contractAddress) {
-        super(chainInterface, contractAddress, BtcRelayAbi_1.BtcRelayAbi);
+    constructor(chainInterface, bitcoinRpc, bitcoinNetwork, contractAddress, contractDeploymentHeight) {
+        super(chainInterface, contractAddress, BtcRelayAbi_1.BtcRelayAbi, contractDeploymentHeight);
         this.maxHeadersPerTx = 100;
         this.maxForkHeadersPerTx = 50;
         this.maxShortForkHeadersPerTx = 100;

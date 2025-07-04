@@ -71,7 +71,7 @@ export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
                 const result: TResult = await processor(event);
                 if(result!=null) return result;
             }
-        }, abortSignal);
+        }, abortSignal, this.contract.contractDeploymentHeight);
     }
 
     /**
@@ -82,14 +82,12 @@ export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
      * @param processor called for every event, should return a value if the correct event was found, or null
      *  if the search should continue
      * @param abortSignal
-     * @param startHeight Blockheight at which to start
      */
     public async findInContractEventsForward<TResult, TEventName extends keyof T["filters"]>(
         events: TEventName[],
         keys: string[],
         processor: (event: TypedEventLog<T["filters"][TEventName]>) => Promise<TResult>,
-        abortSignal?: AbortSignal,
-        startHeight?: number
+        abortSignal?: AbortSignal
     ): Promise<TResult> {
         return this.findInEventsForward<TResult>(await this.baseContract.getAddress(), this.toFilter(events, keys), async (events: Log[]) => {
             const parsedEvents = this.toTypedEvents<TEventName>(events);
@@ -97,7 +95,7 @@ export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
                 const result: TResult = await processor(event);
                 if(result!=null) return result;
             }
-        }, abortSignal, startHeight);
+        }, abortSignal, this.contract.contractDeploymentHeight);
     }
 
 }

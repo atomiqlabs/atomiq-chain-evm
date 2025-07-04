@@ -30,13 +30,12 @@ function unpackOwnerAndVaultId(data) {
 }
 exports.unpackOwnerAndVaultId = unpackOwnerAndVaultId;
 class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
-    constructor(chainInterface, btcRelay, bitcoinRpc, contractAddress, contractDeploymentHeight = 0) {
-        super(chainInterface, contractAddress, SpvVaultContractAbi_1.SpvVaultContractAbi);
+    constructor(chainInterface, btcRelay, bitcoinRpc, contractAddress, contractDeploymentHeight) {
+        super(chainInterface, contractAddress, SpvVaultContractAbi_1.SpvVaultContractAbi, contractDeploymentHeight);
         this.claimTimeout = 180;
         this.logger = (0, Utils_1.getLogger)("EVMSpvVaultContract: ");
         this.btcRelay = btcRelay;
         this.bitcoinRpc = bitcoinRpc;
-        this.contractDeploymentHeight = contractDeploymentHeight;
     }
     //Transactions
     async Open(signer, vault, feeRate) {
@@ -136,7 +135,7 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
                 openedVaults.delete(vaultIdentifier);
             }
             return null;
-        }, undefined, this.contractDeploymentHeight);
+        });
         const vaults = [];
         for (let [identifier, vaultParams] of openedVaults.entries()) {
             const [owner, vaultIdStr] = identifier.split(":");
@@ -149,10 +148,7 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
     }
     async getWithdrawalState(btcTxId) {
         const txHash = buffer_1.Buffer.from(btcTxId, "hex").reverse();
-        let result = {
-            type: base_1.SpvWithdrawalStateType.NOT_FOUND
-        };
-        await this.Events.findInContractEvents(["Fronted", "Claimed", "Closed"], [
+        let result = await this.Events.findInContractEvents(["Fronted", "Claimed", "Closed"], [
             null,
             null,
             (0, ethers_1.hexlify)(txHash)
@@ -161,7 +157,7 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
                 case "Fronted":
                     const frontedEvent = event;
                     const [ownerFront, vaultIdFront] = unpackOwnerAndVaultId(frontedEvent.args.ownerAndVaultId);
-                    result = {
+                    return {
                         type: base_1.SpvWithdrawalStateType.FRONTED,
                         txId: event.transactionHash,
                         owner: ownerFront,
@@ -169,11 +165,10 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
                         recipient: frontedEvent.args.recipient,
                         fronter: frontedEvent.args.caller
                     };
-                    break;
                 case "Claimed":
                     const claimedEvent = event;
                     const [ownerClaim, vaultIdClaim] = unpackOwnerAndVaultId(claimedEvent.args.ownerAndVaultId);
-                    result = {
+                    return {
                         type: base_1.SpvWithdrawalStateType.CLAIMED,
                         txId: event.transactionHash,
                         owner: ownerClaim,
@@ -182,18 +177,19 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
                         claimer: claimedEvent.args.caller,
                         fronter: claimedEvent.args.frontingAddress
                     };
-                    break;
                 case "Closed":
                     const closedEvent = event;
-                    result = {
+                    return {
                         type: base_1.SpvWithdrawalStateType.CLOSED,
                         txId: event.transactionHash,
                         owner: closedEvent.args.owner,
                         vaultId: closedEvent.args.vaultId,
                         error: closedEvent.args.error
                     };
-                    break;
             }
+        });
+        result ?? (result = {
+            type: base_1.SpvWithdrawalStateType.NOT_FOUND
         });
         return result;
     }

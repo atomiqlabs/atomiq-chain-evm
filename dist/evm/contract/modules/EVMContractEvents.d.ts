@@ -37,7 +37,6 @@ export declare class EVMContractEvents<T extends BaseContract> extends EVMEvents
      * @param processor called for every event, should return a value if the correct event was found, or null
      *  if the search should continue
      * @param abortSignal
-     * @param startHeight Blockheight at which to start
      */
-    findInContractEventsForward<TResult, TEventName extends keyof T["filters"]>(events: TEventName[], keys: string[], processor: (event: TypedEventLog<T["filters"][TEventName]>) => Promise<TResult>, abortSignal?: AbortSignal, startHeight?: number): Promise<TResult>;
+    findInContractEventsForward<TResult, TEventName extends keyof T["filters"]>(events: TEventName[], keys: string[], processor: (event: TypedEventLog<T["filters"][TEventName]>) => Promise<TResult>, abortSignal?: AbortSignal): Promise<TResult>;
 }

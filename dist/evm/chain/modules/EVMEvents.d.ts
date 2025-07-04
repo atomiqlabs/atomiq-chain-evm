@@ -19,8 +19,9 @@ export declare class EVMEvents extends EVMModule<any> {
      * @param processor called for every batch of returned signatures, should return a value if the correct signature
      *  was found, or null if the search should continue
      * @param abortSignal
+     * @param genesisHeight Height when the contract was deployed
      */
-    findInEvents<T>(contract: string, topics: (string[] | string | null)[], processor: (signatures: Log[]) => Promise<T>, abortSignal?: AbortSignal): Promise<T>;
+    findInEvents<T>(contract: string, topics: (string[] | string | null)[], processor: (signatures: Log[]) => Promise<T>, abortSignal?: AbortSignal, genesisHeight?: number): Promise<T>;
     /**
      * Runs a search forwards in time, processing events from a specific contract and keys
      *
