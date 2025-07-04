@@ -64,7 +64,16 @@ exports.CitreaAssets = {
     }
 };
 function initializeCitrea(options, bitcoinRpc, network) {
-    options.chainType ?? (options.chainType = "MAINNET");
+    if (options.chainType == null) {
+        switch (network) {
+            case base_1.BitcoinNetwork.TESTNET4:
+                options.chainType = "TESTNET4";
+                break;
+            case base_1.BitcoinNetwork.MAINNET:
+                options.chainType = "MAINNET";
+                break;
+        }
+    }
     const defaultContractAddresses = CitreaContractAddresses[options.chainType];
     const chainId = CitreaChainIds[options.chainType];
     const provider = typeof (options.rpcUrl) === "string" ?
