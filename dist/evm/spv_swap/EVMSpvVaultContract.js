@@ -209,19 +209,19 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         let rawAmount1 = 0n;
         let executionHash = null;
         if (data.length === 28) {
-            rawAmount0 = data.readBigInt64LE(20).valueOf();
+            rawAmount0 = data.readBigInt64BE(20).valueOf();
         }
         else if (data.length === 36) {
-            rawAmount0 = data.readBigInt64LE(20).valueOf();
-            rawAmount1 = data.readBigInt64LE(28).valueOf();
+            rawAmount0 = data.readBigInt64BE(20).valueOf();
+            rawAmount1 = data.readBigInt64BE(28).valueOf();
         }
         else if (data.length === 60) {
-            rawAmount0 = data.readBigInt64LE(20).valueOf();
+            rawAmount0 = data.readBigInt64BE(20).valueOf();
             executionHash = data.slice(28, 60).toString("hex");
         }
         else if (data.length === 68) {
-            rawAmount0 = data.readBigInt64LE(20).valueOf();
-            rawAmount1 = data.readBigInt64LE(28).valueOf();
+            rawAmount0 = data.readBigInt64BE(20).valueOf();
+            rawAmount1 = data.readBigInt64BE(28).valueOf();
             executionHash = data.slice(36, 68).toString("hex");
         }
         else {
@@ -258,8 +258,8 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         const executionHashBuffer = executionHash == null ? buffer_1.Buffer.alloc(0) : buffer_1.Buffer.from(executionHash, "hex");
         return buffer_1.Buffer.concat([
             recipientBuffer,
-            amount0Buffer.reverse(),
-            amount1Buffer.reverse(),
+            amount0Buffer,
+            amount1Buffer,
             executionHashBuffer
         ]);
     }
