@@ -43,7 +43,7 @@ class EVMSwapInit extends EVMSwapModule_1.EVMSwapModule {
             value += swapData.getAmount();
         if (swapData.isDepositToken(this.root.getNativeCurrencyAddress()))
             value += swapData.getTotalDeposit();
-        const tx = await this.swapContract.initialize.populateTransaction(swapData.toEscrowStruct(), signature, timeout, "0x" + swapData.extraData, {
+        const tx = await this.swapContract.initialize.populateTransaction(swapData.toEscrowStruct(), signature, timeout, "0x" + (swapData.extraData ?? ""), {
             value
         });
         tx.from = sender;
