@@ -98,7 +98,7 @@ export function initializeCitrea(
         new JsonRpcProvider(options.rpcUrl, {name: "Citrea", chainId}) :
         options.rpcUrl;
 
-    const Fees = options.fees ?? new EVMFees(provider);
+    const Fees = options.fees ?? new EVMFees(provider, 2n * 1_000_000_000n, 1_000_000n);
 
     const chainInterface = new EVMChainInterface("CITREA", chainId, provider, {
         safeBlockTag: "latest",

@@ -97,7 +97,7 @@ export class EVMFees {
 
         const [baseFee, priorityFee] = feeRate.split(",");
 
-        tx.maxFeePerGas = BigInt(baseFee);
+        tx.maxFeePerGas = BigInt(baseFee) + BigInt(priorityFee);
         tx.maxPriorityFeePerGas = BigInt(priorityFee);
         tx.gasLimit = BigInt(gas) + 21_000n;
     }

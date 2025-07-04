@@ -67,7 +67,7 @@ function initializeCitrea(options, bitcoinRpc, network) {
     const provider = typeof (options.rpcUrl) === "string" ?
         new ethers_1.JsonRpcProvider(options.rpcUrl, { name: "Citrea", chainId }) :
         options.rpcUrl;
-    const Fees = options.fees ?? new EVMFees_1.EVMFees(provider);
+    const Fees = options.fees ?? new EVMFees_1.EVMFees(provider, 2n * 1000000000n, 1000000n);
     const chainInterface = new EVMChainInterface_1.EVMChainInterface("CITREA", chainId, provider, {
         safeBlockTag: "latest",
         maxLogsBlockRange: options.maxLogsBlockRange ?? 500

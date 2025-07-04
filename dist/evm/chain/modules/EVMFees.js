@@ -65,7 +65,7 @@ class EVMFees {
         if (feeRate == null)
             return null;
         const [baseFee, priorityFee] = feeRate.split(",");
-        tx.maxFeePerGas = BigInt(baseFee);
+        tx.maxFeePerGas = BigInt(baseFee) + BigInt(priorityFee);
         tx.maxPriorityFeePerGas = BigInt(priorityFee);
         tx.gasLimit = BigInt(gas) + 21000n;
     }
