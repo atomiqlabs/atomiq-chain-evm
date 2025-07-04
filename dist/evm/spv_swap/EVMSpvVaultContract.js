@@ -230,7 +230,7 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         const recipient = "0x" + data.slice(0, 20).toString("hex");
         if (!EVMAddresses_1.EVMAddresses.isValidAddress(recipient))
             throw new Error("Invalid recipient specified");
-        return { executionHash, rawAmounts: [rawAmount0, rawAmount1], recipient };
+        return { executionHash, rawAmounts: [rawAmount0, rawAmount1], recipient: (0, ethers_1.getAddress)(recipient) };
     }
     toOpReturnData(recipient, rawAmounts, executionHash) {
         return EVMSpvVaultContract.toOpReturnData(recipient, rawAmounts, executionHash);

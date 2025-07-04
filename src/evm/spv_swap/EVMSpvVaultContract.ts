@@ -327,7 +327,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         const recipient = "0x"+data.slice(0, 20).toString("hex");
         if(!EVMAddresses.isValidAddress(recipient)) throw new Error("Invalid recipient specified");
 
-        return {executionHash, rawAmounts: [rawAmount0, rawAmount1], recipient};
+        return {executionHash, rawAmounts: [rawAmount0, rawAmount1], recipient: getAddress(recipient)};
     }
 
     toOpReturnData(recipient: string, rawAmounts: bigint[], executionHash?: string): Buffer {
