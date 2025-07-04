@@ -41,7 +41,7 @@ export function packOwnerAndVaultId(owner: string, vaultId: bigint): string {
 }
 
 export function unpackOwnerAndVaultId(data: string): [string, bigint] {
-    return [data.substring(0, 82), BigInt("0x"+data.substring(82, 130))];
+    return [data.substring(0, 42), BigInt("0x"+data.substring(42, 66))];
 }
 
 export class EVMSpvVaultContract<ChainId extends string>
