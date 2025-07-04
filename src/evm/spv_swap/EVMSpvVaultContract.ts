@@ -309,16 +309,16 @@ export class EVMSpvVaultContract<ChainId extends string>
         let rawAmount1: bigint = 0n;
         let executionHash: string = null;
         if(data.length===28) {
-            rawAmount0 = data.readBigInt64LE(20).valueOf();
+            rawAmount0 = data.readBigInt64BE(20).valueOf();
         } else if(data.length===36) {
-            rawAmount0 = data.readBigInt64LE(20).valueOf();
-            rawAmount1 = data.readBigInt64LE(28).valueOf();
+            rawAmount0 = data.readBigInt64BE(20).valueOf();
+            rawAmount1 = data.readBigInt64BE(28).valueOf();
         } else if(data.length===60) {
-            rawAmount0 = data.readBigInt64LE(20).valueOf();
+            rawAmount0 = data.readBigInt64BE(20).valueOf();
             executionHash = data.slice(28, 60).toString("hex");
         } else if(data.length===68) {
-            rawAmount0 = data.readBigInt64LE(20).valueOf();
-            rawAmount1 = data.readBigInt64LE(28).valueOf();
+            rawAmount0 = data.readBigInt64BE(20).valueOf();
+            rawAmount1 = data.readBigInt64BE(28).valueOf();
             executionHash = data.slice(36, 68).toString("hex");
         } else {
             throw new Error("Invalid OP_RETURN data length!");
@@ -352,8 +352,8 @@ export class EVMSpvVaultContract<ChainId extends string>
 
         return Buffer.concat([
             recipientBuffer,
-            amount0Buffer.reverse(),
-            amount1Buffer.reverse(),
+            amount0Buffer,
+            amount1Buffer,
             executionHashBuffer
         ]);
     }
