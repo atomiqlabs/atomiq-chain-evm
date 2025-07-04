@@ -4,11 +4,6 @@ export declare class EVMModule<ChainId extends string = string, EVMChainId exten
     protected readonly provider: JsonRpcApiProvider;
     protected readonly retryPolicy: EVMRetryPolicy;
     protected readonly root: EVMChainInterface<ChainId, EVMChainId>;
-    protected readonly logger: {
-        debug: (msg: any, ...args: any[]) => void;
-        info: (msg: any, ...args: any[]) => void;
-        warn: (msg: any, ...args: any[]) => void;
-        error: (msg: any, ...args: any[]) => void;
-    };
+    protected readonly logger: import("../../utils/Utils").LoggerType;
     constructor(root: EVMChainInterface<ChainId, EVMChainId>);
 }

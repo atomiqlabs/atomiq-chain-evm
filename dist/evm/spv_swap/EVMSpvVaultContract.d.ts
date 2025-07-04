@@ -20,12 +20,7 @@ export declare class EVMSpvVaultContract<ChainId extends string> extends EVMCont
     readonly btcRelay: EVMBtcRelay<any>;
     readonly bitcoinRpc: BitcoinRpc<any>;
     readonly claimTimeout: number;
-    readonly logger: {
-        debug: (msg: any, ...args: any[]) => void;
-        info: (msg: any, ...args: any[]) => void;
-        warn: (msg: any, ...args: any[]) => void;
-        error: (msg: any, ...args: any[]) => void;
-    };
+    readonly logger: import("../../utils/Utils").LoggerType;
     constructor(chainInterface: EVMChainInterface<ChainId>, btcRelay: EVMBtcRelay<any>, bitcoinRpc: BitcoinRpc<any>, contractAddress: string, contractDeploymentHeight?: number);
     protected Open(signer: string, vault: EVMSpvVaultData, feeRate: string): Promise<TransactionRequest>;
     protected Deposit(signer: string, vault: EVMSpvVaultData, rawAmounts: bigint[], feeRate: string): Promise<TransactionRequest>;

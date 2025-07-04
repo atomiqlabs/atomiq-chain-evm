@@ -27,16 +27,7 @@ export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
     protected readonly chainInterface: EVMChainInterface;
     protected readonly evmSwapContract: EVMSwapContract;
     protected readonly evmSpvVaultContract: EVMSpvVaultContract<any>;
-    protected readonly logger: {
-        debug: (msg: any, ...args: any[]) => void;
-        info: (msg: any, ...args: any[]) => void; /**
-         * EVM on-chain event handler for front-end systems without access to fs, uses WS or long-polling to subscribe, might lose
-         *  out on some events if the network is unreliable, front-end systems should take this into consideration and not
-         *  rely purely on events
-         */
-        warn: (msg: any, ...args: any[]) => void;
-        error: (msg: any, ...args: any[]) => void;
-    };
+    protected readonly logger: import("../../utils/Utils").LoggerType;
     protected stopped: boolean;
     protected pollIntervalSeconds: number;
     private timeout;

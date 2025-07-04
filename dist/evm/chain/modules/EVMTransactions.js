@@ -25,7 +25,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
             //Don't re-send transactions
             // if(state==="not_found") await this.sendSignedTransaction(tx).catch(e => {
             //     if(e.baseError?.code === 59) return; //Transaction already in the mempool
-            //     console.error("Error on transaction re-send: ", e);
+            //     this.logger.error("confirmTransaction(): Error on transaction re-send: ", e);
             // });
         }
         const nextAccountNonce = tx.nonce + 1;
@@ -47,7 +47,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
         let nonce = (await signer.getNonce()) ?? await this.root.provider.getTransactionCount(signer.getAddress(), "pending");
         const latestConfirmedNonce = this.latestConfirmedNonces[signer.getAddress()];
         if (latestConfirmedNonce != null && latestConfirmedNonce > nonce) {
-            console.debug("StarknetTransactions: prepareTransactions(): Using nonce from local cache!");
+            this.logger.debug("prepareTransactions(): Using nonce from local cache!");
             nonce = latestConfirmedNonce;
         }
         for (let i = 0; i < txs.length; i++) {

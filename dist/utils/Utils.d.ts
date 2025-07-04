@@ -6,12 +6,7 @@ export type LoggerType = {
 };
 export declare function timeoutPromise(timeoutMillis: number, abortSignal?: AbortSignal): Promise<void>;
 export declare function onceAsync<T>(executor: () => Promise<T>): () => Promise<T>;
-export declare function getLogger(prefix: string): {
-    debug: (msg: any, ...args: any[]) => void;
-    info: (msg: any, ...args: any[]) => void;
-    warn: (msg: any, ...args: any[]) => void;
-    error: (msg: any, ...args: any[]) => void;
-};
+export declare function getLogger(prefix: string): LoggerType;
 export declare function tryWithRetries<T>(func: () => Promise<T>, retryPolicy?: {
     maxRetries?: number;
     delay?: number;
