@@ -31,7 +31,7 @@ export class TimelockRefundHandler implements IHandler<bigint, never> {
     }
 
     public static getExpiry(data: EVMSwapData): bigint {
-        const expiryDataBuffer = Buffer.from(data.refundData.startsWith("0x") ? data.refundHandler : data.refundData.substring(2), "hex");
+        const expiryDataBuffer = Buffer.from(data.refundData.startsWith("0x") ? data.refundData.substring(2) : data.refundData, "hex");
         return BigIntBufferUtils.fromBuffer(expiryDataBuffer, "be");
     }
 

@@ -20,7 +20,7 @@ class TimelockRefundHandler {
         return TimelockRefundHandler.gas;
     }
     static getExpiry(data) {
-        const expiryDataBuffer = Buffer.from(data.refundData.startsWith("0x") ? data.refundHandler : data.refundData.substring(2), "hex");
+        const expiryDataBuffer = Buffer.from(data.refundData.startsWith("0x") ? data.refundData.substring(2) : data.refundData, "hex");
         return base_1.BigIntBufferUtils.fromBuffer(expiryDataBuffer, "be");
     }
 }
