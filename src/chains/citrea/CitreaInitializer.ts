@@ -94,6 +94,8 @@ export function initializeCitrea(
     bitcoinRpc: BitcoinRpc<any>,
     network: BitcoinNetwork
 ): ChainData<CitreaChainType> {
+    options.chainType ??= "MAINNET";
+
     const defaultContractAddresses = CitreaContractAddresses[options.chainType];
     const chainId = CitreaChainIds[options.chainType];
 
