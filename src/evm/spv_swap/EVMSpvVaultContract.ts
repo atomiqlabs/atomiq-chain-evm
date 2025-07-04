@@ -141,7 +141,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         blockheader: EVMBtcStoredHeader, merkle: Buffer[], position: number, feeRate: string
     ): Promise<TransactionRequest> {
         const tx = await this.contract.claim.populateTransaction(
-            vault.owner, vault.vaultId, vault.getVaultParamsStruct(), data.btcTx.hex,
+            vault.owner, vault.vaultId, vault.getVaultParamsStruct(), "0x"+data.btcTx.hex,
             blockheader.serializeToStruct(), merkle, position
         )
 

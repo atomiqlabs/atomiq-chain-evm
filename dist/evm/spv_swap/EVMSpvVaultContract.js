@@ -73,7 +73,7 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         return tx;
     }
     async Claim(signer, vault, data, blockheader, merkle, position, feeRate) {
-        const tx = await this.contract.claim.populateTransaction(vault.owner, vault.vaultId, vault.getVaultParamsStruct(), data.btcTx.hex, blockheader.serializeToStruct(), merkle, position);
+        const tx = await this.contract.claim.populateTransaction(vault.owner, vault.vaultId, vault.getVaultParamsStruct(), "0x" + data.btcTx.hex, blockheader.serializeToStruct(), merkle, position);
         tx.from = signer;
         EVMFees_1.EVMFees.applyFeeRate(tx, EVMSpvVaultContract.GasCosts.CLAIM, feeRate);
         return tx;

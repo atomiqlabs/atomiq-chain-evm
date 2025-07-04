@@ -158,7 +158,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
     getBlock(commitHash, blockHash) {
         return this.Events.findInContractEvents(["StoreHeader", "StoreForkHeader"], [
             commitHash,
-            blockHash == null ? null : "0x" + blockHash.toString("hex")
+            blockHash == null ? null : "0x" + Buffer.from([...blockHash]).reverse().toString("hex")
         ], async (event) => {
             const txTrace = await this.Chain.Transactions.traceTransaction(event.transactionHash);
             const storedBlockheader = await this.findStoredBlockheaderInTraces(txTrace, event.args.commitHash);

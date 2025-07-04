@@ -193,7 +193,7 @@ export class EVMBtcRelay<B extends BtcBlock>
             ["StoreHeader", "StoreForkHeader"],
             [
                 commitHash,
-                blockHash==null ? null : "0x"+blockHash.toString("hex")
+                blockHash==null ? null : "0x"+Buffer.from([...blockHash]).reverse().toString("hex")
             ],
             async (event) => {
                 const txTrace = await this.Chain.Transactions.traceTransaction(event.transactionHash);
