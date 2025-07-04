@@ -19,7 +19,7 @@ import {SpvVaultManager, SpvVaultParametersStructOutput} from "./SpvVaultContrac
 import {EVMBtcRelay} from "../btcrelay/EVMBtcRelay";
 import {getLogger} from "../../utils/Utils";
 import {EVMChainInterface} from "../chain/EVMChainInterface";
-import {AbiCoder, hexlify, keccak256, TransactionRequest, ZeroHash} from "ethers";
+import {AbiCoder, getAddress, hexlify, keccak256, TransactionRequest, ZeroHash} from "ethers";
 import {EVMAddresses} from "../chain/modules/EVMAddresses";
 import {EVMSpvVaultData, getVaultParamsCommitment} from "./EVMSpvVaultData";
 import {EVMSpvWithdrawalData} from "./EVMSpvWithdrawalData";
@@ -41,7 +41,7 @@ export function packOwnerAndVaultId(owner: string, vaultId: bigint): string {
 }
 
 export function unpackOwnerAndVaultId(data: string): [string, bigint] {
-    return [data.substring(0, 42), BigInt("0x"+data.substring(42, 66))];
+    return [getAddress(data.substring(0, 42)), BigInt("0x"+data.substring(42, 66))];
 }
 
 export class EVMSpvVaultContract<ChainId extends string>

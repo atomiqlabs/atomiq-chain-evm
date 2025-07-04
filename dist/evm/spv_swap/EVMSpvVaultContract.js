@@ -26,7 +26,7 @@ function packOwnerAndVaultId(owner, vaultId) {
 }
 exports.packOwnerAndVaultId = packOwnerAndVaultId;
 function unpackOwnerAndVaultId(data) {
-    return [data.substring(0, 42), BigInt("0x" + data.substring(42, 66))];
+    return [(0, ethers_1.getAddress)(data.substring(0, 42)), BigInt("0x" + data.substring(42, 66))];
 }
 exports.unpackOwnerAndVaultId = unpackOwnerAndVaultId;
 class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
