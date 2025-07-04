@@ -10,6 +10,7 @@ export declare class EVMSpvWithdrawalData extends SpvWithdrawalTransactionData {
         executionHash: string;
     };
     isRecipient(address: string): boolean;
+    getFrontingId(): string;
     getTxHash(): string;
     getFrontingAmount(): bigint[];
     serialize(): any;

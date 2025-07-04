@@ -4,12 +4,19 @@ exports.EVMSpvWithdrawalData = void 0;
 const base_1 = require("@atomiqlabs/base");
 const buffer_1 = require("buffer");
 const EVMSpvVaultContract_1 = require("./EVMSpvVaultContract");
+const ethers_1 = require("ethers");
 class EVMSpvWithdrawalData extends base_1.SpvWithdrawalTransactionData {
     fromOpReturnData(data) {
         return EVMSpvVaultContract_1.EVMSpvVaultContract.fromOpReturnData(data);
     }
     isRecipient(address) {
         return this.getRecipient().toLowerCase() === address.toLowerCase();
+    }
+    getFrontingId() {
+        const callerFee = this.getCallerFee();
+        const frontingFee = this.getFrontingFee();
+        const txDataHash = (0, ethers_1.keccak256)(ethers_1.AbiCoder.defaultAbiCoder().encode(["address", "uint64", "uint64", "uint64", "uint64", "uint64", "uint64", "uint64", "bytes32", "uint256"], [this.recipient, this.rawAmounts[0], this.rawAmounts[1], callerFee[0], callerFee[1], frontingFee[0], frontingFee[1], this.getExecutionFee()[0], this.executionHash, this.executionExpiry]));
+        return (0, ethers_1.keccak256)(ethers_1.AbiCoder.defaultAbiCoder().encode(["bytes32", "bytes32"], [txDataHash, this.getTxHash()])).substring(2);
     }
     getTxHash() {
         return "0x" + buffer_1.Buffer.from(this.btcTx.txid, "hex").reverse().toString("hex");

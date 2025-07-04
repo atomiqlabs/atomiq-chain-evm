@@ -19,7 +19,7 @@ import {SpvVaultManager, SpvVaultParametersStructOutput} from "./SpvVaultContrac
 import {EVMBtcRelay} from "../btcrelay/EVMBtcRelay";
 import {getLogger} from "../../utils/Utils";
 import {EVMChainInterface} from "../chain/EVMChainInterface";
-import {AbiCoder, getAddress, hexlify, keccak256, TransactionRequest, ZeroHash} from "ethers";
+import {AbiCoder, getAddress, hexlify, keccak256, TransactionRequest, ZeroAddress, ZeroHash} from "ethers";
 import {EVMAddresses} from "../chain/modules/EVMAddresses";
 import {EVMSpvVaultData, getVaultParamsCommitment} from "./EVMSpvVaultData";
 import {EVMSpvWithdrawalData} from "./EVMSpvWithdrawalData";
@@ -185,6 +185,12 @@ export class EVMSpvVaultContract<ChainId extends string>
     }
 
     //Getters
+    async getFronterAddress(owner: string, vaultId: bigint, withdrawal: EVMSpvWithdrawalData): Promise<string> {
+        const frontingAddress = await this.contract.getFronterById(owner, vaultId, "0x"+withdrawal.getFrontingId());
+        if(frontingAddress===ZeroAddress) return null;
+        return frontingAddress;
+    }
+
     async getVaultData(owner: string, vaultId: bigint): Promise<EVMSpvVaultData> {
         const vaultState = await this.contract.getVault(owner, vaultId);
         const blockheight = Number(vaultState.openBlockheight);

@@ -106,6 +106,12 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         }, vaultParams, utxo));
     }
     //Getters
+    async getFronterAddress(owner, vaultId, withdrawal) {
+        const frontingAddress = await this.contract.getFronterById(owner, vaultId, "0x" + withdrawal.getFrontingId());
+        if (frontingAddress === ethers_1.ZeroAddress)
+            return null;
+        return frontingAddress;
+    }
     async getVaultData(owner, vaultId) {
         const vaultState = await this.contract.getVault(owner, vaultId);
         const blockheight = Number(vaultState.openBlockheight);
