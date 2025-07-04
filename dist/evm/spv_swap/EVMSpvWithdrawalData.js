@@ -6,6 +6,9 @@ const buffer_1 = require("buffer");
 const EVMSpvVaultContract_1 = require("./EVMSpvVaultContract");
 const ethers_1 = require("ethers");
 class EVMSpvWithdrawalData extends base_1.SpvWithdrawalTransactionData {
+    getExecutionHashWith0x() {
+        return this.executionHash == null ? ethers_1.ZeroHash : (this.executionHash.startsWith("0x") ? this.executionHash : "0x" + this.executionHash);
+    }
     fromOpReturnData(data) {
         return EVMSpvVaultContract_1.EVMSpvVaultContract.fromOpReturnData(data);
     }
@@ -15,7 +18,7 @@ class EVMSpvWithdrawalData extends base_1.SpvWithdrawalTransactionData {
     getFrontingId() {
         const callerFee = this.getCallerFee();
         const frontingFee = this.getFrontingFee();
-        const txDataHash = (0, ethers_1.keccak256)(ethers_1.AbiCoder.defaultAbiCoder().encode(["address", "uint64", "uint64", "uint64", "uint64", "uint64", "uint64", "uint64", "bytes32", "uint256"], [this.recipient, this.rawAmounts[0], this.rawAmounts[1], callerFee[0], callerFee[1], frontingFee[0], frontingFee[1], this.getExecutionFee()[0], this.executionHash, this.executionExpiry]));
+        const txDataHash = (0, ethers_1.keccak256)(ethers_1.AbiCoder.defaultAbiCoder().encode(["address", "uint64", "uint64", "uint64", "uint64", "uint64", "uint64", "uint64", "bytes32", "uint256"], [this.recipient, this.rawAmounts[0], this.rawAmounts[1], callerFee[0], callerFee[1], frontingFee[0], frontingFee[1], this.getExecutionFee()[0], this.getExecutionHashWith0x(), this.executionExpiry]));
         return (0, ethers_1.keccak256)(ethers_1.AbiCoder.defaultAbiCoder().encode(["bytes32", "bytes32"], [txDataHash, this.getTxHash()])).substring(2);
     }
     getTxHash() {
@@ -43,7 +46,7 @@ class EVMSpvWithdrawalData extends base_1.SpvWithdrawalTransactionData {
             frontingFee0: frontingFee[0],
             frontingFee1: frontingFee[1] ?? 0n,
             executionHandlerFeeAmount0: executionFee[0],
-            executionHash: this.executionHash.startsWith("0x") ? this.executionHash : "0x" + this.executionHash,
+            executionHash: this.getExecutionHashWith0x(),
             executionExpiry: BigInt(this.executionExpiry)
         };
     }

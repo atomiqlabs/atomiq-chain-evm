@@ -7,6 +7,10 @@ import {AbiCoder, keccak256, ZeroHash} from "ethers";
 
 export class EVMSpvWithdrawalData extends SpvWithdrawalTransactionData {
 
+    private getExecutionHashWith0x() {
+        return this.executionHash==null ? ZeroHash : (this.executionHash.startsWith("0x") ? this.executionHash : "0x"+this.executionHash)
+    }
+
     protected fromOpReturnData(data: Buffer): { recipient: string; rawAmounts: bigint[]; executionHash: string } {
         return EVMSpvVaultContract.fromOpReturnData(data);
     }
@@ -20,7 +24,7 @@ export class EVMSpvWithdrawalData extends SpvWithdrawalTransactionData {
         const frontingFee = this.getFrontingFee();
         const txDataHash = keccak256(AbiCoder.defaultAbiCoder().encode(
             ["address", "uint64", "uint64", "uint64", "uint64", "uint64", "uint64", "uint64", "bytes32", "uint256"],
-            [this.recipient, this.rawAmounts[0], this.rawAmounts[1], callerFee[0], callerFee[1], frontingFee[0], frontingFee[1], this.getExecutionFee()[0], this.executionHash, this.executionExpiry]
+            [this.recipient, this.rawAmounts[0], this.rawAmounts[1], callerFee[0], callerFee[1], frontingFee[0], frontingFee[1], this.getExecutionFee()[0], this.getExecutionHashWith0x(), this.executionExpiry]
         ));
         return keccak256(AbiCoder.defaultAbiCoder().encode(
             ["bytes32", "bytes32"],
@@ -56,7 +60,7 @@ export class EVMSpvWithdrawalData extends SpvWithdrawalTransactionData {
             frontingFee0: frontingFee[0],
             frontingFee1: frontingFee[1] ?? 0n,
             executionHandlerFeeAmount0: executionFee[0],
-            executionHash: this.executionHash.startsWith("0x") ? this.executionHash : "0x"+this.executionHash,
+            executionHash: this.getExecutionHashWith0x(),
             executionExpiry: BigInt(this.executionExpiry)
         }
     }
