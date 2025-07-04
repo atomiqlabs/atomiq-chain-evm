@@ -145,7 +145,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
     ): SpvVaultOpenEvent {
         const owner = event.args.owner;
         const vaultId = event.args.vaultId;
-        const btcTxId = Buffer.from(event.args.btcTxHash, "hex").reverse().toString("hex");
+        const btcTxId = Buffer.from(event.args.btcTxHash.substring(2), "hex").reverse().toString("hex");
         const vout = Number(event.args.vout);
 
         this.logger.debug("SpvOpenEvent owner: "+owner+" vaultId: "+vaultId+" utxo: "+btcTxId+":"+vout);
@@ -167,7 +167,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         event: TypedEventLog<SpvVaultManager["filters"]["Fronted"]>
     ): SpvVaultFrontEvent {
         const [owner, vaultId] = unpackOwnerAndVaultId(event.args.ownerAndVaultId);
-        const btcTxId = Buffer.from(event.args.btcTxHash, "hex").reverse().toString("hex");
+        const btcTxId = Buffer.from(event.args.btcTxHash.substring(2), "hex").reverse().toString("hex");
         const recipient = event.args.recipient;
         const executionHash = event.args.executionHash;
         const amounts = [event.args.amount0, event.args.amount1];
@@ -182,7 +182,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         event: TypedEventLog<SpvVaultManager["filters"]["Claimed"]>
     ): SpvVaultClaimEvent {
         const [owner, vaultId] = unpackOwnerAndVaultId(event.args.ownerAndVaultId);
-        const btcTxId = Buffer.from(event.args.btcTxHash, "hex").reverse().toString("hex");
+        const btcTxId = Buffer.from(event.args.btcTxHash.substring(2), "hex").reverse().toString("hex");
         const recipient = event.args.recipient;
         const executionHash = event.args.executionHash;
         const amounts = [event.args.amount0, event.args.amount1];
@@ -199,7 +199,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
     protected parseSpvCloseEvent(
         event: TypedEventLog<SpvVaultManager["filters"]["Closed"]>
     ): SpvVaultCloseEvent {
-        const btcTxId = Buffer.from(event.args.btcTxHash, "hex").reverse().toString("hex");
+        const btcTxId = Buffer.from(event.args.btcTxHash.substring(2), "hex").reverse().toString("hex");
 
         return new SpvVaultCloseEvent(event.args.owner, event.args.vaultId, btcTxId, event.args.error);
     }
