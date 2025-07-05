@@ -17,8 +17,8 @@ class CitreaFees extends EVMFees_1.EVMFees {
      */
     async __getFeeRate() {
         const res = await this.provider.send("eth_getBlockByNumber", ["latest", false]);
-        const l1Fee = BigInt(res.result.l1FeeRate);
-        const baseFee = BigInt(res.result.baseFeePerGas) * this.feeMultiplierPPM / 1000000n;
+        const l1Fee = BigInt(res.l1FeeRate);
+        const baseFee = BigInt(res.baseFeePerGas) * this.feeMultiplierPPM / 1000000n;
         this.logger.debug("__getFeeRate(): Base fee rate: " + baseFee.toString(10) + ", l1 fee rate: " + l1Fee.toString(10));
         return { baseFee, l1Fee };
     }
