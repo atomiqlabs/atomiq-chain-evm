@@ -62,3 +62,6 @@ class CitreaFees extends EVMFees_1.EVMFees {
     }
 }
 exports.CitreaFees = CitreaFees;
+CitreaFees.StateDiffSize = {
+    APPROVE_DIFF_SIZE: 40,
+};

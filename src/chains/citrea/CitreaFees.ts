@@ -3,6 +3,10 @@ import {getLogger} from "../../utils/Utils";
 
 export class CitreaFees extends EVMFees {
 
+    public static readonly StateDiffSize = {
+        APPROVE_DIFF_SIZE: 40,
+    };
+
     protected readonly logger = getLogger("CitreaFees: ");
 
     private _blockFeeCache: {

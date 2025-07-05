@@ -126,6 +126,6 @@ class EVMLpVault extends EVMSwapModule_1.EVMSwapModule {
 }
 exports.EVMLpVault = EVMLpVault;
 EVMLpVault.GasCosts = {
-    WITHDRAW: 100000,
-    DEPOSIT: 100000
+    WITHDRAW: 100000 + 21000,
+    DEPOSIT: 100000 + 21000
 };

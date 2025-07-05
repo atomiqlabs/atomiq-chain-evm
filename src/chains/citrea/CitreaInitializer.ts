@@ -13,6 +13,7 @@ import {EVMSpvWithdrawalData} from "../../evm/spv_swap/EVMSpvWithdrawalData";
 import {CitreaFees} from "./CitreaFees";
 import {CitreaBtcRelay} from "./CitreaBtcRelay";
 import {CitreaSwapContract} from "./CitreaSwapContract";
+import {CitreaTokens} from "./CitreaTokens";
 
 const CitreaChainIds = {
     MAINNET: null,
@@ -126,6 +127,7 @@ export function initializeCitrea(
         safeBlockTag: "latest",
         maxLogsBlockRange: options.maxLogsBlockRange ?? 500
     }, options.retryPolicy, Fees);
+    chainInterface.Tokens = new CitreaTokens(chainInterface); //Override with custom token module allowing l1 state diff based fee calculation
 
     const btcRelay = new CitreaBtcRelay(
         chainInterface, bitcoinRpc, network, options.btcRelayContract ?? defaultContractAddresses.btcRelayContract,

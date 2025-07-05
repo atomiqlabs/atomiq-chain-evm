@@ -403,8 +403,8 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
 }
 exports.EVMSpvVaultContract = EVMSpvVaultContract;
 EVMSpvVaultContract.GasCosts = {
-    DEPOSIT: 150000,
-    OPEN: 100000,
-    FRONT: 250000,
-    CLAIM: 250000
+    DEPOSIT: 150000 + 21000,
+    OPEN: 100000 + 21000,
+    FRONT: 250000 + 21000,
+    CLAIM: 250000 + 21000
 };

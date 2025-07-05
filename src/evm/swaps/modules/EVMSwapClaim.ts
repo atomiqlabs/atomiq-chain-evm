@@ -13,8 +13,8 @@ import {EVMBtcStoredHeader} from "../../btcrelay/headers/EVMBtcStoredHeader";
 export class EVMSwapClaim extends EVMSwapModule {
 
     private static readonly GasCosts = {
-        CLAIM: 120_000,
-        CLAIM_WITH_SUCCESS_ACTION: 150_000
+        CLAIM: 120_000 + 21_000,
+        CLAIM_WITH_SUCCESS_ACTION: 150_000 + 21_000
     };
 
     /**

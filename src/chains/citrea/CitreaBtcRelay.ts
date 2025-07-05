@@ -31,7 +31,7 @@ export class CitreaBtcRelay<B extends BtcBlock> extends EVMBtcRelay<B> {
 
         const synchronizationFee = (BigInt(blockheightDelta) * await this.getFeePerBlock(feeRate))
             + CitreaFees.getGasFee(
-                (21_000 + EVMBtcRelay.GasCosts.GAS_BASE_MAIN) * numTxs,
+                EVMBtcRelay.GasCosts.GAS_BASE_MAIN * numTxs,
                 feeRate,
                 CitreaBtcRelay.StateDiffSize.STATE_DIFF_BASE * numTxs
             );

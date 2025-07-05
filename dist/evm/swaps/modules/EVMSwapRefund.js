@@ -127,6 +127,6 @@ class EVMSwapRefund extends EVMSwapModule_1.EVMSwapModule {
 }
 exports.EVMSwapRefund = EVMSwapRefund;
 EVMSwapRefund.GasCosts = {
-    REFUND: 100000,
-    REFUND_PAY_OUT: 130000
+    REFUND: 100000 + 21000,
+    REFUND_PAY_OUT: 130000 + 21000
 };

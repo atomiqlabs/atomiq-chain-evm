@@ -329,7 +329,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         if (blockheightDelta <= 0)
             return 0n;
         const synchronizationFee = (BigInt(blockheightDelta) * await this.getFeePerBlock(feeRate))
-            + EVMFees_1.EVMFees.getGasFee((21000 + EVMBtcRelay.GasCosts.GAS_BASE_MAIN) * Math.ceil(blockheightDelta / this.maxHeadersPerTx), feeRate);
+            + EVMFees_1.EVMFees.getGasFee(EVMBtcRelay.GasCosts.GAS_BASE_MAIN * Math.ceil(blockheightDelta / this.maxHeadersPerTx), feeRate);
         logger.debug("estimateSynchronizeFee(): required blockheight: " + requiredBlockheight +
             " blockheight delta: " + blockheightDelta + " fee: " + synchronizationFee.toString(10));
         return synchronizationFee;
@@ -416,8 +416,8 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
 exports.EVMBtcRelay = EVMBtcRelay;
 EVMBtcRelay.GasCosts = {
     GAS_PER_BLOCKHEADER: 30000,
-    GAS_BASE_MAIN: 15000,
+    GAS_BASE_MAIN: 15000 + 21000,
     GAS_PER_BLOCKHEADER_FORK: 65000,
     GAS_PER_BLOCKHEADER_FORKED: 10000,
-    GAS_BASE_FORK: 25000
+    GAS_BASE_FORK: 25000 + 21000
 };

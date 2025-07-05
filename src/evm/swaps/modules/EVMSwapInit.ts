@@ -35,8 +35,8 @@ const Initialize = [
 export class EVMSwapInit extends EVMSwapModule {
 
     private static readonly GasCosts = {
-        INIT: 100_000,
-        INIT_PAY_IN: 130_000,
+        INIT: 100_000 + 21_000,
+        INIT_PAY_IN: 130_000 + 21_000,
     };
 
     /**
@@ -283,11 +283,18 @@ export class EVMSwapInit extends EVMSwapModule {
     }
 
     /**
-     * Get the estimated solana fee of the init transaction, this includes the required deposit for creating swap PDA
-     *  and also deposit for ATAs
+     * Get the estimated fee of the init transaction
      */
-    async getInitFee(swapData?: EVMSwapData, feeRate?: string): Promise<bigint> {
+    async getInitFee(swapData: EVMSwapData, feeRate?: string): Promise<bigint> {
         feeRate ??= await this.root.Fees.getFeeRate();
-        return EVMFees.getGasFee(swapData.payIn ? EVMSwapInit.GasCosts.INIT_PAY_IN : EVMSwapInit.GasCosts.INIT, feeRate);
+        let totalFee = EVMFees.getGasFee(swapData.payIn ? EVMSwapInit.GasCosts.INIT_PAY_IN : EVMSwapInit.GasCosts.INIT, feeRate);
+        if(!swapData.isToken(this.root.getNativeCurrencyAddress())) {
+            totalFee += await this.root.Tokens.getApproveFee(feeRate);
+        }
+        if(swapData.getTotalDeposit() > 0n && !swapData.isDepositToken(this.root.getNativeCurrencyAddress()) && !swapData.isDepositToken(swapData.token)) {
+            totalFee += await this.root.Tokens.getApproveFee(feeRate);
+        }
+
+        return totalFee;
     }
 }

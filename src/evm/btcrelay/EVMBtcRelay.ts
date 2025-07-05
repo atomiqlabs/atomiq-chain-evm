@@ -31,10 +31,10 @@ export class EVMBtcRelay<B extends BtcBlock>
 
     public static GasCosts = {
         GAS_PER_BLOCKHEADER: 30_000,
-        GAS_BASE_MAIN: 15_000,
+        GAS_BASE_MAIN: 15_000 + 21_000,
         GAS_PER_BLOCKHEADER_FORK: 65_000,
         GAS_PER_BLOCKHEADER_FORKED: 10_000,
-        GAS_BASE_FORK: 25_000
+        GAS_BASE_FORK: 25_000 + 21_000
     }
 
     public async SaveMainHeaders(signer: string, mainHeaders: EVMBtcHeader[], storedHeader: EVMBtcStoredHeader, feeRate: string): Promise<EVMTx> {
@@ -410,7 +410,7 @@ export class EVMBtcRelay<B extends BtcBlock>
         if(blockheightDelta<=0) return 0n;
 
         const synchronizationFee = (BigInt(blockheightDelta) * await this.getFeePerBlock(feeRate))
-            + EVMFees.getGasFee((21_000 + EVMBtcRelay.GasCosts.GAS_BASE_MAIN) * Math.ceil(blockheightDelta / this.maxHeadersPerTx), feeRate);
+            + EVMFees.getGasFee(EVMBtcRelay.GasCosts.GAS_BASE_MAIN * Math.ceil(blockheightDelta / this.maxHeadersPerTx), feeRate);
         logger.debug("estimateSynchronizeFee(): required blockheight: "+requiredBlockheight+
             " blockheight delta: "+blockheightDelta+" fee: "+synchronizationFee.toString(10));
 

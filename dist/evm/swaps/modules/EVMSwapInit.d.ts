@@ -81,8 +81,7 @@ export declare class EVMSwapInit extends EVMSwapModule {
      */
     txsInit(sender: string, swapData: EVMSwapData, timeout: string, prefix: string, signature: string, skipChecks?: boolean, feeRate?: string): Promise<EVMTx[]>;
     /**
-     * Get the estimated solana fee of the init transaction, this includes the required deposit for creating swap PDA
-     *  and also deposit for ATAs
+     * Get the estimated fee of the init transaction
      */
-    getInitFee(swapData?: EVMSwapData, feeRate?: string): Promise<bigint>;
+    getInitFee(swapData: EVMSwapData, feeRate?: string): Promise<bigint>;
 }

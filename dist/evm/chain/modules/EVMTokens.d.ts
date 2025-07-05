@@ -46,4 +46,6 @@ export declare class EVMTokens extends EVMModule<any> {
      * @private
      */
     Approve(signer: string, token: string, amount: bigint, spender: string, feeRate?: string): Promise<TransactionRequest>;
+    getApproveFee(feeRate?: string): Promise<bigint>;
+    getTransferFee(feeRate?: string): Promise<bigint>;
 }

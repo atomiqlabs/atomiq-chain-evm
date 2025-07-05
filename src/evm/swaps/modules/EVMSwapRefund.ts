@@ -17,8 +17,8 @@ const Refund = [
 export class EVMSwapRefund extends EVMSwapModule {
 
     private static readonly GasCosts = {
-        REFUND: 100_000,
-        REFUND_PAY_OUT: 130_000
+        REFUND: 100_000 + 21_000,
+        REFUND_PAY_OUT: 130_000 + 21_000
     };
 
     /**

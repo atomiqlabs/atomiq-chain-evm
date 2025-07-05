@@ -96,6 +96,6 @@ class EVMSwapClaim extends EVMSwapModule_1.EVMSwapModule {
 }
 exports.EVMSwapClaim = EVMSwapClaim;
 EVMSwapClaim.GasCosts = {
-    CLAIM: 120000,
-    CLAIM_WITH_SUCCESS_ACTION: 150000
+    CLAIM: 120000 + 21000,
+    CLAIM_WITH_SUCCESS_ACTION: 150000 + 21000
 };

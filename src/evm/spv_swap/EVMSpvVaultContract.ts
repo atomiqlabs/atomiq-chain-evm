@@ -55,10 +55,10 @@ export class EVMSpvVaultContract<ChainId extends string>
     >
 {
     public static readonly GasCosts = {
-        DEPOSIT: 150_000,
-        OPEN: 100_000,
-        FRONT: 250_000,
-        CLAIM: 250_000
+        DEPOSIT: 150_000 + 21_000,
+        OPEN: 100_000 + 21_000,
+        FRONT: 250_000 + 21_000,
+        CLAIM: 250_000 + 21_000
     };
 
     readonly chainId: ChainId;

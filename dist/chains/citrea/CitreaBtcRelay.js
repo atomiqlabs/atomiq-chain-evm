@@ -21,7 +21,7 @@ class CitreaBtcRelay extends EVMBtcRelay_1.EVMBtcRelay {
             return 0n;
         const numTxs = Math.ceil(blockheightDelta / this.maxHeadersPerTx);
         const synchronizationFee = (BigInt(blockheightDelta) * await this.getFeePerBlock(feeRate))
-            + CitreaFees_1.CitreaFees.getGasFee((21000 + EVMBtcRelay_1.EVMBtcRelay.GasCosts.GAS_BASE_MAIN) * numTxs, feeRate, CitreaBtcRelay.StateDiffSize.STATE_DIFF_BASE * numTxs);
+            + CitreaFees_1.CitreaFees.getGasFee(EVMBtcRelay_1.EVMBtcRelay.GasCosts.GAS_BASE_MAIN * numTxs, feeRate, CitreaBtcRelay.StateDiffSize.STATE_DIFF_BASE * numTxs);
         logger.debug("estimateSynchronizeFee(): required blockheight: " + requiredBlockheight +
             " blockheight delta: " + blockheightDelta + " fee: " + synchronizationFee.toString(10));
         return synchronizationFee;

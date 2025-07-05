@@ -7,8 +7,8 @@ import {EVMTx} from "../../chain/modules/EVMTransactions";
 export class EVMLpVault extends EVMSwapModule {
 
     private static readonly GasCosts = {
-        WITHDRAW: 100_000,
-        DEPOSIT: 100_000
+        WITHDRAW: 100_000 + 21_000,
+        DEPOSIT: 100_000 + 21_000
     };
 
     /**

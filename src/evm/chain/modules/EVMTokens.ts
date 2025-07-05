@@ -3,6 +3,7 @@ import {Contract, TransactionRequest} from "ethers";
 import {ERC20Abi} from "./ERC20Abi";
 import {EVMAddresses} from "./EVMAddresses";
 import {EVMFees} from "./EVMFees";
+import {EVMSwapData} from "../../swaps/EVMSwapData";
 
 
 export class EVMTokens extends EVMModule<any> {
@@ -10,8 +11,8 @@ export class EVMTokens extends EVMModule<any> {
     public static readonly ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
 
     public static readonly GasCosts = {
-        TRANSFER: 80_000,
-        APPROVE: 80_000
+        TRANSFER: 80_000 + 21_000,
+        APPROVE: 80_000 + 21_000
     };
 
     private getContract(address: string) {
@@ -110,6 +111,16 @@ export class EVMTokens extends EVMModule<any> {
         " token: "+token.toString()+ " amount: "+amount.toString(10));
 
         return tx;
+    }
+
+    async getApproveFee(feeRate?: string): Promise<bigint> {
+        feeRate ??= await this.root.Fees.getFeeRate();
+        return EVMFees.getGasFee(EVMTokens.GasCosts.APPROVE, feeRate);
+    }
+
+    async getTransferFee(feeRate?: string): Promise<bigint> {
+        feeRate ??= await this.root.Fees.getFeeRate();
+        return EVMFees.getGasFee(EVMTokens.GasCosts.APPROVE, feeRate);
     }
 
 }

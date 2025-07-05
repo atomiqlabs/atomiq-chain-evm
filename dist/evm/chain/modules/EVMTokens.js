@@ -96,10 +96,18 @@ class EVMTokens extends EVMModule_1.EVMModule {
             " token: " + token.toString() + " amount: " + amount.toString(10));
         return tx;
     }
+    async getApproveFee(feeRate) {
+        feeRate ?? (feeRate = await this.root.Fees.getFeeRate());
+        return EVMFees_1.EVMFees.getGasFee(EVMTokens.GasCosts.APPROVE, feeRate);
+    }
+    async getTransferFee(feeRate) {
+        feeRate ?? (feeRate = await this.root.Fees.getFeeRate());
+        return EVMFees_1.EVMFees.getGasFee(EVMTokens.GasCosts.APPROVE, feeRate);
+    }
 }
 exports.EVMTokens = EVMTokens;
 EVMTokens.ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
 EVMTokens.GasCosts = {
-    TRANSFER: 80000,
-    APPROVE: 80000
+    TRANSFER: 80000 + 21000,
+    APPROVE: 80000 + 21000
 };

@@ -228,16 +228,22 @@ class EVMSwapInit extends EVMSwapModule_1.EVMSwapModule {
         return txs;
     }
     /**
-     * Get the estimated solana fee of the init transaction, this includes the required deposit for creating swap PDA
-     *  and also deposit for ATAs
+     * Get the estimated fee of the init transaction
      */
     async getInitFee(swapData, feeRate) {
         feeRate ?? (feeRate = await this.root.Fees.getFeeRate());
-        return EVMFees_1.EVMFees.getGasFee(swapData.payIn ? EVMSwapInit.GasCosts.INIT_PAY_IN : EVMSwapInit.GasCosts.INIT, feeRate);
+        let totalFee = EVMFees_1.EVMFees.getGasFee(swapData.payIn ? EVMSwapInit.GasCosts.INIT_PAY_IN : EVMSwapInit.GasCosts.INIT, feeRate);
+        if (!swapData.isToken(this.root.getNativeCurrencyAddress())) {
+            totalFee += await this.root.Tokens.getApproveFee(feeRate);
+        }
+        if (swapData.getTotalDeposit() > 0n && !swapData.isDepositToken(this.root.getNativeCurrencyAddress()) && !swapData.isDepositToken(swapData.token)) {
+            totalFee += await this.root.Tokens.getApproveFee(feeRate);
+        }
+        return totalFee;
     }
 }
 exports.EVMSwapInit = EVMSwapInit;
 EVMSwapInit.GasCosts = {
-    INIT: 100000,
-    INIT_PAY_IN: 130000,
+    INIT: 100000 + 21000,
+    INIT_PAY_IN: 130000 + 21000,
 };
