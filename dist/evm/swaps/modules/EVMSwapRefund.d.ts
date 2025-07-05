@@ -54,9 +54,9 @@ export declare class EVMSwapRefund extends EVMSwapModule {
      * @param feeRate fee rate to be used for the transactions
      */
     txsRefundWithAuthorization(signer: string, swapData: EVMSwapData, timeout: string, prefix: string, signature: string, check?: boolean, feeRate?: string): Promise<EVMTx[]>;
+    getRefundGas(swapData: EVMSwapData): number;
     /**
-     * Get the estimated solana transaction fee of the refund transaction, in the worst case scenario in case where the
-     *  ATA needs to be initialized again (i.e. adding the ATA rent exempt lamports to the fee)
+     * Get the estimated transaction fee of the refund transaction
      */
     getRefundFee(swapData: EVMSwapData, feeRate?: string): Promise<bigint>;
 }

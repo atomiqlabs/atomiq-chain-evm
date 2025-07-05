@@ -80,6 +80,7 @@ export declare class EVMSwapInit extends EVMSwapModule {
      * @param feeRate fee rate to use for the transaction
      */
     txsInit(sender: string, swapData: EVMSwapData, timeout: string, prefix: string, signature: string, skipChecks?: boolean, feeRate?: string): Promise<EVMTx[]>;
+    private getInitGas;
     /**
      * Get the estimated fee of the init transaction
      */

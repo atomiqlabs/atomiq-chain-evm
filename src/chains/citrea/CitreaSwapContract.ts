@@ -17,7 +17,7 @@ export class CitreaSwapContract extends EVMSwapContract<"CITREA"> {
         let stateDiffSize = 0;
         tokenStateChanges.forEach(val => {
             const [address, token] = val.split(":");
-            if(token===this.Chain.getNativeCurrencyAddress()) {
+            if(token.toLowerCase()===this.Chain.getNativeCurrencyAddress().toLowerCase()) {
                 stateDiffSize += address.toLowerCase()===signer?.toLowerCase() ? CitreaSwapContract.StateDiffSize.NATIVE_SELF_TRANSFER_DIFF_SIZE : CitreaSwapContract.StateDiffSize.NATIVE_TRANSFER_DIFF_SIZE;
             } else {
                 stateDiffSize += CitreaSwapContract.StateDiffSize.ERC_20_TRANSFER_DIFF_SIZE;

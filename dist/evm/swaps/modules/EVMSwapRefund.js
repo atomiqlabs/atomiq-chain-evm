@@ -23,7 +23,7 @@ class EVMSwapRefund extends EVMSwapModule_1.EVMSwapModule {
     async Refund(signer, swapData, witness, feeRate, handlerGas) {
         const tx = await this.swapContract.refund.populateTransaction(swapData.toEscrowStruct(), witness);
         tx.from = signer;
-        EVMFees_1.EVMFees.applyFeeRate(tx, (swapData.payIn ? EVMSwapRefund.GasCosts.REFUND_PAY_OUT : EVMSwapRefund.GasCosts.REFUND) + (handlerGas ?? 0), feeRate);
+        EVMFees_1.EVMFees.applyFeeRate(tx, this.getRefundGas(swapData) + (handlerGas ?? 0), feeRate);
         return tx;
     }
     /**
@@ -39,7 +39,7 @@ class EVMSwapRefund extends EVMSwapModule_1.EVMSwapModule {
     async RefundWithSignature(sender, swapData, timeout, signature, feeRate) {
         const tx = await this.swapContract.cooperativeRefund.populateTransaction(swapData.toEscrowStruct(), signature, BigInt(timeout));
         tx.from = sender;
-        EVMFees_1.EVMFees.applyFeeRate(tx, swapData.payIn ? EVMSwapRefund.GasCosts.REFUND_PAY_OUT : EVMSwapRefund.GasCosts.REFUND, feeRate);
+        EVMFees_1.EVMFees.applyFeeRate(tx, this.getRefundGas(swapData), feeRate);
         return tx;
     }
     async signSwapRefund(signer, swapData, authorizationTimeout) {
@@ -116,17 +116,52 @@ class EVMSwapRefund extends EVMSwapModule_1.EVMSwapModule {
             " auth expiry: " + timeout + " signature: " + signature);
         return [tx];
     }
+    getRefundGas(swapData) {
+        let totalGas = EVMSwapRefund.GasCosts.BASE;
+        if (swapData.reputation)
+            totalGas += EVMSwapRefund.GasCosts.REPUTATION;
+        if (swapData.isPayIn()) {
+            if (swapData.isToken(this.root.getNativeCurrencyAddress())) {
+                totalGas += EVMSwapRefund.GasCosts.NATIVE_TRANSFER;
+            }
+            else {
+                totalGas += EVMSwapRefund.GasCosts.ERC20_TRANSFER;
+            }
+        }
+        else {
+            totalGas += EVMSwapRefund.GasCosts.LP_VAULT_TRANSFER;
+        }
+        if (swapData.getSecurityDeposit() > 0n) {
+            if (swapData.isDepositToken(this.root.getNativeCurrencyAddress())) {
+                totalGas += EVMSwapRefund.GasCosts.NATIVE_TRANSFER;
+            }
+            else {
+                totalGas += EVMSwapRefund.GasCosts.ERC20_TRANSFER;
+            }
+        }
+        if (swapData.getClaimerBounty() > swapData.getSecurityDeposit()) {
+            if (swapData.isDepositToken(this.root.getNativeCurrencyAddress())) {
+                totalGas += EVMSwapRefund.GasCosts.NATIVE_TRANSFER;
+            }
+            else {
+                totalGas += EVMSwapRefund.GasCosts.ERC20_TRANSFER;
+            }
+        }
+        return totalGas;
+    }
     /**
-     * Get the estimated solana transaction fee of the refund transaction, in the worst case scenario in case where the
-     *  ATA needs to be initialized again (i.e. adding the ATA rent exempt lamports to the fee)
+     * Get the estimated transaction fee of the refund transaction
      */
     async getRefundFee(swapData, feeRate) {
         feeRate ?? (feeRate = await this.root.Fees.getFeeRate());
-        return EVMFees_1.EVMFees.getGasFee(swapData.payIn ? EVMSwapRefund.GasCosts.REFUND_PAY_OUT : EVMSwapRefund.GasCosts.REFUND, feeRate);
+        return EVMFees_1.EVMFees.getGasFee(this.getRefundGas(swapData), feeRate);
     }
 }
 exports.EVMSwapRefund = EVMSwapRefund;
 EVMSwapRefund.GasCosts = {
-    REFUND: 100000 + 21000,
-    REFUND_PAY_OUT: 130000 + 21000
+    BASE: 35000 + 21000,
+    ERC20_TRANSFER: 40000,
+    NATIVE_TRANSFER: 7500,
+    LP_VAULT_TRANSFER: 10000,
+    REPUTATION: 25000
 };

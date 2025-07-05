@@ -49,7 +49,7 @@ class EVMSwapInit extends EVMSwapModule_1.EVMSwapModule {
             value
         });
         tx.from = sender;
-        EVMFees_1.EVMFees.applyFeeRate(tx, swapData.isPayIn() ? EVMSwapInit.GasCosts.INIT_PAY_IN : EVMSwapInit.GasCosts.INIT, feeRate);
+        EVMFees_1.EVMFees.applyFeeRate(tx, this.getInitGas(swapData), feeRate);
         return tx;
     }
     /**
@@ -227,23 +227,49 @@ class EVMSwapInit extends EVMSwapModule_1.EVMSwapModule {
             " feerate: " + feeRate);
         return txs;
     }
+    getInitGas(swapData) {
+        let totalGas = EVMSwapInit.GasCosts.BASE;
+        if (swapData.isPayIn()) {
+            if (!swapData.isToken(this.root.getNativeCurrencyAddress())) {
+                totalGas += EVMSwapInit.GasCosts.ERC20_TRANSFER;
+            }
+        }
+        else {
+            totalGas += EVMSwapInit.GasCosts.LP_VAULT_TRANSFER;
+        }
+        if (swapData.getTotalDeposit() > 0) {
+            if (!swapData.isPayIn() || !swapData.isDepositToken(swapData.token)) {
+                if (!swapData.isDepositToken(this.root.getNativeCurrencyAddress())) {
+                    totalGas += EVMSwapInit.GasCosts.ERC20_TRANSFER;
+                }
+            }
+        }
+        return totalGas;
+    }
     /**
      * Get the estimated fee of the init transaction
      */
     async getInitFee(swapData, feeRate) {
         feeRate ?? (feeRate = await this.root.Fees.getFeeRate());
-        let totalFee = EVMFees_1.EVMFees.getGasFee(swapData.payIn ? EVMSwapInit.GasCosts.INIT_PAY_IN : EVMSwapInit.GasCosts.INIT, feeRate);
-        if (!swapData.isToken(this.root.getNativeCurrencyAddress())) {
-            totalFee += await this.root.Tokens.getApproveFee(feeRate);
+        let totalFee = EVMFees_1.EVMFees.getGasFee(this.getInitGas(swapData), feeRate);
+        if (swapData.isPayIn()) {
+            if (!swapData.isToken(this.root.getNativeCurrencyAddress())) {
+                totalFee += await this.root.Tokens.getApproveFee(feeRate);
+            }
         }
-        if (swapData.getTotalDeposit() > 0n && !swapData.isDepositToken(this.root.getNativeCurrencyAddress()) && !swapData.isDepositToken(swapData.token)) {
-            totalFee += await this.root.Tokens.getApproveFee(feeRate);
+        if (swapData.getTotalDeposit() > 0) {
+            if (!swapData.isPayIn() || !swapData.isDepositToken(swapData.token)) {
+                if (!swapData.isDepositToken(this.root.getNativeCurrencyAddress())) {
+                    totalFee += await this.root.Tokens.getApproveFee(feeRate);
+                }
+            }
         }
         return totalFee;
     }
 }
 exports.EVMSwapInit = EVMSwapInit;
 EVMSwapInit.GasCosts = {
-    INIT: 100000 + 21000,
-    INIT_PAY_IN: 130000 + 21000,
+    BASE: 45000 + 21000,
+    ERC20_TRANSFER: 40000,
+    LP_VAULT_TRANSFER: 10000
 };

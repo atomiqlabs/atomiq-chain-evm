@@ -13,8 +13,11 @@ import {EVMBtcStoredHeader} from "../../btcrelay/headers/EVMBtcStoredHeader";
 export class EVMSwapClaim extends EVMSwapModule {
 
     private static readonly GasCosts = {
-        CLAIM: 120_000 + 21_000,
-        CLAIM_WITH_SUCCESS_ACTION: 150_000 + 21_000
+        BASE: 30_000 + 21_000,
+        ERC20_TRANSFER: 40_000,
+        NATIVE_TRANSFER: 7500,
+        LP_VAULT_TRANSFER: 10_000,
+        REPUTATION: 25_000
     };
 
     /**
@@ -37,7 +40,7 @@ export class EVMSwapClaim extends EVMSwapModule {
         //TODO: Claim with success action not supported yet!
         const tx = await this.swapContract.claim.populateTransaction(swapData.toEscrowStruct(), witness);
         tx.from = signer;
-        EVMFees.applyFeeRate(tx, EVMSwapClaim.GasCosts.CLAIM + (claimHandlerGas ?? 0), feeRate);
+        EVMFees.applyFeeRate(tx, this.getClaimGas(swapData) + (claimHandlerGas ?? 0), feeRate);
         return tx;
     }
 
@@ -123,6 +126,35 @@ export class EVMSwapClaim extends EVMSwapModule {
         return [...initialTxns, claimTx];
     }
 
+    getClaimGas(swapData: EVMSwapData): number {
+        let totalGas = EVMSwapClaim.GasCosts.BASE;
+        if(swapData.reputation) totalGas += EVMSwapClaim.GasCosts.REPUTATION;
+        if(swapData.isPayIn()) {
+            if(swapData.isToken(this.root.getNativeCurrencyAddress())) {
+                totalGas += EVMSwapClaim.GasCosts.NATIVE_TRANSFER;
+            } else {
+                totalGas += EVMSwapClaim.GasCosts.ERC20_TRANSFER;
+            }
+        } else {
+            totalGas += EVMSwapClaim.GasCosts.LP_VAULT_TRANSFER;
+        }
+        if(swapData.getClaimerBounty() > 0n) {
+            if(swapData.isDepositToken(this.root.getNativeCurrencyAddress())) {
+                totalGas += EVMSwapClaim.GasCosts.NATIVE_TRANSFER;
+            } else {
+                totalGas += EVMSwapClaim.GasCosts.ERC20_TRANSFER;
+            }
+        }
+        if(swapData.getSecurityDeposit() > swapData.getClaimerBounty()) {
+            if(swapData.isDepositToken(this.root.getNativeCurrencyAddress())) {
+                totalGas += EVMSwapClaim.GasCosts.NATIVE_TRANSFER;
+            } else {
+                totalGas += EVMSwapClaim.GasCosts.ERC20_TRANSFER;
+            }
+        }
+        return totalGas;
+    }
+
     /**
      * Get the estimated starknet transaction fee of the claim transaction
      */
@@ -130,7 +162,7 @@ export class EVMSwapClaim extends EVMSwapModule {
         feeRate ??= await this.root.Fees.getFeeRate();
 
         //TODO: Claim with success action not supported yet!
-        let gasRequired = EVMSwapClaim.GasCosts.CLAIM;
+        let gasRequired = this.getClaimGas(swapData);
 
         const claimHandler: IClaimHandler<any, any> = this.contract.claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
         if(claimHandler!=null) gasRequired += claimHandler.getGas(swapData);

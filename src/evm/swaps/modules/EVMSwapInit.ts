@@ -35,8 +35,9 @@ const Initialize = [
 export class EVMSwapInit extends EVMSwapModule {
 
     private static readonly GasCosts = {
-        INIT: 100_000 + 21_000,
-        INIT_PAY_IN: 130_000 + 21_000,
+        BASE: 45_000 + 21_000,
+        ERC20_TRANSFER: 40_000,
+        LP_VAULT_TRANSFER: 10_000
     };
 
     /**
@@ -59,7 +60,7 @@ export class EVMSwapInit extends EVMSwapModule {
             value
         });
         tx.from = sender;
-        EVMFees.applyFeeRate(tx, swapData.isPayIn() ? EVMSwapInit.GasCosts.INIT_PAY_IN : EVMSwapInit.GasCosts.INIT, feeRate);
+        EVMFees.applyFeeRate(tx, this.getInitGas(swapData), feeRate);
         return tx;
     }
 
@@ -282,17 +283,42 @@ export class EVMSwapInit extends EVMSwapModule {
         return txs;
     }
 
+    private getInitGas(swapData: EVMSwapData): number {
+        let totalGas = EVMSwapInit.GasCosts.BASE;
+        if(swapData.isPayIn()) {
+            if(!swapData.isToken(this.root.getNativeCurrencyAddress())) {
+                totalGas += EVMSwapInit.GasCosts.ERC20_TRANSFER;
+            }
+        } else {
+            totalGas += EVMSwapInit.GasCosts.LP_VAULT_TRANSFER;
+        }
+        if(swapData.getTotalDeposit() > 0) {
+            if(!swapData.isPayIn() || !swapData.isDepositToken(swapData.token)) {
+                if(!swapData.isDepositToken(this.root.getNativeCurrencyAddress())) {
+                    totalGas += EVMSwapInit.GasCosts.ERC20_TRANSFER;
+                }
+            }
+        }
+        return totalGas;
+    }
+
     /**
      * Get the estimated fee of the init transaction
      */
     async getInitFee(swapData: EVMSwapData, feeRate?: string): Promise<bigint> {
         feeRate ??= await this.root.Fees.getFeeRate();
-        let totalFee = EVMFees.getGasFee(swapData.payIn ? EVMSwapInit.GasCosts.INIT_PAY_IN : EVMSwapInit.GasCosts.INIT, feeRate);
-        if(!swapData.isToken(this.root.getNativeCurrencyAddress())) {
-            totalFee += await this.root.Tokens.getApproveFee(feeRate);
+        let totalFee = EVMFees.getGasFee(this.getInitGas(swapData), feeRate);
+        if(swapData.isPayIn()) {
+            if(!swapData.isToken(this.root.getNativeCurrencyAddress())) {
+                totalFee += await this.root.Tokens.getApproveFee(feeRate);
+            }
         }
-        if(swapData.getTotalDeposit() > 0n && !swapData.isDepositToken(this.root.getNativeCurrencyAddress()) && !swapData.isDepositToken(swapData.token)) {
-            totalFee += await this.root.Tokens.getApproveFee(feeRate);
+        if(swapData.getTotalDeposit() > 0) {
+            if(!swapData.isPayIn() || !swapData.isDepositToken(swapData.token)) {
+                if(!swapData.isDepositToken(this.root.getNativeCurrencyAddress())) {
+                    totalFee += await this.root.Tokens.getApproveFee(feeRate);
+                }
+            }
         }
 
         return totalFee;

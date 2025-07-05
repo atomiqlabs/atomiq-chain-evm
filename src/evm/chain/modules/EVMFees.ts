@@ -86,9 +86,9 @@ export class EVMFees {
     public static getGasFee(gas: number, feeRate: string): bigint {
         if(feeRate==null) return 0n;
 
-        const [maxFee, priorityFee] = feeRate.split(",");
+        const [baseFee, priorityFee] = feeRate.split(",");
 
-        return BigInt(gas) * BigInt(maxFee);
+        return BigInt(gas) * (BigInt(baseFee) + BigInt(priorityFee));
     }
 
     public static applyFeeRate(tx: TransactionRequest, gas: number, feeRate: string) {

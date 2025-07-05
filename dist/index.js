@@ -52,6 +52,3 @@ __exportStar(require("./evm/wallet/EVMSigner"), exports);
 __exportStar(require("./chains/citrea/CitreaInitializer"), exports);
 __exportStar(require("./chains/citrea/CitreaChainType"), exports);
 __exportStar(require("./chains/citrea/CitreaFees"), exports);
-__exportStar(require("./chains/citrea/CitreaSwapContract"), exports);
-__exportStar(require("./chains/citrea/CitreaBtcRelay"), exports);
-__exportStar(require("./chains/citrea/CitreaSpvVaultContract"), exports);

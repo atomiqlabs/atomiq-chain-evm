@@ -46,6 +46,7 @@ export declare class EVMSwapClaim extends EVMSwapModule {
         hex: string;
         height: number;
     }, requiredConfirmations: number, vout: number, commitedHeader?: EVMBtcStoredHeader, synchronizer?: RelaySynchronizer<EVMBtcStoredHeader, EVMTx, any>, feeRate?: string): Promise<EVMTx[] | null>;
+    getClaimGas(swapData: EVMSwapData): number;
     /**
      * Get the estimated starknet transaction fee of the claim transaction
      */

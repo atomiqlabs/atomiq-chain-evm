@@ -58,8 +58,8 @@ class EVMFees {
     static getGasFee(gas, feeRate) {
         if (feeRate == null)
             return 0n;
-        const [maxFee, priorityFee] = feeRate.split(",");
-        return BigInt(gas) * BigInt(maxFee);
+        const [baseFee, priorityFee] = feeRate.split(",");
+        return BigInt(gas) * (BigInt(baseFee) + BigInt(priorityFee));
     }
     static applyFeeRate(tx, gas, feeRate) {
         if (feeRate == null)
