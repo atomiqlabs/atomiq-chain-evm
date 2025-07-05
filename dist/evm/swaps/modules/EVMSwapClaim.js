@@ -85,7 +85,7 @@ class EVMSwapClaim extends EVMSwapModule_1.EVMSwapModule {
         let totalGas = EVMSwapClaim.GasCosts.BASE;
         if (swapData.reputation)
             totalGas += EVMSwapClaim.GasCosts.REPUTATION;
-        if (swapData.isPayIn()) {
+        if (swapData.isPayOut()) {
             if (swapData.isToken(this.root.getNativeCurrencyAddress())) {
                 totalGas += EVMSwapClaim.GasCosts.NATIVE_TRANSFER;
             }
