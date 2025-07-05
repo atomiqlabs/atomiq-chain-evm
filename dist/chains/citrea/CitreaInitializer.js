@@ -61,6 +61,11 @@ exports.CitreaAssets = {
         address: "0x0000000000000000000000000000000000000000",
         decimals: 18,
         displayDecimals: 8
+    },
+    USDC: {
+        address: "0x2C8abD2A528D19AFc33d2ebA507c0F405c131335",
+        decimals: 6,
+        displayDecimals: 6
     }
 };
 function initializeCitrea(options, bitcoinRpc, network) {
