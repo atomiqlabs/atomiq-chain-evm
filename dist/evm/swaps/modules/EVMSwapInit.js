@@ -39,8 +39,10 @@ class EVMSwapInit extends EVMSwapModule_1.EVMSwapModule {
      */
     async Init(sender, swapData, timeout, signature, feeRate) {
         let value = 0n;
-        if (swapData.isToken(this.root.getNativeCurrencyAddress()))
-            value += swapData.getAmount();
+        if (swapData.isPayIn()) {
+            if (swapData.isOfferer(sender) && swapData.isToken(this.root.getNativeCurrencyAddress()))
+                value += swapData.getAmount();
+        }
         if (swapData.isDepositToken(this.root.getNativeCurrencyAddress()))
             value += swapData.getTotalDeposit();
         const tx = await this.swapContract.initialize.populateTransaction(swapData.toEscrowStruct(), signature, timeout, "0x" + (swapData.extraData ?? ""), {
@@ -206,7 +208,7 @@ class EVMSwapInit extends EVMSwapModule_1.EVMSwapModule {
         feeRate ?? (feeRate = await this.root.Fees.getFeeRate());
         const txs = [];
         const requiredApprovals = {};
-        if (swapData.payIn && swapData.isOfferer(sender)) {
+        if (swapData.isPayIn() && swapData.isOfferer(sender)) {
             if (!swapData.isToken(this.root.getNativeCurrencyAddress())) {
                 requiredApprovals[swapData.token.toLowerCase()] = swapData.amount;
             }

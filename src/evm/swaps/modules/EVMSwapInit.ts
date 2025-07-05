@@ -1,5 +1,4 @@
 import {SignatureVerificationError, SwapCommitStateType, SwapDataVerificationError} from "@atomiqlabs/base";
-import {Buffer} from "buffer";
 import { EVMSwapModule } from "../EVMSwapModule";
 import {EVMSwapData} from "../EVMSwapData";
 import {keccak256, TransactionRequest, ZeroHash} from "ethers";
@@ -52,7 +51,9 @@ export class EVMSwapInit extends EVMSwapModule {
      */
     private async Init(sender: string, swapData: EVMSwapData, timeout: bigint, signature: string, feeRate: string): Promise<TransactionRequest> {
         let value = 0n;
-        if(swapData.isToken(this.root.getNativeCurrencyAddress())) value += swapData.getAmount();
+        if(swapData.isPayIn()) {
+            if(swapData.isOfferer(sender) && swapData.isToken(this.root.getNativeCurrencyAddress())) value += swapData.getAmount();
+        }
         if(swapData.isDepositToken(this.root.getNativeCurrencyAddress())) value += swapData.getTotalDeposit();
         const tx = await this.swapContract.initialize.populateTransaction(swapData.toEscrowStruct(), signature, timeout, "0x"+(swapData.extraData ?? ""), {
             value
@@ -259,7 +260,7 @@ export class EVMSwapInit extends EVMSwapModule {
 
         const txs: EVMTx[] = [];
         const requiredApprovals: {[address: string]: bigint} = {};
-        if(swapData.payIn && swapData.isOfferer(sender)) {
+        if(swapData.isPayIn() && swapData.isOfferer(sender)) {
             if(!swapData.isToken(this.root.getNativeCurrencyAddress())) {
                 requiredApprovals[swapData.token.toLowerCase()] = swapData.amount;
             }
