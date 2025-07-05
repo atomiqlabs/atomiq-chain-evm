@@ -54,7 +54,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         EVMSpvWithdrawalData
     >
 {
-    private static readonly GasCosts = {
+    public static readonly GasCosts = {
         DEPOSIT: 150_000,
         OPEN: 100_000,
         FRONT: 250_000,

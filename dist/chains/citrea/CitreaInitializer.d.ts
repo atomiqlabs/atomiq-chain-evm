@@ -1,8 +1,8 @@
 import { BaseTokenType, BitcoinNetwork, BitcoinRpc, ChainData, ChainInitializer, ChainSwapType } from "@atomiqlabs/base";
 import { JsonRpcApiProvider } from "ethers";
 import { EVMRetryPolicy } from "../../evm/chain/EVMChainInterface";
-import { EVMFees } from "../../evm/chain/modules/EVMFees";
 import { CitreaChainType } from "./CitreaChainType";
+import { CitreaFees } from "./CitreaFees";
 export type CitreaAssetsType = BaseTokenType<"CBTC">;
 export declare const CitreaAssets: CitreaAssetsType;
 export type CitreaOptions = {
@@ -23,7 +23,7 @@ export type CitreaOptions = {
             [type in ChainSwapType]?: string;
         };
     };
-    fees?: EVMFees;
+    fees?: CitreaFees;
 };
 export declare function initializeCitrea(options: CitreaOptions, bitcoinRpc: BitcoinRpc<any>, network: BitcoinNetwork): ChainData<CitreaChainType>;
 export type CitreaInitializerType = ChainInitializer<CitreaOptions, CitreaChainType, CitreaAssetsType>;

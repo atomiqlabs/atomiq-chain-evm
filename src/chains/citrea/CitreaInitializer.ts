@@ -10,6 +10,9 @@ import {EVMChainEventsBrowser} from "../../evm/events/EVMChainEventsBrowser";
 import {EVMSwapData} from "../../evm/swaps/EVMSwapData";
 import {EVMSpvVaultData} from "../../evm/spv_swap/EVMSpvVaultData";
 import {EVMSpvWithdrawalData} from "../../evm/spv_swap/EVMSpvWithdrawalData";
+import {CitreaFees} from "./CitreaFees";
+import {CitreaBtcRelay} from "./CitreaBtcRelay";
+import {CitreaSwapContract} from "./CitreaSwapContract";
 
 const CitreaChainIds = {
     MAINNET: null,
@@ -86,7 +89,7 @@ export type CitreaOptions = {
         }
     }
 
-    fees?: EVMFees
+    fees?: CitreaFees
 }
 
 export function initializeCitrea(
@@ -112,19 +115,19 @@ export function initializeCitrea(
         new JsonRpcProvider(options.rpcUrl, {name: "Citrea", chainId}) :
         options.rpcUrl;
 
-    const Fees = options.fees ?? new EVMFees(provider, 2n * 1_000_000_000n, 1_000_000n);
+    const Fees = options.fees ?? new CitreaFees(provider, 2n * 1_000_000_000n, 1_000_000n);
 
     const chainInterface = new EVMChainInterface("CITREA", chainId, provider, {
         safeBlockTag: "latest",
         maxLogsBlockRange: options.maxLogsBlockRange ?? 500
     }, options.retryPolicy, Fees);
 
-    const btcRelay = new EVMBtcRelay(
+    const btcRelay = new CitreaBtcRelay(
         chainInterface, bitcoinRpc, network, options.btcRelayContract ?? defaultContractAddresses.btcRelayContract,
         options.btcRelayDeploymentHeight ?? defaultContractAddresses.btcRelayDeploymentHeight
     );
 
-    const swapContract = new EVMSwapContract(
+    const swapContract = new CitreaSwapContract(
         chainInterface, btcRelay, options.swapContract ?? defaultContractAddresses.swapContract, {
             refund: {
                 ...defaultContractAddresses.handlerContracts.refund,

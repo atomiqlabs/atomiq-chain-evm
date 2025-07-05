@@ -4,14 +4,14 @@ exports.CitreaInitializer = exports.initializeCitrea = exports.CitreaAssets = vo
 const base_1 = require("@atomiqlabs/base");
 const ethers_1 = require("ethers");
 const EVMChainInterface_1 = require("../../evm/chain/EVMChainInterface");
-const EVMFees_1 = require("../../evm/chain/modules/EVMFees");
-const EVMBtcRelay_1 = require("../../evm/btcrelay/EVMBtcRelay");
-const EVMSwapContract_1 = require("../../evm/swaps/EVMSwapContract");
 const EVMSpvVaultContract_1 = require("../../evm/spv_swap/EVMSpvVaultContract");
 const EVMChainEventsBrowser_1 = require("../../evm/events/EVMChainEventsBrowser");
 const EVMSwapData_1 = require("../../evm/swaps/EVMSwapData");
 const EVMSpvVaultData_1 = require("../../evm/spv_swap/EVMSpvVaultData");
 const EVMSpvWithdrawalData_1 = require("../../evm/spv_swap/EVMSpvWithdrawalData");
+const CitreaFees_1 = require("./CitreaFees");
+const CitreaBtcRelay_1 = require("./CitreaBtcRelay");
+const CitreaSwapContract_1 = require("./CitreaSwapContract");
 const CitreaChainIds = {
     MAINNET: null,
     TESTNET4: 5115
@@ -79,13 +79,13 @@ function initializeCitrea(options, bitcoinRpc, network) {
     const provider = typeof (options.rpcUrl) === "string" ?
         new ethers_1.JsonRpcProvider(options.rpcUrl, { name: "Citrea", chainId }) :
         options.rpcUrl;
-    const Fees = options.fees ?? new EVMFees_1.EVMFees(provider, 2n * 1000000000n, 1000000n);
+    const Fees = options.fees ?? new CitreaFees_1.CitreaFees(provider, 2n * 1000000000n, 1000000n);
     const chainInterface = new EVMChainInterface_1.EVMChainInterface("CITREA", chainId, provider, {
         safeBlockTag: "latest",
         maxLogsBlockRange: options.maxLogsBlockRange ?? 500
     }, options.retryPolicy, Fees);
-    const btcRelay = new EVMBtcRelay_1.EVMBtcRelay(chainInterface, bitcoinRpc, network, options.btcRelayContract ?? defaultContractAddresses.btcRelayContract, options.btcRelayDeploymentHeight ?? defaultContractAddresses.btcRelayDeploymentHeight);
-    const swapContract = new EVMSwapContract_1.EVMSwapContract(chainInterface, btcRelay, options.swapContract ?? defaultContractAddresses.swapContract, {
+    const btcRelay = new CitreaBtcRelay_1.CitreaBtcRelay(chainInterface, bitcoinRpc, network, options.btcRelayContract ?? defaultContractAddresses.btcRelayContract, options.btcRelayDeploymentHeight ?? defaultContractAddresses.btcRelayDeploymentHeight);
+    const swapContract = new CitreaSwapContract_1.CitreaSwapContract(chainInterface, btcRelay, options.swapContract ?? defaultContractAddresses.swapContract, {
         refund: {
             ...defaultContractAddresses.handlerContracts.refund,
             ...options?.handlerContracts?.refund

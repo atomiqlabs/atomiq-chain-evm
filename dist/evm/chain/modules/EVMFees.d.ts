@@ -1,16 +1,17 @@
-import { Provider, TransactionRequest } from "ethers";
+import { JsonRpcApiProvider, TransactionRequest } from "ethers";
 export type EVMFeeRate = {
     maxFeePerGas: bigint;
     maxPriorityFee: bigint;
 };
 export declare class EVMFees {
-    private readonly logger;
-    private readonly provider;
-    private readonly maxFeeRatePerGas;
-    private readonly priorityFee;
-    private readonly feeMultiplierPPM;
+    protected MAX_FEE_AGE: number;
+    protected readonly logger: import("../../../utils/Utils").LoggerType;
+    protected readonly provider: JsonRpcApiProvider;
+    protected readonly maxFeeRatePerGas: bigint;
+    protected readonly priorityFee: bigint;
+    protected readonly feeMultiplierPPM: bigint;
     private blockFeeCache;
-    constructor(provider: Provider, maxFeeRatePerGas?: bigint, priorityFee?: bigint, feeMultiplier?: number);
+    constructor(provider: JsonRpcApiProvider, maxFeeRatePerGas?: bigint, priorityFee?: bigint, feeMultiplier?: number);
     /**
      * Gets evm fee rate
      *

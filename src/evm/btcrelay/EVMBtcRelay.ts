@@ -23,17 +23,19 @@ function serializeBlockHeader(e: BtcBlock): EVMBtcHeader {
     });
 }
 
-const GAS_PER_BLOCKHEADER = 30_000;
-const GAS_BASE_MAIN = 15_000;
-const GAS_PER_BLOCKHEADER_FORK = 65_000;
-const GAS_PER_BLOCKHEADER_FORKED = 10_000;
-const GAS_BASE_FORK = 25_000;
-
 const logger = getLogger("EVMBtcRelay: ");
 
 export class EVMBtcRelay<B extends BtcBlock>
     extends EVMContractBase<BtcRelayTypechain>
     implements BtcRelay<EVMBtcStoredHeader, EVMTx, B, EVMSigner> {
+
+    public static GasCosts = {
+        GAS_PER_BLOCKHEADER: 30_000,
+        GAS_BASE_MAIN: 15_000,
+        GAS_PER_BLOCKHEADER_FORK: 65_000,
+        GAS_PER_BLOCKHEADER_FORKED: 10_000,
+        GAS_BASE_FORK: 25_000
+    }
 
     public async SaveMainHeaders(signer: string, mainHeaders: EVMBtcHeader[], storedHeader: EVMBtcStoredHeader, feeRate: string): Promise<EVMTx> {
         const tx = await this.contract.submitMainBlockheaders.populateTransaction(Buffer.concat([
@@ -41,7 +43,7 @@ export class EVMBtcRelay<B extends BtcBlock>
             Buffer.concat(mainHeaders.map(header => header.serializeCompact()))
         ]));
         tx.from = signer;
-        EVMFees.applyFeeRate(tx, GAS_BASE_MAIN + (GAS_PER_BLOCKHEADER * mainHeaders.length), feeRate);
+        EVMFees.applyFeeRate(tx, EVMBtcRelay.GasCosts.GAS_BASE_MAIN + (EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER * mainHeaders.length), feeRate);
         return tx;
     }
 
@@ -51,7 +53,7 @@ export class EVMBtcRelay<B extends BtcBlock>
             Buffer.concat(forkHeaders.map(header => header.serializeCompact()))
         ]));
         tx.from = signer;
-        EVMFees.applyFeeRate(tx, GAS_BASE_MAIN + (GAS_PER_BLOCKHEADER * forkHeaders.length), feeRate);
+        EVMFees.applyFeeRate(tx, EVMBtcRelay.GasCosts.GAS_BASE_MAIN + (EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER * forkHeaders.length), feeRate);
         return tx;
     }
 
@@ -61,7 +63,7 @@ export class EVMBtcRelay<B extends BtcBlock>
             Buffer.concat(forkHeaders.map(header => header.serializeCompact()))
         ]));
         tx.from = signer;
-        EVMFees.applyFeeRate(tx, GAS_BASE_FORK + (GAS_PER_BLOCKHEADER_FORK * forkHeaders.length) + (GAS_PER_BLOCKHEADER_FORKED * totalForkHeaders), feeRate);
+        EVMFees.applyFeeRate(tx, EVMBtcRelay.GasCosts.GAS_BASE_FORK + (EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER_FORK * forkHeaders.length) + (EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER_FORKED * totalForkHeaders), feeRate);
         return tx;
     }
 
@@ -398,6 +400,8 @@ export class EVMBtcRelay<B extends BtcBlock>
      * @param feeRate
      */
     public async estimateSynchronizeFee(requiredBlockheight: number, feeRate?: string): Promise<bigint> {
+        feeRate ??= await this.Chain.Fees.getFeeRate();
+
         const tipData = await this.getTipData();
         const currBlockheight = tipData.blockheight;
 
@@ -405,7 +409,8 @@ export class EVMBtcRelay<B extends BtcBlock>
 
         if(blockheightDelta<=0) return 0n;
 
-        const synchronizationFee = BigInt(blockheightDelta) * await this.getFeePerBlock(feeRate);
+        const synchronizationFee = (BigInt(blockheightDelta) * await this.getFeePerBlock(feeRate))
+            + EVMFees.getGasFee((21_000 + EVMBtcRelay.GasCosts.GAS_BASE_MAIN) * Math.ceil(blockheightDelta / this.maxHeadersPerTx), feeRate);
         logger.debug("estimateSynchronizeFee(): required blockheight: "+requiredBlockheight+
             " blockheight delta: "+blockheightDelta+" fee: "+synchronizationFee.toString(10));
 
@@ -413,13 +418,13 @@ export class EVMBtcRelay<B extends BtcBlock>
     }
 
     /**
-     * Returns fee required (in SOL) to synchronize a single block to btc relay
+     * Returns fee required (in native token) to synchronize a single block to btc relay
      *
      * @param feeRate
      */
     public async getFeePerBlock(feeRate?: string): Promise<bigint> {
         feeRate ??= await this.Chain.Fees.getFeeRate();
-        return EVMFees.getGasFee(GAS_PER_BLOCKHEADER, feeRate);
+        return EVMFees.getGasFee(EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER, feeRate);
     }
 
     /**

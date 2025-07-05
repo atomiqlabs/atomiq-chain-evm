@@ -20,11 +20,6 @@ function serializeBlockHeader(e) {
         hash: Buffer.from(e.getHash(), "hex").reverse()
     });
 }
-const GAS_PER_BLOCKHEADER = 30000;
-const GAS_BASE_MAIN = 15000;
-const GAS_PER_BLOCKHEADER_FORK = 65000;
-const GAS_PER_BLOCKHEADER_FORKED = 10000;
-const GAS_BASE_FORK = 25000;
 const logger = (0, Utils_1.getLogger)("EVMBtcRelay: ");
 class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
     async SaveMainHeaders(signer, mainHeaders, storedHeader, feeRate) {
@@ -33,7 +28,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
             Buffer.concat(mainHeaders.map(header => header.serializeCompact()))
         ]));
         tx.from = signer;
-        EVMFees_1.EVMFees.applyFeeRate(tx, GAS_BASE_MAIN + (GAS_PER_BLOCKHEADER * mainHeaders.length), feeRate);
+        EVMFees_1.EVMFees.applyFeeRate(tx, EVMBtcRelay.GasCosts.GAS_BASE_MAIN + (EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER * mainHeaders.length), feeRate);
         return tx;
     }
     async SaveShortForkHeaders(signer, forkHeaders, storedHeader, feeRate) {
@@ -42,7 +37,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
             Buffer.concat(forkHeaders.map(header => header.serializeCompact()))
         ]));
         tx.from = signer;
-        EVMFees_1.EVMFees.applyFeeRate(tx, GAS_BASE_MAIN + (GAS_PER_BLOCKHEADER * forkHeaders.length), feeRate);
+        EVMFees_1.EVMFees.applyFeeRate(tx, EVMBtcRelay.GasCosts.GAS_BASE_MAIN + (EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER * forkHeaders.length), feeRate);
         return tx;
     }
     async SaveLongForkHeaders(signer, forkId, forkHeaders, storedHeader, feeRate, totalForkHeaders = 100) {
@@ -51,7 +46,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
             Buffer.concat(forkHeaders.map(header => header.serializeCompact()))
         ]));
         tx.from = signer;
-        EVMFees_1.EVMFees.applyFeeRate(tx, GAS_BASE_FORK + (GAS_PER_BLOCKHEADER_FORK * forkHeaders.length) + (GAS_PER_BLOCKHEADER_FORKED * totalForkHeaders), feeRate);
+        EVMFees_1.EVMFees.applyFeeRate(tx, EVMBtcRelay.GasCosts.GAS_BASE_FORK + (EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER_FORK * forkHeaders.length) + (EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER_FORKED * totalForkHeaders), feeRate);
         return tx;
     }
     constructor(chainInterface, bitcoinRpc, bitcoinNetwork, contractAddress, contractDeploymentHeight) {
@@ -327,24 +322,26 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
      * @param feeRate
      */
     async estimateSynchronizeFee(requiredBlockheight, feeRate) {
+        feeRate ?? (feeRate = await this.Chain.Fees.getFeeRate());
         const tipData = await this.getTipData();
         const currBlockheight = tipData.blockheight;
         const blockheightDelta = requiredBlockheight - currBlockheight;
         if (blockheightDelta <= 0)
             return 0n;
-        const synchronizationFee = BigInt(blockheightDelta) * await this.getFeePerBlock(feeRate);
+        const synchronizationFee = (BigInt(blockheightDelta) * await this.getFeePerBlock(feeRate))
+            + EVMFees_1.EVMFees.getGasFee((21000 + EVMBtcRelay.GasCosts.GAS_BASE_MAIN) * Math.ceil(blockheightDelta / this.maxHeadersPerTx), feeRate);
         logger.debug("estimateSynchronizeFee(): required blockheight: " + requiredBlockheight +
             " blockheight delta: " + blockheightDelta + " fee: " + synchronizationFee.toString(10));
         return synchronizationFee;
     }
     /**
-     * Returns fee required (in SOL) to synchronize a single block to btc relay
+     * Returns fee required (in native token) to synchronize a single block to btc relay
      *
      * @param feeRate
      */
     async getFeePerBlock(feeRate) {
         feeRate ?? (feeRate = await this.Chain.Fees.getFeeRate());
-        return EVMFees_1.EVMFees.getGasFee(GAS_PER_BLOCKHEADER, feeRate);
+        return EVMFees_1.EVMFees.getGasFee(EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER, feeRate);
     }
     /**
      * Gets fee rate required for submitting blockheaders to the main chain
@@ -417,3 +414,10 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
     }
 }
 exports.EVMBtcRelay = EVMBtcRelay;
+EVMBtcRelay.GasCosts = {
+    GAS_PER_BLOCKHEADER: 30000,
+    GAS_BASE_MAIN: 15000,
+    GAS_PER_BLOCKHEADER_FORK: 65000,
+    GAS_PER_BLOCKHEADER_FORKED: 10000,
+    GAS_BASE_FORK: 25000
+};

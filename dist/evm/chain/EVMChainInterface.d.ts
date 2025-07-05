@@ -24,12 +24,12 @@ export declare class EVMChainInterface<ChainId extends string = string, EVMChain
     readonly evmChainId: EVMChainId;
     readonly config: EVMConfiguration;
     Fees: EVMFees;
-    readonly Tokens: EVMTokens;
-    readonly Transactions: EVMTransactions;
-    readonly Signatures: EVMSignatures;
-    readonly Events: EVMEvents;
-    readonly Blocks: EVMBlocks;
-    protected readonly logger: LoggerType;
+    Tokens: EVMTokens;
+    Transactions: EVMTransactions;
+    Signatures: EVMSignatures;
+    Events: EVMEvents;
+    Blocks: EVMBlocks;
+    protected logger: LoggerType;
     constructor(chainId: ChainId, evmChainId: EVMChainId, provider: JsonRpcApiProvider, config: EVMConfiguration, retryPolicy?: EVMRetryPolicy, evmFeeEstimator?: EVMFees);
     getBalance(signer: string, tokenAddress: string): Promise<bigint>;
     getNativeCurrencyAddress(): string;

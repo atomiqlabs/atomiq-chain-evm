@@ -1,7 +1,5 @@
 import { getLogger } from "../../../utils/Utils";
-import {Provider, TransactionRequest} from "ethers";
-
-const MAX_FEE_AGE = 5000;
+import {JsonRpcApiProvider, TransactionRequest} from "ethers";
 
 export type EVMFeeRate = {
     maxFeePerGas: bigint;
@@ -9,14 +7,15 @@ export type EVMFeeRate = {
 };
 
 export class EVMFees {
+    protected MAX_FEE_AGE = 5000;
 
-    private readonly logger = getLogger("EVMFees: ");
+    protected readonly logger = getLogger("EVMFees: ");
 
-    private readonly provider: Provider;
-    private readonly maxFeeRatePerGas: bigint;
-    private readonly priorityFee: bigint;
+    protected readonly provider: JsonRpcApiProvider;
+    protected readonly maxFeeRatePerGas: bigint;
+    protected readonly priorityFee: bigint;
 
-    private readonly feeMultiplierPPM: bigint;
+    protected readonly feeMultiplierPPM: bigint;
 
     private blockFeeCache: {
         timestamp: number,
@@ -24,7 +23,7 @@ export class EVMFees {
     } = null;
 
     constructor(
-        provider: Provider,
+        provider: JsonRpcApiProvider,
         maxFeeRatePerGas: bigint = 500n * 1_000_000_000n,
         priorityFee: bigint = 1n * 1_000_000_000n,
         feeMultiplier: number = 1.25,
@@ -56,7 +55,7 @@ export class EVMFees {
      * @private
      */
     public async getFeeRate(): Promise<string> {
-        if(this.blockFeeCache==null || Date.now() - this.blockFeeCache.timestamp > MAX_FEE_AGE) {
+        if(this.blockFeeCache==null || Date.now() - this.blockFeeCache.timestamp > this.MAX_FEE_AGE) {
             let obj = {
                 timestamp: Date.now(),
                 feeRate: null
@@ -87,9 +86,9 @@ export class EVMFees {
     public static getGasFee(gas: number, feeRate: string): bigint {
         if(feeRate==null) return 0n;
 
-        const [baseFee, priorityFee] = feeRate.split(",");
+        const [maxFee, priorityFee] = feeRate.split(",");
 
-        return BigInt(gas) * (BigInt(baseFee) + BigInt(priorityFee));
+        return BigInt(gas) * BigInt(maxFee);
     }
 
     public static applyFeeRate(tx: TransactionRequest, gas: number, feeRate: string) {

@@ -33,13 +33,13 @@ export class EVMChainInterface<ChainId extends string = string, EVMChainId exten
     public readonly config: EVMConfiguration;
 
     public Fees: EVMFees;
-    public readonly Tokens: EVMTokens;
-    public readonly Transactions: EVMTransactions;
-    public readonly Signatures: EVMSignatures;
-    public readonly Events: EVMEvents;
-    public readonly Blocks: EVMBlocks;
+    public Tokens: EVMTokens;
+    public Transactions: EVMTransactions;
+    public Signatures: EVMSignatures;
+    public Events: EVMEvents;
+    public Blocks: EVMBlocks;
 
-    protected readonly logger: LoggerType;
+    protected logger: LoggerType;
 
     constructor(
         chainId: ChainId,

@@ -15,7 +15,12 @@ import { EVMBtcStoredHeader } from "../btcrelay/headers/EVMBtcStoredHeader";
 export declare function packOwnerAndVaultId(owner: string, vaultId: bigint): string;
 export declare function unpackOwnerAndVaultId(data: string): [string, bigint];
 export declare class EVMSpvVaultContract<ChainId extends string> extends EVMContractBase<SpvVaultManager> implements SpvVaultContract<EVMTx, EVMSigner, ChainId, EVMSpvVaultData, EVMSpvWithdrawalData> {
-    private static readonly GasCosts;
+    static readonly GasCosts: {
+        DEPOSIT: number;
+        OPEN: number;
+        FRONT: number;
+        CLAIM: number;
+    };
     readonly chainId: ChainId;
     readonly btcRelay: EVMBtcRelay<any>;
     readonly bitcoinRpc: BitcoinRpc<any>;

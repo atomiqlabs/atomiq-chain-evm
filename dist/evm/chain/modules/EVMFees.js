@@ -2,9 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVMFees = void 0;
 const Utils_1 = require("../../../utils/Utils");
-const MAX_FEE_AGE = 5000;
 class EVMFees {
     constructor(provider, maxFeeRatePerGas = 500n * 1000000000n, priorityFee = 1n * 1000000000n, feeMultiplier = 1.25) {
+        this.MAX_FEE_AGE = 5000;
         this.logger = (0, Utils_1.getLogger)("EVMFees: ");
         this.blockFeeCache = null;
         this.provider = provider;
@@ -30,7 +30,7 @@ class EVMFees {
      * @private
      */
     async getFeeRate() {
-        if (this.blockFeeCache == null || Date.now() - this.blockFeeCache.timestamp > MAX_FEE_AGE) {
+        if (this.blockFeeCache == null || Date.now() - this.blockFeeCache.timestamp > this.MAX_FEE_AGE) {
             let obj = {
                 timestamp: Date.now(),
                 feeRate: null
@@ -58,8 +58,8 @@ class EVMFees {
     static getGasFee(gas, feeRate) {
         if (feeRate == null)
             return 0n;
-        const [baseFee, priorityFee] = feeRate.split(",");
-        return BigInt(gas) * (BigInt(baseFee) + BigInt(priorityFee));
+        const [maxFee, priorityFee] = feeRate.split(",");
+        return BigInt(gas) * BigInt(maxFee);
     }
     static applyFeeRate(tx, gas, feeRate) {
         if (feeRate == null)

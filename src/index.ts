@@ -42,3 +42,7 @@ export * from "./evm/wallet/EVMSigner";
 
 export * from "./chains/citrea/CitreaInitializer";
 export * from "./chains/citrea/CitreaChainType";
+export * from "./chains/citrea/CitreaFees";
+export * from "./chains/citrea/CitreaSwapContract";
+export * from "./chains/citrea/CitreaBtcRelay";
+export * from "./chains/citrea/CitreaSpvVaultContract";

@@ -9,6 +9,13 @@ import { EVMSigner } from "../wallet/EVMSigner";
 import { EVMTx } from "../chain/modules/EVMTransactions";
 import { EVMChainInterface } from "../chain/EVMChainInterface";
 export declare class EVMBtcRelay<B extends BtcBlock> extends EVMContractBase<BtcRelayTypechain> implements BtcRelay<EVMBtcStoredHeader, EVMTx, B, EVMSigner> {
+    static GasCosts: {
+        GAS_PER_BLOCKHEADER: number;
+        GAS_BASE_MAIN: number;
+        GAS_PER_BLOCKHEADER_FORK: number;
+        GAS_PER_BLOCKHEADER_FORKED: number;
+        GAS_BASE_FORK: number;
+    };
     SaveMainHeaders(signer: string, mainHeaders: EVMBtcHeader[], storedHeader: EVMBtcStoredHeader, feeRate: string): Promise<EVMTx>;
     SaveShortForkHeaders(signer: string, forkHeaders: EVMBtcHeader[], storedHeader: EVMBtcStoredHeader, feeRate: string): Promise<EVMTx>;
     SaveLongForkHeaders(signer: string, forkId: number, forkHeaders: EVMBtcHeader[], storedHeader: EVMBtcStoredHeader, feeRate: string, totalForkHeaders?: number): Promise<EVMTx>;
@@ -148,7 +155,7 @@ export declare class EVMBtcRelay<B extends BtcBlock> extends EVMContractBase<Btc
      */
     estimateSynchronizeFee(requiredBlockheight: number, feeRate?: string): Promise<bigint>;
     /**
-     * Returns fee required (in SOL) to synchronize a single block to btc relay
+     * Returns fee required (in native token) to synchronize a single block to btc relay
      *
      * @param feeRate
      */
