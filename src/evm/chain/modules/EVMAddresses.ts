@@ -1,6 +1,5 @@
 import {EVMModule} from "../EVMModule";
-import {isAddress} from "ethers";
-import {Wallet} from "ethers/lib.esm";
+import {Wallet, isAddress} from "ethers";
 
 
 export class EVMAddresses extends EVMModule<any> {
