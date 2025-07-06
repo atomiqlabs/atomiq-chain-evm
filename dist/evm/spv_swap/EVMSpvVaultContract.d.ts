@@ -16,10 +16,17 @@ export declare function packOwnerAndVaultId(owner: string, vaultId: bigint): str
 export declare function unpackOwnerAndVaultId(data: string): [string, bigint];
 export declare class EVMSpvVaultContract<ChainId extends string> extends EVMContractBase<SpvVaultManager> implements SpvVaultContract<EVMTx, EVMSigner, ChainId, EVMSpvVaultData, EVMSpvWithdrawalData> {
     static readonly GasCosts: {
-        DEPOSIT: number;
+        DEPOSIT_BASE: number;
+        DEPOSIT_ERC20: number;
         OPEN: number;
-        FRONT: number;
-        CLAIM: number;
+        CLAIM_BASE: number;
+        CLAIM_NATIVE_TRANSFER: number;
+        CLAIM_ERC20_TRANSFER: number;
+        CLAIM_EXECUTION_SCHEDULE: number;
+        FRONT_BASE: number;
+        FRONT_NATIVE_TRANSFER: number;
+        FRONT_ERC20_TRANSFER: number;
+        FRONT_EXECUTION_SCHEDULE: number;
     };
     readonly chainId: ChainId;
     readonly btcRelay: EVMBtcRelay<any>;
@@ -64,6 +71,8 @@ export declare class EVMSpvVaultContract<ChainId extends string> extends EVMCont
     txsDeposit(signer: string, vault: EVMSpvVaultData, rawAmounts: bigint[], feeRate?: string): Promise<EVMTx[]>;
     txsFrontLiquidity(signer: string, vault: EVMSpvVaultData, realWithdrawalTx: EVMSpvWithdrawalData, withdrawSequence: number, feeRate?: string): Promise<EVMTx[]>;
     txsOpen(signer: string, vault: EVMSpvVaultData, feeRate?: string): Promise<EVMTx[]>;
-    getClaimFee(signer: string, withdrawalData: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint>;
-    getFrontFee(signer: string, withdrawalData: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint>;
+    getClaimGas(signer: string, vault: EVMSpvVaultData, data: EVMSpvWithdrawalData): number;
+    getFrontGas(signer: string, vault: EVMSpvVaultData, data: EVMSpvWithdrawalData): number;
+    getClaimFee(signer: string, vault: EVMSpvVaultData, withdrawalData: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint>;
+    getFrontFee(signer: string, vault: EVMSpvVaultData, withdrawalData: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint>;
 }

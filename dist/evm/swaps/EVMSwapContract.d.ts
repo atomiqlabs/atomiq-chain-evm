@@ -182,11 +182,11 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
     getClaimFeeRate(signer: string, swapData: EVMSwapData): Promise<string>;
     getClaimFee(signer: string, swapData: EVMSwapData, feeRate?: string): Promise<bigint>;
     /**
-     * Get the estimated solana fee of the commit transaction
+     * Get the estimated fee of the commit transaction
      */
-    getCommitFee(swapData: EVMSwapData, feeRate?: string): Promise<bigint>;
+    getCommitFee(signer: string, swapData: EVMSwapData, feeRate?: string): Promise<bigint>;
     /**
-     * Get the estimated solana transaction fee of the refund transaction
+     * Get the estimated transaction fee of the refund transaction
      */
-    getRefundFee(swapData: EVMSwapData, feeRate?: string): Promise<bigint>;
+    getRefundFee(signer: string, swapData: EVMSwapData, feeRate?: string): Promise<bigint>;
 }

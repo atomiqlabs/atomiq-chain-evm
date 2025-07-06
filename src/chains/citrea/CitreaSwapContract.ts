@@ -29,7 +29,7 @@ export class CitreaSwapContract extends EVMSwapContract<"CITREA"> {
     /**
      * Get the estimated solana fee of the commit transaction
      */
-    async getCommitFee(swapData: EVMSwapData, feeRate?: string): Promise<bigint> {
+    async getCommitFee(signer: string, swapData: EVMSwapData, feeRate?: string): Promise<bigint> {
         feeRate ??= await this.Chain.Fees.getFeeRate();
 
         const tokenStateChanges: Set<string> = new Set();
@@ -40,11 +40,10 @@ export class CitreaSwapContract extends EVMSwapContract<"CITREA"> {
         } else {
             tokenStateChanges.add(swapData.getOfferer().toLowerCase()+":"+swapData.getToken().toLowerCase());
         }
-        //TODO: Since we don't know who is sending the transaction, we calculate with the worst case
         if(swapData.getTotalDeposit()>0n) {
-            tokenStateChanges.add(swapData.getClaimer().toLowerCase()+":"+swapData.getDepositToken().toLowerCase());
+            tokenStateChanges.add(signer.toLowerCase()+":"+swapData.getDepositToken().toLowerCase());
         }
-        diffSize += this.calculateStateDiff(null, tokenStateChanges);
+        diffSize += this.calculateStateDiff(signer, tokenStateChanges);
 
         const gasFee = await this.Init.getInitFee(swapData, feeRate);
         return gasFee + CitreaFees.getGasFee(0, feeRate, diffSize);
@@ -77,7 +76,7 @@ export class CitreaSwapContract extends EVMSwapContract<"CITREA"> {
     /**
      * Get the estimated solana transaction fee of the refund transaction
      */
-    async getRefundFee(swapData: EVMSwapData, feeRate?: string): Promise<bigint> {
+    async getRefundFee(signer: string, swapData: EVMSwapData, feeRate?: string): Promise<bigint> {
         feeRate ??= await this.Chain.Fees.getFeeRate();
 
         const tokenStateChanges: Set<string> = new Set();
@@ -89,14 +88,13 @@ export class CitreaSwapContract extends EVMSwapContract<"CITREA"> {
         } else {
             tokenStateChanges.add(swapData.getOfferer().toLowerCase()+":"+swapData.getToken().toLowerCase());
         }
-        //TODO: Since we don't know if the refund is cooperative or not and also not the signer, we calculate with the worst case
         if(swapData.getSecurityDeposit() > 0) {
             tokenStateChanges.add(swapData.getOfferer().toLowerCase()+":"+swapData.getDepositToken().toLowerCase());
         }
         if(swapData.getClaimerBounty() > swapData.getSecurityDeposit()) {
             tokenStateChanges.add(swapData.getClaimer().toLowerCase()+":"+swapData.getDepositToken().toLowerCase());
         }
-        diffSize += this.calculateStateDiff(null, tokenStateChanges);
+        diffSize += this.calculateStateDiff(signer, tokenStateChanges);
 
         const gasFee = await this.Refund.getRefundFee(swapData, feeRate);
         return gasFee + CitreaFees.getGasFee(0, feeRate, diffSize);

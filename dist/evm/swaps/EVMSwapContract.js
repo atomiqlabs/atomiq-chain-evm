@@ -358,15 +358,15 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
         return this.Claim.getClaimFee(swapData, feeRate);
     }
     /**
-     * Get the estimated solana fee of the commit transaction
+     * Get the estimated fee of the commit transaction
      */
-    getCommitFee(swapData, feeRate) {
+    getCommitFee(signer, swapData, feeRate) {
         return this.Init.getInitFee(swapData, feeRate);
     }
     /**
-     * Get the estimated solana transaction fee of the refund transaction
+     * Get the estimated transaction fee of the refund transaction
      */
-    getRefundFee(swapData, feeRate) {
+    getRefundFee(signer, swapData, feeRate) {
         return this.Refund.getRefundFee(swapData, feeRate);
     }
 }

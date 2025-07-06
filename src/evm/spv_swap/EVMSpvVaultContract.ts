@@ -55,10 +55,20 @@ export class EVMSpvVaultContract<ChainId extends string>
     >
 {
     public static readonly GasCosts = {
-        DEPOSIT: 150_000 + 21_000,
-        OPEN: 100_000 + 21_000,
-        FRONT: 250_000 + 21_000,
-        CLAIM: 250_000 + 21_000
+        DEPOSIT_BASE: 15_000 + 21_000,
+        DEPOSIT_ERC20: 40_000,
+
+        OPEN: 80_000 + 21_000,
+
+        CLAIM_BASE: 85_000 + 21_000,
+        CLAIM_NATIVE_TRANSFER: 7_500,
+        CLAIM_ERC20_TRANSFER: 40_000,
+        CLAIM_EXECUTION_SCHEDULE: 30_000,
+
+        FRONT_BASE: 75_000 + 21_000,
+        FRONT_NATIVE_TRANSFER: 7_500,
+        FRONT_ERC20_TRANSFER: 40_000,
+        FRONT_EXECUTION_SCHEDULE: 30_000
     };
 
     readonly chainId: ChainId;
@@ -96,18 +106,26 @@ export class EVMSpvVaultContract<ChainId extends string>
     }
 
     protected async Deposit(signer: string, vault: EVMSpvVaultData, rawAmounts: bigint[], feeRate: string): Promise<TransactionRequest> {
+        let totalGas = EVMSpvVaultContract.GasCosts.DEPOSIT_BASE;
         let value = 0n;
-        if(vault.token0.token.toLowerCase()===this.Chain.getNativeCurrencyAddress().toLowerCase())
+        if(vault.token0.token.toLowerCase()===this.Chain.getNativeCurrencyAddress().toLowerCase()) {
             value += rawAmounts[0] * vault.token0.multiplier;
-        if(vault.token1.token.toLowerCase()===this.Chain.getNativeCurrencyAddress().toLowerCase())
+        } else {
+            if(rawAmounts[0] > 0n) totalGas += EVMSpvVaultContract.GasCosts.DEPOSIT_ERC20;
+        }
+        if(vault.token1.token.toLowerCase()===this.Chain.getNativeCurrencyAddress().toLowerCase()) {
             value += (rawAmounts[1] ?? 0n) * vault.token1.multiplier;
+        } else {
+            if(rawAmounts[1]!=null && rawAmounts[1] > 0n && vault.token0.token.toLowerCase()!==vault.token1.token.toLowerCase())
+                totalGas += EVMSpvVaultContract.GasCosts.DEPOSIT_ERC20;
+        }
 
         const tx = await this.contract.deposit.populateTransaction(
             vault.owner, vault.vaultId, vault.getVaultParamsStruct(),
             rawAmounts[0], rawAmounts[1] ?? 0n, { value }
         );
         tx.from = signer;
-        EVMFees.applyFeeRate(tx, EVMSpvVaultContract.GasCosts.DEPOSIT, feeRate);
+        EVMFees.applyFeeRate(tx, totalGas, feeRate);
 
         return tx;
     }
@@ -128,7 +146,7 @@ export class EVMSpvVaultContract<ChainId extends string>
             { value }
         );
         tx.from = signer;
-        EVMFees.applyFeeRate(tx, EVMSpvVaultContract.GasCosts.FRONT, feeRate);
+        EVMFees.applyFeeRate(tx, this.getFrontGas(signer, vault, data), feeRate);
 
         return tx;
     }
@@ -143,7 +161,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         )
 
         tx.from = signer;
-        EVMFees.applyFeeRate(tx, EVMSpvVaultContract.GasCosts.CLAIM, feeRate);
+        EVMFees.applyFeeRate(tx, this.getClaimGas(signer, vault, data), feeRate);
 
         return tx;
     }
@@ -520,14 +538,65 @@ export class EVMSpvVaultContract<ChainId extends string>
         return [tx];
     }
 
-    async getClaimFee(signer: string, withdrawalData: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint> {
-        feeRate ??= await this.Chain.Fees.getFeeRate();
-        return EVMFees.getGasFee(EVMSpvVaultContract.GasCosts.CLAIM, feeRate);
+    getClaimGas(signer: string, vault: EVMSpvVaultData, data: EVMSpvWithdrawalData): number {
+        let totalGas = EVMSpvVaultContract.GasCosts.CLAIM_BASE;
+
+        if (data.rawAmounts[0] != null && data.rawAmounts[0] > 0n) {
+            const transferFee = vault.token0.token.toLowerCase() === this.Chain.getNativeCurrencyAddress() ?
+                EVMSpvVaultContract.GasCosts.CLAIM_NATIVE_TRANSFER : EVMSpvVaultContract.GasCosts.CLAIM_ERC20_TRANSFER;
+            totalGas += transferFee;
+            if (data.frontingFeeRate > 0n) totalGas += transferFee; //Also needs to pay out to fronter
+            if (data.callerFeeRate > 0n && !data.isRecipient(signer)) totalGas += transferFee; //Also needs to pay out to caller
+        }
+        if (data.rawAmounts[1] != null && data.rawAmounts[1] > 0n) {
+            const transferFee = vault.token1.token.toLowerCase() === this.Chain.getNativeCurrencyAddress() ?
+                EVMSpvVaultContract.GasCosts.CLAIM_NATIVE_TRANSFER : EVMSpvVaultContract.GasCosts.CLAIM_ERC20_TRANSFER;
+            totalGas += transferFee;
+            if (data.frontingFeeRate > 0n) totalGas += transferFee; //Also needs to pay out to fronter
+            if (data.callerFeeRate > 0n && !data.isRecipient(signer)) totalGas += transferFee; //Also needs to pay out to caller
+        }
+        if (data.executionHash != null && data.executionHash !== ZeroHash) totalGas += EVMSpvVaultContract.GasCosts.CLAIM_EXECUTION_SCHEDULE;
+
+        return totalGas;
     }
 
-    async getFrontFee(signer: string, withdrawalData: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint> {
+    getFrontGas(signer: string, vault: EVMSpvVaultData, data: EVMSpvWithdrawalData): number {
+        let totalGas = EVMSpvVaultContract.GasCosts.FRONT_BASE;
+
+        if (data.rawAmounts[0] != null && data.rawAmounts[0] > 0n) {
+            totalGas += vault.token0.token.toLowerCase() === this.Chain.getNativeCurrencyAddress() ?
+                EVMSpvVaultContract.GasCosts.FRONT_NATIVE_TRANSFER : EVMSpvVaultContract.GasCosts.FRONT_ERC20_TRANSFER;
+        }
+        if (data.rawAmounts[1] != null && data.rawAmounts[1] > 0n) {
+            totalGas += vault.token1.token.toLowerCase() === this.Chain.getNativeCurrencyAddress() ?
+                EVMSpvVaultContract.GasCosts.FRONT_NATIVE_TRANSFER : EVMSpvVaultContract.GasCosts.FRONT_ERC20_TRANSFER;
+        }
+        if (data.executionHash != null && data.executionHash !== ZeroHash) totalGas += EVMSpvVaultContract.GasCosts.FRONT_EXECUTION_SCHEDULE;
+
+        return totalGas;
+    }
+
+    async getClaimFee(signer: string, vault: EVMSpvVaultData, withdrawalData: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint> {
         feeRate ??= await this.Chain.Fees.getFeeRate();
-        return EVMFees.getGasFee(EVMSpvVaultContract.GasCosts.FRONT, feeRate);
+        return EVMFees.getGasFee(this.getClaimGas(signer, vault, withdrawalData), feeRate);
+    }
+
+    async getFrontFee(signer: string, vault: EVMSpvVaultData, withdrawalData: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint> {
+        feeRate ??= await this.Chain.Fees.getFeeRate();
+        let totalFee = EVMFees.getGasFee(this.getFrontGas(signer, vault, withdrawalData), feeRate);
+        if(withdrawalData.rawAmounts[0]!=null && withdrawalData.rawAmounts[0]>0n) {
+            if(vault.token0.token.toLowerCase()!==this.Chain.getNativeCurrencyAddress().toLowerCase()) {
+                totalFee += await this.Chain.Tokens.getApproveFee(feeRate);
+            }
+        }
+        if(withdrawalData.rawAmounts[1]!=null && withdrawalData.rawAmounts[1]>0n) {
+            if(vault.token1.token.toLowerCase()!==this.Chain.getNativeCurrencyAddress().toLowerCase()) {
+                if(vault.token1.token.toLowerCase()!==vault.token0.token.toLowerCase() || withdrawalData.rawAmounts[0]==null || withdrawalData.rawAmounts[0]===0n) {
+                    totalFee += await this.Chain.Tokens.getApproveFee(feeRate);
+                }
+            }
+        }
+        return totalFee;
     }
 
 }

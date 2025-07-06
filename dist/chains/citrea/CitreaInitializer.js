@@ -4,7 +4,6 @@ exports.CitreaInitializer = exports.initializeCitrea = exports.CitreaAssets = vo
 const base_1 = require("@atomiqlabs/base");
 const ethers_1 = require("ethers");
 const EVMChainInterface_1 = require("../../evm/chain/EVMChainInterface");
-const EVMSpvVaultContract_1 = require("../../evm/spv_swap/EVMSpvVaultContract");
 const EVMChainEventsBrowser_1 = require("../../evm/events/EVMChainEventsBrowser");
 const EVMSwapData_1 = require("../../evm/swaps/EVMSwapData");
 const EVMSpvVaultData_1 = require("../../evm/spv_swap/EVMSpvVaultData");
@@ -13,6 +12,7 @@ const CitreaFees_1 = require("./CitreaFees");
 const CitreaBtcRelay_1 = require("./CitreaBtcRelay");
 const CitreaSwapContract_1 = require("./CitreaSwapContract");
 const CitreaTokens_1 = require("./CitreaTokens");
+const CitreaSpvVaultContract_1 = require("./CitreaSpvVaultContract");
 const CitreaChainIds = {
     MAINNET: null,
     TESTNET4: 5115
@@ -102,7 +102,7 @@ function initializeCitrea(options, bitcoinRpc, network) {
             ...options?.handlerContracts?.claim
         }
     });
-    const spvVaultContract = new EVMSpvVaultContract_1.EVMSpvVaultContract(chainInterface, btcRelay, bitcoinRpc, options.spvVaultContract ?? defaultContractAddresses.spvVaultContract, options.spvVaultDeploymentHeight ?? defaultContractAddresses.spvVaultDeploymentHeight);
+    const spvVaultContract = new CitreaSpvVaultContract_1.CitreaSpvVaultContract(chainInterface, btcRelay, bitcoinRpc, options.spvVaultContract ?? defaultContractAddresses.spvVaultContract, options.spvVaultDeploymentHeight ?? defaultContractAddresses.spvVaultDeploymentHeight);
     const chainEvents = new EVMChainEventsBrowser_1.EVMChainEventsBrowser(chainInterface, swapContract, spvVaultContract);
     return {
         chainId: "CITREA",

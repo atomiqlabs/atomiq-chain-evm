@@ -23,7 +23,7 @@
   "author": "adambor",
   "license": "Apache-2.0",
   "dependencies": {
-    "@atomiqlabs/base": "^10.0.0-dev.1",
+    "@atomiqlabs/base": "^10.0.0-dev.2",
     "@noble/hashes": "^1.8.0",
     "@scure/btc-signer": "1.6.0",
     "buffer": "6.0.3"

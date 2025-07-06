@@ -14,6 +14,7 @@ import {CitreaFees} from "./CitreaFees";
 import {CitreaBtcRelay} from "./CitreaBtcRelay";
 import {CitreaSwapContract} from "./CitreaSwapContract";
 import {CitreaTokens} from "./CitreaTokens";
+import {CitreaSpvVaultContract} from "./CitreaSpvVaultContract";
 
 const CitreaChainIds = {
     MAINNET: null,
@@ -147,7 +148,7 @@ export function initializeCitrea(
         }
     );
 
-    const spvVaultContract = new EVMSpvVaultContract(
+    const spvVaultContract = new CitreaSpvVaultContract(
         chainInterface, btcRelay, bitcoinRpc, options.spvVaultContract ?? defaultContractAddresses.spvVaultContract,
         options.spvVaultDeploymentHeight ?? defaultContractAddresses.spvVaultDeploymentHeight
     )
