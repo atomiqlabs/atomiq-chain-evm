@@ -1,5 +1,6 @@
 import {EVMModule} from "../EVMModule";
 import {isAddress} from "ethers";
+import {Wallet} from "ethers/lib.esm";
 
 
 export class EVMAddresses extends EVMModule<any> {
@@ -19,6 +20,11 @@ export class EVMAddresses extends EVMModule<any> {
         } catch (e) {
             return false;
         }
+    }
+
+    static randomAddress(): string {
+        const wallet = Wallet.createRandom();
+        return wallet.address;
     }
 
 }

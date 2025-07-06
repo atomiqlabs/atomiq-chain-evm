@@ -54,8 +54,7 @@ class EVMChainInterface {
         return this.Transactions.offBeforeTxSigned(callback);
     }
     randomAddress() {
-        const wallet = ethers_1.Wallet.createRandom();
-        return wallet.address;
+        return EVMAddresses_1.EVMAddresses.randomAddress();
     }
     randomSigner() {
         const wallet = ethers_1.Wallet.createRandom();

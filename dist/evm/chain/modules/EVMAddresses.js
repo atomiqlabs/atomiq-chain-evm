@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVMAddresses = void 0;
 const EVMModule_1 = require("../EVMModule");
 const ethers_1 = require("ethers");
+const lib_esm_1 = require("ethers/lib.esm");
 class EVMAddresses extends EVMModule_1.EVMModule {
     ///////////////////
     //// Address utils
@@ -21,6 +22,10 @@ class EVMAddresses extends EVMModule_1.EVMModule {
         catch (e) {
             return false;
         }
+    }
+    static randomAddress() {
+        const wallet = lib_esm_1.Wallet.createRandom();
+        return wallet.address;
     }
 }
 exports.EVMAddresses = EVMAddresses;

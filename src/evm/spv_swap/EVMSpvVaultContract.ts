@@ -538,40 +538,40 @@ export class EVMSpvVaultContract<ChainId extends string>
         return [tx];
     }
 
-    getClaimGas(signer: string, vault: EVMSpvVaultData, data: EVMSpvWithdrawalData): number {
+    getClaimGas(signer: string, vault: EVMSpvVaultData, data?: EVMSpvWithdrawalData): number {
         let totalGas = EVMSpvVaultContract.GasCosts.CLAIM_BASE;
 
-        if (data.rawAmounts[0] != null && data.rawAmounts[0] > 0n) {
+        if (data==null || (data.rawAmounts[0] != null && data.rawAmounts[0] > 0n)) {
             const transferFee = vault.token0.token.toLowerCase() === this.Chain.getNativeCurrencyAddress() ?
                 EVMSpvVaultContract.GasCosts.CLAIM_NATIVE_TRANSFER : EVMSpvVaultContract.GasCosts.CLAIM_ERC20_TRANSFER;
             totalGas += transferFee;
-            if (data.frontingFeeRate > 0n) totalGas += transferFee; //Also needs to pay out to fronter
-            if (data.callerFeeRate > 0n && !data.isRecipient(signer)) totalGas += transferFee; //Also needs to pay out to caller
+            if (data==null || data.frontingFeeRate > 0n) totalGas += transferFee; //Also needs to pay out to fronter
+            if (data==null || (data.callerFeeRate > 0n && !data.isRecipient(signer))) totalGas += transferFee; //Also needs to pay out to caller
         }
-        if (data.rawAmounts[1] != null && data.rawAmounts[1] > 0n) {
+        if (data==null || (data.rawAmounts[1] != null && data.rawAmounts[1] > 0n)) {
             const transferFee = vault.token1.token.toLowerCase() === this.Chain.getNativeCurrencyAddress() ?
                 EVMSpvVaultContract.GasCosts.CLAIM_NATIVE_TRANSFER : EVMSpvVaultContract.GasCosts.CLAIM_ERC20_TRANSFER;
             totalGas += transferFee;
-            if (data.frontingFeeRate > 0n) totalGas += transferFee; //Also needs to pay out to fronter
-            if (data.callerFeeRate > 0n && !data.isRecipient(signer)) totalGas += transferFee; //Also needs to pay out to caller
+            if (data==null || data.frontingFeeRate > 0n) totalGas += transferFee; //Also needs to pay out to fronter
+            if (data==null || (data.callerFeeRate > 0n && !data.isRecipient(signer))) totalGas += transferFee; //Also needs to pay out to caller
         }
-        if (data.executionHash != null && data.executionHash !== ZeroHash) totalGas += EVMSpvVaultContract.GasCosts.CLAIM_EXECUTION_SCHEDULE;
+        if (data==null || (data.executionHash != null && data.executionHash !== ZeroHash)) totalGas += EVMSpvVaultContract.GasCosts.CLAIM_EXECUTION_SCHEDULE;
 
         return totalGas;
     }
 
-    getFrontGas(signer: string, vault: EVMSpvVaultData, data: EVMSpvWithdrawalData): number {
+    getFrontGas(signer: string, vault: EVMSpvVaultData, data?: EVMSpvWithdrawalData): number {
         let totalGas = EVMSpvVaultContract.GasCosts.FRONT_BASE;
 
-        if (data.rawAmounts[0] != null && data.rawAmounts[0] > 0n) {
+        if (data==null || (data.rawAmounts[0] != null && data.rawAmounts[0] > 0n)) {
             totalGas += vault.token0.token.toLowerCase() === this.Chain.getNativeCurrencyAddress() ?
                 EVMSpvVaultContract.GasCosts.FRONT_NATIVE_TRANSFER : EVMSpvVaultContract.GasCosts.FRONT_ERC20_TRANSFER;
         }
-        if (data.rawAmounts[1] != null && data.rawAmounts[1] > 0n) {
+        if (data==null || (data.rawAmounts[1] != null && data.rawAmounts[1] > 0n)) {
             totalGas += vault.token1.token.toLowerCase() === this.Chain.getNativeCurrencyAddress() ?
                 EVMSpvVaultContract.GasCosts.FRONT_NATIVE_TRANSFER : EVMSpvVaultContract.GasCosts.FRONT_ERC20_TRANSFER;
         }
-        if (data.executionHash != null && data.executionHash !== ZeroHash) totalGas += EVMSpvVaultContract.GasCosts.FRONT_EXECUTION_SCHEDULE;
+        if (data==null || (data.executionHash != null && data.executionHash !== ZeroHash)) totalGas += EVMSpvVaultContract.GasCosts.FRONT_EXECUTION_SCHEDULE;
 
         return totalGas;
     }
@@ -581,17 +581,18 @@ export class EVMSpvVaultContract<ChainId extends string>
         return EVMFees.getGasFee(this.getClaimGas(signer, vault, withdrawalData), feeRate);
     }
 
-    async getFrontFee(signer: string, vault: EVMSpvVaultData, withdrawalData: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint> {
+    async getFrontFee(signer: string, vault?: EVMSpvVaultData, withdrawalData?: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint> {
+        vault ??= EVMSpvVaultData.randomVault();
         feeRate ??= await this.Chain.Fees.getFeeRate();
         let totalFee = EVMFees.getGasFee(this.getFrontGas(signer, vault, withdrawalData), feeRate);
-        if(withdrawalData.rawAmounts[0]!=null && withdrawalData.rawAmounts[0]>0n) {
+        if(withdrawalData==null || (withdrawalData.rawAmounts[0]!=null && withdrawalData.rawAmounts[0]>0n)) {
             if(vault.token0.token.toLowerCase()!==this.Chain.getNativeCurrencyAddress().toLowerCase()) {
                 totalFee += await this.Chain.Tokens.getApproveFee(feeRate);
             }
         }
-        if(withdrawalData.rawAmounts[1]!=null && withdrawalData.rawAmounts[1]>0n) {
+        if(withdrawalData==null || (withdrawalData.rawAmounts[1]!=null && withdrawalData.rawAmounts[1]>0n)) {
             if(vault.token1.token.toLowerCase()!==this.Chain.getNativeCurrencyAddress().toLowerCase()) {
-                if(vault.token1.token.toLowerCase()!==vault.token0.token.toLowerCase() || withdrawalData.rawAmounts[0]==null || withdrawalData.rawAmounts[0]===0n) {
+                if(vault.token1.token.toLowerCase()!==vault.token0.token.toLowerCase() || withdrawalData==null || withdrawalData.rawAmounts[0]==null || withdrawalData.rawAmounts[0]===0n) {
                     totalFee += await this.Chain.Tokens.getApproveFee(feeRate);
                 }
             }

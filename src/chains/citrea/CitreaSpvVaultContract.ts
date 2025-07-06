@@ -4,6 +4,7 @@ import {EVMSpvVaultData} from "../../evm/spv_swap/EVMSpvVaultData";
 import {ZeroHash} from "ethers/lib.esm";
 import {ZeroAddress} from "ethers";
 import {CitreaFees} from "./CitreaFees";
+import {EVMAddresses} from "../../evm/chain/modules/EVMAddresses";
 
 
 export class CitreaSpvVaultContract extends EVMSpvVaultContract<"CITREA"> {
@@ -29,41 +30,44 @@ export class CitreaSpvVaultContract extends EVMSpvVaultContract<"CITREA"> {
         return stateDiffSize;
     }
 
-    async getClaimFee(signer: string, vault: EVMSpvVaultData, data: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint> {
+    async getClaimFee(signer: string, vault?: EVMSpvVaultData, data?: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint> {
+        vault ??= EVMSpvVaultData.randomVault();
         feeRate ??= await this.Chain.Fees.getFeeRate();
         const tokenStateChanges: Set<string> = new Set();
 
         let diffSize = CitreaSpvVaultContract.StateDiffSize.BASE_DIFF_SIZE;
-        if (data.rawAmounts[0] != null && data.rawAmounts[0] > 0n) {
-            tokenStateChanges.add(data.recipient.toLowerCase()+":"+vault.token0.token.toLowerCase());
-            if (data.frontingFeeRate > 0n) tokenStateChanges.add(ZeroAddress+":"+vault.token0.token.toLowerCase()); //Also needs to pay out to fronter
-            if (data.callerFeeRate > 0n) tokenStateChanges.add(signer+":"+vault.token0.token.toLowerCase()); //Also needs to pay out to caller
+        const recipient = data!=null ? data.recipient : EVMAddresses.randomAddress();
+        if (data==null || (data.rawAmounts[0] != null && data.rawAmounts[0] > 0n)) {
+            tokenStateChanges.add(recipient.toLowerCase()+":"+vault.token0.token.toLowerCase());
+            if (data==null || data.frontingFeeRate > 0n) tokenStateChanges.add(ZeroAddress+":"+vault.token0.token.toLowerCase()); //Also needs to pay out to fronter
+            if (data==null || data.callerFeeRate > 0n) tokenStateChanges.add(signer+":"+vault.token0.token.toLowerCase()); //Also needs to pay out to caller
         }
-        if (data.rawAmounts[1] != null && data.rawAmounts[1] > 0n) {
-            tokenStateChanges.add(data.recipient.toLowerCase()+":"+vault.token1.token.toLowerCase());
-            if (data.frontingFeeRate > 0n) tokenStateChanges.add(ZeroAddress+":"+vault.token1.token.toLowerCase()); //Also needs to pay out to fronter
-            if (data.callerFeeRate > 0n) tokenStateChanges.add(signer+":"+vault.token1.token.toLowerCase()); //Also needs to pay out to caller
+        if (data==null || (data.rawAmounts[1] != null && data.rawAmounts[1] > 0n)) {
+            tokenStateChanges.add(recipient.toLowerCase()+":"+vault.token1.token.toLowerCase());
+            if (data==null || data.frontingFeeRate > 0n) tokenStateChanges.add(ZeroAddress+":"+vault.token1.token.toLowerCase()); //Also needs to pay out to fronter
+            if (data==null || data.callerFeeRate > 0n) tokenStateChanges.add(signer+":"+vault.token1.token.toLowerCase()); //Also needs to pay out to caller
         }
         diffSize += this.calculateStateDiff(signer, tokenStateChanges);
-        if (data.executionHash != null && data.executionHash !== ZeroHash) diffSize += CitreaSpvVaultContract.StateDiffSize.EXECUTION_SCHEDULE_DIFF_SIZE;
+        if (data==null || (data.executionHash != null && data.executionHash !== ZeroHash)) diffSize += CitreaSpvVaultContract.StateDiffSize.EXECUTION_SCHEDULE_DIFF_SIZE;
 
         const gasFee = await super.getClaimFee(signer, vault, data, feeRate);
         return gasFee + CitreaFees.getGasFee(0, feeRate, diffSize);
     }
 
-    async getFrontFee(signer: string, vault: EVMSpvVaultData, data: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint> {
+    async getFrontFee(signer: string, vault?: EVMSpvVaultData, data?: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint> {
+        vault ??= EVMSpvVaultData.randomVault();
         feeRate ??= await this.Chain.Fees.getFeeRate();
         const tokenStateChanges: Set<string> = new Set();
 
         let diffSize = CitreaSpvVaultContract.StateDiffSize.BASE_DIFF_SIZE;
-        if (data.rawAmounts[0] != null && data.rawAmounts[0] > 0n) {
+        if (data==null || (data.rawAmounts[0] != null && data.rawAmounts[0] > 0n)) {
             tokenStateChanges.add(signer+":"+vault.token0.token.toLowerCase());
         }
-        if (data.rawAmounts[1] != null && data.rawAmounts[1] > 0n) {
+        if (data==null || (data.rawAmounts[1] != null && data.rawAmounts[1] > 0n)) {
             tokenStateChanges.add(signer+":"+vault.token1.token.toLowerCase());
         }
         diffSize += this.calculateStateDiff(signer, tokenStateChanges);
-        if (data.executionHash != null && data.executionHash !== ZeroHash) diffSize += CitreaSpvVaultContract.StateDiffSize.EXECUTION_SCHEDULE_DIFF_SIZE;
+        if (data==null || (data.executionHash != null && data.executionHash !== ZeroHash)) diffSize += CitreaSpvVaultContract.StateDiffSize.EXECUTION_SCHEDULE_DIFF_SIZE;
 
         const gasFee = await super.getFrontFee(signer, vault, data, feeRate);
         return gasFee + CitreaFees.getGasFee(0, feeRate, diffSize);

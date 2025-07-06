@@ -11,8 +11,10 @@ import {
     SpvVaultParametersStruct,
     SpvVaultStateStruct
 } from "./SpvVaultContractTypechain";
-import {hexlify} from "ethers";
+import {hexlify, randomBytes} from "ethers";
 import {AbiCoder, keccak256} from "ethers";
+import {EVMAddresses} from "../chain/modules/EVMAddresses";
+import type {AddressLike, BigNumberish, BytesLike} from "ethers/lib.esm";
 
 export function getVaultParamsCommitment(vaultParams: SpvVaultParametersStruct) {
     return keccak256(AbiCoder.defaultAbiCoder().encode(
@@ -194,6 +196,27 @@ export class EVMSpvVaultData extends SpvVaultData<EVMSpvWithdrawalData> {
             token1Multiplier: this.token1.multiplier,
             confirmations: this.confirmations
         }
+    }
+
+    static randomVault(): EVMSpvVaultData {
+        const spvVaultParams = {
+            btcRelayContract: EVMAddresses.randomAddress(),
+            token0: EVMAddresses.randomAddress(),
+            token1: EVMAddresses.randomAddress(),
+            token0Multiplier: 1n,
+            token1Multiplier: 1n,
+            confirmations: 3n,
+        }
+        return new EVMSpvVaultData(EVMAddresses.randomAddress(), 0n, {
+            spvVaultParametersCommitment: getVaultParamsCommitment(spvVaultParams),
+            utxoTxHash: randomBytes(32),
+            utxoVout: 0n,
+            openBlockheight: 0n,
+            withdrawCount: 0n,
+            depositCount: 0n,
+            token0Amount: 0n,
+            token1Amount: 0n
+        }, spvVaultParams);
     }
 
 }

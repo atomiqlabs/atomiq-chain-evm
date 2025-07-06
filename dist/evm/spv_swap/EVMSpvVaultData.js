@@ -6,6 +6,7 @@ const buffer_1 = require("buffer");
 const EVMSpvWithdrawalData_1 = require("./EVMSpvWithdrawalData");
 const ethers_1 = require("ethers");
 const ethers_2 = require("ethers");
+const EVMAddresses_1 = require("../chain/modules/EVMAddresses");
 function getVaultParamsCommitment(vaultParams) {
     return (0, ethers_2.keccak256)(ethers_2.AbiCoder.defaultAbiCoder().encode(["address", "address", "address", "uint192", "uint192", "uint256"], [vaultParams.btcRelayContract, vaultParams.token0, vaultParams.token1, vaultParams.token0Multiplier, vaultParams.token1Multiplier, vaultParams.confirmations]));
 }
@@ -153,6 +154,26 @@ class EVMSpvVaultData extends base_1.SpvVaultData {
             token1Multiplier: this.token1.multiplier,
             confirmations: this.confirmations
         };
+    }
+    static randomVault() {
+        const spvVaultParams = {
+            btcRelayContract: EVMAddresses_1.EVMAddresses.randomAddress(),
+            token0: EVMAddresses_1.EVMAddresses.randomAddress(),
+            token1: EVMAddresses_1.EVMAddresses.randomAddress(),
+            token0Multiplier: 1n,
+            token1Multiplier: 1n,
+            confirmations: 3n,
+        };
+        return new EVMSpvVaultData(EVMAddresses_1.EVMAddresses.randomAddress(), 0n, {
+            spvVaultParametersCommitment: getVaultParamsCommitment(spvVaultParams),
+            utxoTxHash: (0, ethers_1.randomBytes)(32),
+            utxoVout: 0n,
+            openBlockheight: 0n,
+            withdrawCount: 0n,
+            depositCount: 0n,
+            token0Amount: 0n,
+            token1Amount: 0n
+        }, spvVaultParams);
     }
 }
 exports.EVMSpvVaultData = EVMSpvVaultData;

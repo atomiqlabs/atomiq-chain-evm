@@ -10,6 +10,6 @@ export declare class CitreaSpvVaultContract extends EVMSpvVaultContract<"CITREA"
         EXECUTION_SCHEDULE_DIFF_SIZE: number;
     };
     private calculateStateDiff;
-    getClaimFee(signer: string, vault: EVMSpvVaultData, data: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint>;
-    getFrontFee(signer: string, vault: EVMSpvVaultData, data: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint>;
+    getClaimFee(signer: string, vault?: EVMSpvVaultData, data?: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint>;
+    getFrontFee(signer: string, vault?: EVMSpvVaultData, data?: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint>;
 }

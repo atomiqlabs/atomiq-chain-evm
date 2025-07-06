@@ -6,4 +6,5 @@ export declare class EVMAddresses extends EVMModule<any> {
      * @param value
      */
     static isValidAddress(value: string): boolean;
+    static randomAddress(): string;
 }

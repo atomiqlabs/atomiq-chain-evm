@@ -35,4 +35,5 @@ export declare class EVMSpvVaultData extends SpvVaultData<EVMSpvWithdrawalData> 
     updateState(withdrawalTxOrEvent: SpvVaultClaimEvent | SpvVaultCloseEvent | SpvVaultOpenEvent | SpvVaultDepositEvent | EVMSpvWithdrawalData): void;
     getDepositCount(): number;
     getVaultParamsStruct(): SpvVaultParametersStruct;
+    static randomVault(): EVMSpvVaultData;
 }

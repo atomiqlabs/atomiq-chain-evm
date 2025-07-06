@@ -100,8 +100,7 @@ export class EVMChainInterface<ChainId extends string = string, EVMChainId exten
     }
 
     randomAddress(): string {
-        const wallet = Wallet.createRandom();
-        return wallet.address;
+        return EVMAddresses.randomAddress();
     }
 
     randomSigner(): EVMSigner {
