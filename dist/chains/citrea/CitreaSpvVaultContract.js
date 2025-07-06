@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CitreaSpvVaultContract = void 0;
 const EVMSpvVaultContract_1 = require("../../evm/spv_swap/EVMSpvVaultContract");
 const EVMSpvVaultData_1 = require("../../evm/spv_swap/EVMSpvVaultData");
-const lib_esm_1 = require("ethers/lib.esm");
 const ethers_1 = require("ethers");
 const CitreaFees_1 = require("./CitreaFees");
 const EVMAddresses_1 = require("../../evm/chain/modules/EVMAddresses");
@@ -42,7 +41,7 @@ class CitreaSpvVaultContract extends EVMSpvVaultContract_1.EVMSpvVaultContract {
                 tokenStateChanges.add(signer + ":" + vault.token1.token.toLowerCase()); //Also needs to pay out to caller
         }
         diffSize += this.calculateStateDiff(signer, tokenStateChanges);
-        if (data == null || (data.executionHash != null && data.executionHash !== lib_esm_1.ZeroHash))
+        if (data == null || (data.executionHash != null && data.executionHash !== ethers_1.ZeroHash))
             diffSize += CitreaSpvVaultContract.StateDiffSize.EXECUTION_SCHEDULE_DIFF_SIZE;
         const gasFee = await super.getClaimFee(signer, vault, data, feeRate);
         return gasFee + CitreaFees_1.CitreaFees.getGasFee(0, feeRate, diffSize);
@@ -59,7 +58,7 @@ class CitreaSpvVaultContract extends EVMSpvVaultContract_1.EVMSpvVaultContract {
             tokenStateChanges.add(signer + ":" + vault.token1.token.toLowerCase());
         }
         diffSize += this.calculateStateDiff(signer, tokenStateChanges);
-        if (data == null || (data.executionHash != null && data.executionHash !== lib_esm_1.ZeroHash))
+        if (data == null || (data.executionHash != null && data.executionHash !== ethers_1.ZeroHash))
             diffSize += CitreaSpvVaultContract.StateDiffSize.EXECUTION_SCHEDULE_DIFF_SIZE;
         const gasFee = await super.getFrontFee(signer, vault, data, feeRate);
         return gasFee + CitreaFees_1.CitreaFees.getGasFee(0, feeRate, diffSize);

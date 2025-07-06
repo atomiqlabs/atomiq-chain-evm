@@ -1,8 +1,7 @@
 import {EVMSpvVaultContract} from "../../evm/spv_swap/EVMSpvVaultContract";
 import {EVMSpvWithdrawalData} from "../../evm/spv_swap/EVMSpvWithdrawalData";
 import {EVMSpvVaultData} from "../../evm/spv_swap/EVMSpvVaultData";
-import {ZeroHash} from "ethers/lib.esm";
-import {ZeroAddress} from "ethers";
+import {ZeroAddress, ZeroHash} from "ethers";
 import {CitreaFees} from "./CitreaFees";
 import {EVMAddresses} from "../../evm/chain/modules/EVMAddresses";
 
