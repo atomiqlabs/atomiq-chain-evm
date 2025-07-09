@@ -17,6 +17,7 @@ import { EVMPreFetchVerification, EVMSwapInit } from "./modules/EVMSwapInit";
 import { EVMSwapRefund } from "./modules/EVMSwapRefund";
 import { EVMSwapClaim } from "./modules/EVMSwapClaim";
 export declare class EVMSwapContract<ChainId extends string = string> extends EVMContractBase<EscrowManager> implements SwapContract<EVMSwapData, EVMTx, never, EVMPreFetchVerification, EVMSigner, ChainId> {
+    readonly supportsInitWithoutClaimer = true;
     readonly chainId: ChainId;
     readonly claimWithSecretTimeout: number;
     readonly claimWithTxDataTimeout: number;

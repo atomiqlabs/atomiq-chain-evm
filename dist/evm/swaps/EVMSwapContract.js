@@ -20,6 +20,7 @@ const ESCROW_STATE_REFUNDED = 3;
 class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
     constructor(chainInterface, btcRelay, contractAddress, handlerAddresses) {
         super(chainInterface, contractAddress, EscrowManagerAbi_1.EscrowManagerAbi);
+        this.supportsInitWithoutClaimer = true;
         ////////////////////////
         //// Timeouts
         this.claimWithSecretTimeout = 180;

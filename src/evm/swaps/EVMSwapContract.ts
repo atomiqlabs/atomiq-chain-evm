@@ -42,6 +42,8 @@ export class EVMSwapContract<ChainId extends string = string>
         ChainId
     > {
 
+    readonly supportsInitWithoutClaimer = true;
+
     ////////////////////////
     //// Constants
     readonly chainId: ChainId;
