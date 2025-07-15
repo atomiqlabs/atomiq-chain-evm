@@ -339,7 +339,7 @@ export class EVMSwapData extends SwapData {
     static deserializeFromStruct(struct: EscrowDataStruct, claimHandlerImpl: IClaimHandler<any, any>): EVMSwapData {
         const {payOut, payIn, reputation, sequence} = EVMSwapData.toFlags(BigInt(struct.flags));
 
-        if(struct.successActionCommitment !== ZeroHash) // throw new Error("Success action not allowed!");
+        // if(struct.successActionCommitment !== ZeroHash) throw new Error("Success action not allowed!");
 
         return new EVMSwapData(
             struct.offerer as string,

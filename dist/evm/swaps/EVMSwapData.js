@@ -246,8 +246,8 @@ class EVMSwapData extends base_1.SwapData {
     }
     static deserializeFromStruct(struct, claimHandlerImpl) {
         const { payOut, payIn, reputation, sequence } = EVMSwapData.toFlags(BigInt(struct.flags));
-        if (struct.successActionCommitment !== ethers_1.ZeroHash) // throw new Error("Success action not allowed!");
-            return new EVMSwapData(struct.offerer, struct.claimer, struct.token, struct.refundHandler, struct.claimHandler, payOut, payIn, reputation, sequence, (0, ethers_1.hexlify)(struct.claimData), (0, ethers_1.hexlify)(struct.refundData), BigInt(struct.amount), struct.depositToken, BigInt(struct.securityDeposit), BigInt(struct.claimerBounty), claimHandlerImpl.getType(), null);
+        // if(struct.successActionCommitment !== ZeroHash) throw new Error("Success action not allowed!");
+        return new EVMSwapData(struct.offerer, struct.claimer, struct.token, struct.refundHandler, struct.claimHandler, payOut, payIn, reputation, sequence, (0, ethers_1.hexlify)(struct.claimData), (0, ethers_1.hexlify)(struct.refundData), BigInt(struct.amount), struct.depositToken, BigInt(struct.securityDeposit), BigInt(struct.claimerBounty), claimHandlerImpl.getType(), null);
     }
 }
 exports.EVMSwapData = EVMSwapData;
