@@ -22,7 +22,7 @@ class EVMSwapData extends base_1.SwapData {
             (this.payIn ? FLAG_PAY_IN : 0n) +
             (this.reputation ? FLAG_REPUTATION : 0n);
     }
-    constructor(offererOrData, claimer, token, refundHandler, claimHandler, payOut, payIn, reputation, sequence, claimData, refundData, amount, depositToken, securityDeposit, claimerBounty, kind, extraData) {
+    constructor(offererOrData, claimer, token, refundHandler, claimHandler, payOut, payIn, reputation, sequence, claimData, refundData, amount, depositToken, securityDeposit, claimerBounty, kind, extraData, successActionCommitment) {
         super();
         if (claimer != null || token != null || refundHandler != null || claimHandler != null ||
             payOut != null || payIn != null || reputation != null || sequence != null || claimData != null || refundData != null ||
@@ -44,6 +44,7 @@ class EVMSwapData extends base_1.SwapData {
             this.claimerBounty = claimerBounty;
             this.kind = kind;
             this.extraData = extraData;
+            this.successActionCommitment = successActionCommitment ?? ethers_1.ZeroHash;
         }
         else {
             this.offerer = offererOrData.offerer;
@@ -63,6 +64,7 @@ class EVMSwapData extends base_1.SwapData {
             this.claimerBounty = offererOrData.claimerBounty == null ? null : BigInt(offererOrData.claimerBounty);
             this.kind = offererOrData.kind;
             this.extraData = offererOrData.extraData;
+            this.successActionCommitment = offererOrData.successActionCommitment ?? ethers_1.ZeroHash;
         }
     }
     getOfferer() {
@@ -100,7 +102,8 @@ class EVMSwapData extends base_1.SwapData {
             securityDeposit: this.securityDeposit == null ? null : this.securityDeposit.toString(10),
             claimerBounty: this.claimerBounty == null ? null : this.claimerBounty.toString(10),
             kind: this.kind,
-            extraData: this.extraData
+            extraData: this.extraData,
+            successActionCommitment: this.successActionCommitment
         };
     }
     getAmount() {
@@ -128,7 +131,7 @@ class EVMSwapData extends base_1.SwapData {
         const encoded = ethers_1.AbiCoder.defaultAbiCoder().encode(["address", "address", "uint256", "address", "uint256", "address", "bytes32", "address", "bytes32", "uint256", "uint256", "address", "bytes32"], [
             this.offerer, this.claimer, this.amount, this.token, this.getFlags(),
             this.claimHandler, this.claimData, this.refundHandler, this.refundData,
-            this.securityDeposit, this.claimerBounty, this.depositToken, ethers_1.ZeroHash
+            this.securityDeposit, this.claimerBounty, this.depositToken, this.successActionCommitment
         ]);
         let escrowHash = (0, ethers_1.keccak256)(encoded);
         return escrowHash.slice(2); //Strip `0x`
@@ -241,13 +244,15 @@ class EVMSwapData extends base_1.SwapData {
             depositToken: this.depositToken,
             securityDeposit: this.securityDeposit,
             claimerBounty: this.claimerBounty,
-            successActionCommitment: ethers_1.ZeroHash //For now enforce no success action
+            successActionCommitment: this.successActionCommitment
         };
+    }
+    hasSuccessAction() {
+        return this.successActionCommitment !== ethers_1.ZeroHash;
     }
     static deserializeFromStruct(struct, claimHandlerImpl) {
         const { payOut, payIn, reputation, sequence } = EVMSwapData.toFlags(BigInt(struct.flags));
-        // if(struct.successActionCommitment !== ZeroHash) throw new Error("Success action not allowed!");
-        return new EVMSwapData(struct.offerer, struct.claimer, struct.token, struct.refundHandler, struct.claimHandler, payOut, payIn, reputation, sequence, (0, ethers_1.hexlify)(struct.claimData), (0, ethers_1.hexlify)(struct.refundData), BigInt(struct.amount), struct.depositToken, BigInt(struct.securityDeposit), BigInt(struct.claimerBounty), claimHandlerImpl.getType(), null);
+        return new EVMSwapData(struct.offerer, struct.claimer, struct.token, struct.refundHandler, struct.claimHandler, payOut, payIn, reputation, sequence, (0, ethers_1.hexlify)(struct.claimData), (0, ethers_1.hexlify)(struct.refundData), BigInt(struct.amount), struct.depositToken, BigInt(struct.securityDeposit), BigInt(struct.claimerBounty), claimHandlerImpl.getType(), null, struct.successActionCommitment);
     }
 }
 exports.EVMSwapData = EVMSwapData;

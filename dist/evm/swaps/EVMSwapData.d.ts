@@ -25,8 +25,9 @@ export declare class EVMSwapData extends SwapData {
     securityDeposit: bigint;
     claimerBounty: bigint;
     extraData: string;
+    successActionCommitment: string;
     kind: ChainSwapType;
-    constructor(offerer: string, claimer: string, token: string, refundHandler: string, claimHandler: string, payOut: boolean, payIn: boolean, reputation: boolean, sequence: bigint, claimData: string, refundData: string, amount: bigint, depositToken: string, securityDeposit: bigint, claimerBounty: bigint, kind: ChainSwapType, extraData: string);
+    constructor(offerer: string, claimer: string, token: string, refundHandler: string, claimHandler: string, payOut: boolean, payIn: boolean, reputation: boolean, sequence: bigint, claimData: string, refundData: string, amount: bigint, depositToken: string, securityDeposit: bigint, claimerBounty: bigint, kind: ChainSwapType, extraData: string, successActionCommitment?: string);
     constructor(data: any);
     getOfferer(): string;
     setOfferer(newOfferer: string): void;
@@ -60,5 +61,6 @@ export declare class EVMSwapData extends SwapData {
     isClaimData(data: string): boolean;
     equals(other: EVMSwapData): boolean;
     toEscrowStruct(): EscrowDataStruct;
+    hasSuccessAction(): boolean;
     static deserializeFromStruct(struct: EscrowDataStruct, claimHandlerImpl: IClaimHandler<any, any>): EVMSwapData;
 }

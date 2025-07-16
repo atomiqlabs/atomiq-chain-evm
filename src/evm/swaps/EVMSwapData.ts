@@ -50,6 +50,8 @@ export class EVMSwapData extends SwapData {
 
     extraData: string;
 
+    successActionCommitment: string;
+
     kind: ChainSwapType;
 
     constructor(
@@ -69,7 +71,8 @@ export class EVMSwapData extends SwapData {
         securityDeposit: bigint,
         claimerBounty: bigint,
         kind: ChainSwapType,
-        extraData: string
+        extraData: string,
+        successActionCommitment?: string
     );
 
     constructor(data: any);
@@ -91,7 +94,8 @@ export class EVMSwapData extends SwapData {
         securityDeposit?: bigint,
         claimerBounty?: bigint,
         kind?: ChainSwapType,
-        extraData?: string
+        extraData?: string,
+        successActionCommitment?: string
     ) {
         super();
         if(claimer!=null || token!=null || refundHandler!=null || claimHandler!=null ||
@@ -114,6 +118,7 @@ export class EVMSwapData extends SwapData {
             this.claimerBounty = claimerBounty;
             this.kind = kind;
             this.extraData = extraData;
+            this.successActionCommitment = successActionCommitment ?? ZeroHash;
         } else {
             this.offerer = offererOrData.offerer;
             this.claimer = offererOrData.claimer;
@@ -132,6 +137,7 @@ export class EVMSwapData extends SwapData {
             this.claimerBounty = offererOrData.claimerBounty==null ? null : BigInt(offererOrData.claimerBounty);
             this.kind = offererOrData.kind;
             this.extraData = offererOrData.extraData;
+            this.successActionCommitment = offererOrData.successActionCommitment ?? ZeroHash;
         }
     }
 
@@ -174,7 +180,8 @@ export class EVMSwapData extends SwapData {
             securityDeposit: this.securityDeposit==null ? null : this.securityDeposit.toString(10),
             claimerBounty: this.claimerBounty==null ? null : this.claimerBounty.toString(10),
             kind: this.kind,
-            extraData: this.extraData
+            extraData: this.extraData,
+            successActionCommitment: this.successActionCommitment
         }
     }
 
@@ -212,7 +219,7 @@ export class EVMSwapData extends SwapData {
             [
                 this.offerer, this.claimer, this.amount, this.token, this.getFlags(),
                 this.claimHandler, this.claimData, this.refundHandler, this.refundData,
-                this.securityDeposit, this.claimerBounty, this.depositToken, ZeroHash
+                this.securityDeposit, this.claimerBounty, this.depositToken, this.successActionCommitment
             ]
         )
         let escrowHash = keccak256(encoded);
@@ -332,14 +339,16 @@ export class EVMSwapData extends SwapData {
             depositToken: this.depositToken,
             securityDeposit: this.securityDeposit,
             claimerBounty: this.claimerBounty,
-            successActionCommitment: ZeroHash //For now enforce no success action
+            successActionCommitment: this.successActionCommitment
         }
+    }
+
+    hasSuccessAction(): boolean {
+        return this.successActionCommitment !== ZeroHash;
     }
 
     static deserializeFromStruct(struct: EscrowDataStruct, claimHandlerImpl: IClaimHandler<any, any>): EVMSwapData {
         const {payOut, payIn, reputation, sequence} = EVMSwapData.toFlags(BigInt(struct.flags));
-
-        // if(struct.successActionCommitment !== ZeroHash) throw new Error("Success action not allowed!");
 
         return new EVMSwapData(
             struct.offerer as string,
@@ -358,7 +367,8 @@ export class EVMSwapData extends SwapData {
             BigInt(struct.securityDeposit),
             BigInt(struct.claimerBounty),
             claimHandlerImpl.getType(),
-            null
+            null,
+            struct.successActionCommitment as string
         );
     }
 
