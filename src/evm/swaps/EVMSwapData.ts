@@ -317,12 +317,13 @@ export class EVMSwapData extends SwapData {
             other.payIn===this.payIn &&
             other.payOut===this.payOut &&
             other.reputation===this.reputation &&
-            this.sequence === other.sequence &&
+            other.sequence === this.sequence &&
             other.claimData.toLowerCase()===this.claimData.toLowerCase() &&
             other.refundData.toLowerCase()===this.refundData.toLowerCase() &&
             other.amount === this.amount &&
             other.securityDeposit === this.securityDeposit &&
-            other.claimerBounty === this.claimerBounty
+            other.claimerBounty === this.claimerBounty &&
+            other.successActionCommitment.toLowerCase() === this.successActionCommitment.toLowerCase()
     }
 
     toEscrowStruct(): EscrowDataStruct {
