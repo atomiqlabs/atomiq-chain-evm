@@ -54,7 +54,7 @@ export declare class EVMTransactions extends EVMModule<any> {
      * @param abortSignal abort signal to abort waiting for transaction confirmations
      * @param parallel whether the send all the transaction at once in parallel or sequentially (such that transactions
      *  are executed in order)
-     * @param onBeforePublish a callback called before every transaction is published
+     * @param onBeforePublish a callback called before every transaction is published, NOTE: callback is not called when using browser-based wallet!
      */
     sendAndConfirm(signer: EVMSigner, txs: TransactionRequest[], waitForConfirmation?: boolean, abortSignal?: AbortSignal, parallel?: boolean, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>): Promise<string[]>;
     /**

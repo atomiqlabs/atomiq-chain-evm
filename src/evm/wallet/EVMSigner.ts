@@ -6,10 +6,12 @@ export class EVMSigner implements AbstractSigner {
 
     account: Signer;
     public readonly address: string;
+    public readonly isBrowserWallet: boolean;
 
-    constructor(account: Signer, address: string) {
+    constructor(account: Signer, address: string, isBrowserWallet: boolean = false) {
         this.account = account;
         this.address = address;
+        this.isBrowserWallet = isBrowserWallet;
     }
 
     getNonce(): Promise<number> {

@@ -33,7 +33,7 @@ export class EVMTransactions extends EVMModule<any> {
      * @param abortSignal signal to abort waiting for tx confirmation
      * @private
      */
-    private async confirmTransaction(tx: Transaction, abortSignal?: AbortSignal) {
+    private async confirmTransaction(tx: {nonce: number, from: string, hash: string}, abortSignal?: AbortSignal) {
         let state = "pending";
         while(state==="pending" || state==="not_found") {
             await timeoutPromise(3000, abortSignal);
@@ -121,15 +121,14 @@ export class EVMTransactions extends EVMModule<any> {
      * @param abortSignal abort signal to abort waiting for transaction confirmations
      * @param parallel whether the send all the transaction at once in parallel or sequentially (such that transactions
      *  are executed in order)
-     * @param onBeforePublish a callback called before every transaction is published
+     * @param onBeforePublish a callback called before every transaction is published, NOTE: callback is not called when using browser-based wallet!
      */
     public async sendAndConfirm(signer: EVMSigner, txs: TransactionRequest[], waitForConfirmation?: boolean, abortSignal?: AbortSignal, parallel?: boolean, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>): Promise<string[]> {
         await this.prepareTransactions(signer, txs);
         const signedTxs: Transaction[] = [];
 
-        //TODO: Maybe don't separate the signing process from the sending when using browser-based wallet,
-        // like with Starknet
-        for(let i=0;i<txs.length;i++) {
+        //Don't separate the signing process from the sending when using browser-based wallet
+        if(!signer.isBrowserWallet) for(let i=0;i<txs.length;i++) {
             const tx = txs[i];
             const signedTx = Transaction.from(await signer.account.signTransaction(tx));
             signedTxs.push(signedTx);
@@ -143,22 +142,34 @@ export class EVMTransactions extends EVMModule<any> {
         if(parallel) {
             const promises: Promise<void>[] = [];
             for(let i=0;i<signedTxs.length;i++) {
-                const signedTx = signedTxs[i];
-                const txId = await this.sendSignedTransaction(signedTx, onBeforePublish);
-                if(waitForConfirmation) promises.push(this.confirmTransaction(signedTx, abortSignal));
-                txIds.push(txId);
-                this.logger.debug("sendAndConfirm(): transaction sent ("+(i+1)+"/"+signedTxs.length+"): "+signedTx.hash);
+                let tx: {nonce: number, from: string, hash: string};
+                if(signer.isBrowserWallet) {
+                    tx = await signer.account.sendTransaction(txs[i]);
+                } else {
+                    const signedTx = signedTxs[i];
+                    await this.sendSignedTransaction(signedTx, onBeforePublish);
+                    tx = signedTx;
+                }
+                if(waitForConfirmation) promises.push(this.confirmTransaction(tx, abortSignal));
+                txIds.push(tx.hash);
+                this.logger.debug("sendAndConfirm(): transaction sent ("+(i+1)+"/"+signedTxs.length+"): "+tx.hash);
             }
             if(promises.length>0) await Promise.all(promises);
         } else {
             for(let i=0;i<signedTxs.length;i++) {
-                const signedTx = signedTxs[i];
-                const txId = await this.sendSignedTransaction(signedTx, onBeforePublish);
-                const confirmPromise = this.confirmTransaction(signedTx, abortSignal);
-                this.logger.debug("sendAndConfirm(): transaction sent ("+(i+1)+"/"+txs.length+"): "+signedTx.hash);
+                let tx: {nonce: number, from: string, hash: string};
+                if(signer.isBrowserWallet) {
+                    tx = await signer.account.sendTransaction(txs[i]);
+                } else {
+                    const signedTx = signedTxs[i];
+                    await this.sendSignedTransaction(signedTx, onBeforePublish);
+                    tx = signedTx;
+                }
+                const confirmPromise = this.confirmTransaction(tx, abortSignal);
+                this.logger.debug("sendAndConfirm(): transaction sent ("+(i+1)+"/"+txs.length+"): "+tx.hash);
                 //Don't await the last promise when !waitForConfirmation
                 if(i<txs.length-1 || waitForConfirmation) await confirmPromise;
-                txIds.push(txId);
+                txIds.push(tx.hash);
             }
         }
 
