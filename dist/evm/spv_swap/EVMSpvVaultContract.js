@@ -351,9 +351,8 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
                 requiredApprovals[vault.token1.token.toLowerCase()] += realAmount1;
             }
         }
-        for (let tokenAddress in requiredApprovals) {
-            txs.push(await this.Chain.Tokens.Approve(signer, tokenAddress, requiredApprovals[tokenAddress], this.contractAddress, feeRate));
-        }
+        const requiredApprovalTxns = await Promise.all(Object.keys(requiredApprovals).map(token => this.Chain.Tokens.checkAndGetApproveTx(signer, token, requiredApprovals[token], this.contractAddress, feeRate)));
+        requiredApprovalTxns.forEach(tx => tx != null && txs.push(tx));
         txs.push(await this.Deposit(signer, vault, rawAmounts, feeRate));
         this.logger.debug("txsDeposit(): deposit TX created," +
             " token0: " + vault.token0.token + " rawAmount0: " + rawAmounts[0].toString(10) + " amount0: " + realAmount0.toString(10) +
@@ -385,9 +384,8 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
                 requiredApprovals[vault.token1.token.toLowerCase()] += realAmount1;
             }
         }
-        for (let tokenAddress in requiredApprovals) {
-            txs.push(await this.Chain.Tokens.Approve(signer, tokenAddress, requiredApprovals[tokenAddress], this.contractAddress, feeRate));
-        }
+        const requiredApprovalTxns = await Promise.all(Object.keys(requiredApprovals).map(token => this.Chain.Tokens.checkAndGetApproveTx(signer, token, requiredApprovals[token], this.contractAddress, feeRate)));
+        requiredApprovalTxns.forEach(tx => tx != null && txs.push(tx));
         txs.push(await this.Front(signer, vault, realWithdrawalTx, withdrawSequence, feeRate));
         this.logger.debug("txsFrontLiquidity(): front TX created," +
             " token0: " + vault.token0.token + " rawAmount0: " + rawAmounts[0].toString(10) + " amount0: " + realAmount0.toString(10) +

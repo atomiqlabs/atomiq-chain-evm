@@ -116,8 +116,11 @@ class EVMLpVault extends EVMSwapModule_1.EVMSwapModule {
         feeRate ?? (feeRate = await this.root.Fees.getFeeRate());
         const txs = [];
         //Approve first
-        if (token.toLowerCase() !== this.root.getNativeCurrencyAddress().toLowerCase())
-            txs.push(await this.root.Tokens.Approve(signer, token, amount, this.contract.contractAddress, feeRate));
+        if (token.toLowerCase() !== this.root.getNativeCurrencyAddress().toLowerCase()) {
+            const approveTx = await this.root.Tokens.checkAndGetApproveTx(signer, token, amount, this.contract.contractAddress, feeRate);
+            if (approveTx != null)
+                txs.push(approveTx);
+        }
         txs.push(await this.Deposit(signer, token, amount, feeRate));
         this.logger.debug("txsDeposit(): deposit TX created, token: " + token.toString() +
             " amount: " + amount.toString(10));

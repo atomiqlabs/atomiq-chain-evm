@@ -219,9 +219,8 @@ class EVMSwapInit extends EVMSwapModule_1.EVMSwapModule {
                 requiredApprovals[swapData.depositToken.toLowerCase()] += swapData.getTotalDeposit();
             }
         }
-        for (let tokenAddress in requiredApprovals) {
-            txs.push(await this.root.Tokens.Approve(sender, tokenAddress, requiredApprovals[tokenAddress], this.contract.contractAddress, feeRate));
-        }
+        const requiredApprovalTxns = await Promise.all(Object.keys(requiredApprovals).map(token => this.root.Tokens.checkAndGetApproveTx(sender, token, requiredApprovals[token], this.contract.contractAddress, feeRate)));
+        requiredApprovalTxns.forEach(tx => tx != null && txs.push(tx));
         txs.push(await this.Init(sender, swapData, BigInt(timeout), signature ?? "0x", feeRate));
         this.logger.debug("txsInitPayIn(): create swap init TX, swap: " + swapData.getClaimHash() +
             " feerate: " + feeRate);

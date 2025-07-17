@@ -40,6 +40,19 @@ class EVMTokens extends EVMModule_1.EVMModule {
         return balance;
     }
     /**
+     * Returns the authorized allowance of specific address towards a spender contract
+     *
+     * @param spender A contract trying to spend user's erc20 balance
+     * @param address Wallet address
+     * @param token ERC-20 token
+     */
+    async getTokenAllowance(spender, address, token) {
+        if (token === "0x0000000000000000000000000000000000000000")
+            return 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffn;
+        const erc20 = this.getContract(token);
+        return await erc20.allowance(address, spender);
+    }
+    /**
      * Returns the native currency address
      */
     getNativeCurrencyAddress() {
@@ -95,6 +108,22 @@ class EVMTokens extends EVMModule_1.EVMModule {
         this.logger.debug("txsTransfer(): approve TX created, spender: " + spender.toString() +
             " token: " + token.toString() + " amount: " + amount.toString(10));
         return tx;
+    }
+    /**
+     * Checks whether an approve transaction is required for a given token and either returns the tx
+     *  or null in case the approve is not required
+     *
+     * @param signer
+     * @param token token to approve for
+     * @param amount amount of the token to send
+     * @param spender spending contract address
+     * @param feeRate fee rate to use for the transactions
+     */
+    async checkAndGetApproveTx(signer, token, amount, spender, feeRate) {
+        const alreadyApproved = await this.getTokenAllowance(spender, signer, token);
+        if (alreadyApproved >= amount)
+            return null;
+        return await this.Approve(signer, token, amount, spender, feeRate);
     }
     async getApproveFee(feeRate) {
         feeRate ?? (feeRate = await this.root.Fees.getFeeRate());

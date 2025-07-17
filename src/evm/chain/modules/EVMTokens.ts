@@ -51,6 +51,19 @@ export class EVMTokens extends EVMModule<any> {
     }
 
     /**
+     * Returns the authorized allowance of specific address towards a spender contract
+     *
+     * @param spender A contract trying to spend user's erc20 balance
+     * @param address Wallet address
+     * @param token ERC-20 token
+     */
+    public async getTokenAllowance(spender: string, address: string, token: string): Promise<bigint> {
+        if(token === "0x0000000000000000000000000000000000000000") return 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffn;
+        const erc20 = this.getContract(token);
+        return await erc20.allowance(address, spender);
+    }
+
+    /**
      * Returns the native currency address
      */
     public getNativeCurrencyAddress(): string {
@@ -111,6 +124,22 @@ export class EVMTokens extends EVMModule<any> {
         " token: "+token.toString()+ " amount: "+amount.toString(10));
 
         return tx;
+    }
+
+    /**
+     * Checks whether an approve transaction is required for a given token and either returns the tx
+     *  or null in case the approve is not required
+     *
+     * @param signer
+     * @param token token to approve for
+     * @param amount amount of the token to send
+     * @param spender spending contract address
+     * @param feeRate fee rate to use for the transactions
+     */
+    public async checkAndGetApproveTx(signer: string, token: string, amount: bigint, spender: string, feeRate?: string): Promise<TransactionRequest | null> {
+        const alreadyApproved = await this.getTokenAllowance(spender, signer, token);
+        if(alreadyApproved >= amount) return null;
+        return await this.Approve(signer, token, amount, spender, feeRate);
     }
 
     async getApproveFee(feeRate?: string): Promise<bigint> {
