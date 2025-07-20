@@ -286,6 +286,14 @@ export class EVMSwapContract<ChainId extends string = string>
                             blockHeight: blockHeight
                         };
                     },
+                    getClaimResult: async () => {
+                        const events = await this.Events.getContractBlockEvents(
+                            ["Claim"],
+                            [null, null, "0x"+escrowHash],
+                            blockHeight, blockHeight
+                        );
+                        return events.length===0 ? null : events[0].args.witnessResult;
+                    },
                     getClaimTxId: async () => {
                         const events = await this.Events.getContractBlockEvents(
                             ["Claim"],
