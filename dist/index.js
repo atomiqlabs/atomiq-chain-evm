@@ -52,3 +52,5 @@ __exportStar(require("./evm/wallet/EVMSigner"), exports);
 __exportStar(require("./chains/citrea/CitreaInitializer"), exports);
 __exportStar(require("./chains/citrea/CitreaChainType"), exports);
 __exportStar(require("./chains/citrea/CitreaFees"), exports);
+__exportStar(require("./chains/botanix/BotanixInitializer"), exports);
+__exportStar(require("./chains/botanix/BotanixChainType"), exports);

@@ -36,3 +36,5 @@ export * from "./evm/wallet/EVMSigner";
 export * from "./chains/citrea/CitreaInitializer";
 export * from "./chains/citrea/CitreaChainType";
 export * from "./chains/citrea/CitreaFees";
+export * from "./chains/botanix/BotanixInitializer";
+export * from "./chains/botanix/BotanixChainType";
