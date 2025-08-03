@@ -141,7 +141,7 @@ export class EVMTransactions extends EVMModule<any> {
         const txIds: string[] = [];
         if(parallel) {
             const promises: Promise<void>[] = [];
-            for(let i=0;i<signedTxs.length;i++) {
+            for(let i=0;i<txs.length;i++) {
                 let tx: {nonce: number, from: string, hash: string};
                 if(signer.isBrowserWallet) {
                     tx = await signer.account.sendTransaction(txs[i]);
@@ -156,7 +156,7 @@ export class EVMTransactions extends EVMModule<any> {
             }
             if(promises.length>0) await Promise.all(promises);
         } else {
-            for(let i=0;i<signedTxs.length;i++) {
+            for(let i=0;i<txs.length;i++) {
                 let tx: {nonce: number, from: string, hash: string};
                 if(signer.isBrowserWallet) {
                     tx = await signer.account.sendTransaction(txs[i]);

@@ -117,7 +117,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
         const txIds = [];
         if (parallel) {
             const promises = [];
-            for (let i = 0; i < signedTxs.length; i++) {
+            for (let i = 0; i < txs.length; i++) {
                 let tx;
                 if (signer.isBrowserWallet) {
                     tx = await signer.account.sendTransaction(txs[i]);
@@ -136,7 +136,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
                 await Promise.all(promises);
         }
         else {
-            for (let i = 0; i < signedTxs.length; i++) {
+            for (let i = 0; i < txs.length; i++) {
                 let tx;
                 if (signer.isBrowserWallet) {
                     tx = await signer.account.sendTransaction(txs[i]);
