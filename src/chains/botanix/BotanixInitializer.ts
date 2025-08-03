@@ -112,7 +112,7 @@ export function initializeBotanix(
     const Fees = options.fees ?? new EVMFees(provider, 2n * 1_000_000_000n, 1_000_000n);
 
     const chainInterface = new EVMChainInterface("BOTANIX", chainId, provider, {
-        safeBlockTag: "latest",
+        safeBlockTag: "finalized",
         maxLogsBlockRange: options.maxLogsBlockRange ?? 500
     }, options.retryPolicy, Fees);
 
