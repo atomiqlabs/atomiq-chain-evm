@@ -198,7 +198,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
             this.root.config.safeBlockTag === "latest" ? Promise.resolve(null) : this.provider.getBlock(this.root.config.safeBlockTag).then(res => res.number),
             this.provider.getTransactionReceipt(txId)
         ]);
-        if (txReceipt == null || (safeBlockNumber != null && txReceipt.blockNumber < safeBlockNumber))
+        if (txReceipt == null || (safeBlockNumber != null && txReceipt.blockNumber > safeBlockNumber))
             return "pending";
         if (txReceipt.status === 0)
             return "reverted";

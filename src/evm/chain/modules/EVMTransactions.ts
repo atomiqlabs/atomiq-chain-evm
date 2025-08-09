@@ -222,7 +222,7 @@ export class EVMTransactions extends EVMModule<any> {
             this.provider.getTransactionReceipt(txId)
         ]);
 
-        if(txReceipt==null || (safeBlockNumber!=null && txReceipt.blockNumber < safeBlockNumber)) return "pending";
+        if(txReceipt==null || (safeBlockNumber!=null && txReceipt.blockNumber > safeBlockNumber)) return "pending";
         if(txReceipt.status===0) return "reverted";
         return "success";
     }
