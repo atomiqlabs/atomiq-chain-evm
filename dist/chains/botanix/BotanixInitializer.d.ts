@@ -8,7 +8,7 @@ export declare const BotanixAssets: BotanixAssetsType;
 export type BotanixOptions = {
     rpcUrl: string | JsonRpcApiProvider;
     retryPolicy?: EVMRetryPolicy;
-    chainType?: "MAINNET" | "MUTINYNET";
+    chainType?: "MAINNET" | "TESTNET";
     maxLogsBlockRange?: number;
     swapContract?: string;
     btcRelayContract?: string;

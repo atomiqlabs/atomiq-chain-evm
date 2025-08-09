@@ -14,7 +14,7 @@ const EVMSpvVaultData_1 = require("../../evm/spv_swap/EVMSpvVaultData");
 const EVMSpvWithdrawalData_1 = require("../../evm/spv_swap/EVMSpvWithdrawalData");
 const BotanixChainIds = {
     MAINNET: null,
-    MUTINYNET: 3636
+    TESTNET: 3636
 };
 const BotanixContractAddresses = {
     MAINNET: {
@@ -36,11 +36,11 @@ const BotanixContractAddresses = {
             }
         }
     },
-    MUTINYNET: {
+    TESTNET: {
         executionContract: "0xBbf7755b674dD107d59F0650D1A3fA9C60bf6Fe6",
         swapContract: "0xf61D1da542111216337FeEA5586022130D468842",
-        btcRelayContract: "0x4F59D7e0D7E1Eb4957C9C0C2971B5EEa291A6068",
-        btcRelayDeploymentHeight: 3426264,
+        btcRelayContract: "0xba7E78011909e3501027FBc226a04DCC837a555D",
+        btcRelayDeploymentHeight: 3462466,
         spvVaultContract: "0x1120e1Eb3049148AeBEe497331774BfE1f6c174D",
         spvVaultDeploymentHeight: 3425257,
         handlerContracts: {
@@ -68,6 +68,9 @@ function initializeBotanix(options, bitcoinRpc, network) {
         switch (network) {
             case base_1.BitcoinNetwork.MAINNET:
                 options.chainType = "MAINNET";
+                break;
+            case base_1.BitcoinNetwork.TESTNET:
+                options.chainType = "TESTNET";
                 break;
         }
     }
