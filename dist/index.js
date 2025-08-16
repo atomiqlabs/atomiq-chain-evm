@@ -54,3 +54,4 @@ __exportStar(require("./chains/citrea/CitreaChainType"), exports);
 __exportStar(require("./chains/citrea/CitreaFees"), exports);
 __exportStar(require("./chains/botanix/BotanixInitializer"), exports);
 __exportStar(require("./chains/botanix/BotanixChainType"), exports);
+__exportStar(require("./evm/JsonRpcProviderWithRetries"), exports);
