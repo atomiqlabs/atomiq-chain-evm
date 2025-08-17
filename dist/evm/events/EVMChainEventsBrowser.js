@@ -7,6 +7,7 @@ const ethers_1 = require("ethers");
 const Utils_1 = require("../../utils/Utils");
 const EVMSpvVaultContract_1 = require("../spv_swap/EVMSpvVaultContract");
 const LOGS_SLIDING_WINDOW_LENGTH = 60;
+const PROCESSED_EVENTS_BACKLOG = 1000;
 /**
  * EVM on-chain event handler for front-end systems without access to fs, uses WS or long-polling to subscribe, might lose
  *  out on some events if the network is unreliable, front-end systems should take this into consideration and not
@@ -14,13 +15,33 @@ const LOGS_SLIDING_WINDOW_LENGTH = 60;
  */
 class EVMChainEventsBrowser {
     constructor(chainInterface, evmSwapContract, evmSpvVaultContract, pollIntervalSeconds = 5) {
+        this.eventsProcessing = {};
+        this.processedEvents = [];
+        this.processedEventsIndex = 0;
         this.listeners = [];
         this.logger = (0, Utils_1.getLogger)("EVMChainEventsBrowser: ");
+        this.unconfirmedEventQueue = [];
+        this.wsStarted = false;
         this.chainInterface = chainInterface;
         this.provider = chainInterface.provider;
         this.evmSwapContract = evmSwapContract;
         this.evmSpvVaultContract = evmSpvVaultContract;
         this.pollIntervalSeconds = pollIntervalSeconds;
+        this.spvVaultContractLogFilter = {
+            address: this.evmSpvVaultContract.contractAddress
+        };
+        this.swapContractLogFilter = {
+            address: this.evmSwapContract.contractAddress
+        };
+    }
+    addProcessedEvent(event) {
+        this.processedEvents[this.processedEventsIndex] = event.transactionHash + ":" + event.transactionIndex;
+        this.processedEventsIndex += 1;
+        if (this.processedEventsIndex >= PROCESSED_EVENTS_BACKLOG)
+            this.processedEventsIndex = 0;
+    }
+    isEventProcessed(event) {
+        return this.processedEvents.includes(event.transactionHash + ":" + event.transactionIndex);
     }
     findInitSwapData(call, escrowHash, claimHandler) {
         if (call.to.toLowerCase() === this.evmSwapContract.contractAddress.toLowerCase()) {
@@ -141,8 +162,12 @@ class EVMChainEventsBrowser {
      * @protected
      */
     async processEvents(events, currentBlock) {
-        const parsedEvents = [];
         for (let event of events) {
+            const eventIdentifier = event.transactionHash + ":" + event.transactionIndex;
+            if (this.isEventProcessed(event)) {
+                this.logger.debug("processEvents(): skipping already processed event: " + eventIdentifier);
+                continue;
+            }
             let parsedEvent;
             switch (event.eventName) {
                 case "Claim":
@@ -170,16 +195,32 @@ class EVMChainEventsBrowser {
                     parsedEvent = this.parseSpvCloseEvent(event);
                     break;
             }
-            const timestamp = event.blockNumber === currentBlock.number ? currentBlock.timestamp : await this.chainInterface.Blocks.getBlockTime(event.blockNumber);
-            parsedEvent.meta = {
-                blockTime: timestamp,
-                txId: event.transactionHash,
-                timestamp //Maybe deprecated
-            };
-            parsedEvents.push(parsedEvent);
-        }
-        for (let listener of this.listeners) {
-            await listener(parsedEvents);
+            if (this.eventsProcessing[eventIdentifier] != null) {
+                this.logger.debug("processEvents(): awaiting event that is currently processing: " + eventIdentifier);
+                await this.eventsProcessing[eventIdentifier];
+                continue;
+            }
+            const promise = (async () => {
+                const timestamp = event.blockNumber === currentBlock?.number ? currentBlock.timestamp : await this.chainInterface.Blocks.getBlockTime(event.blockNumber);
+                parsedEvent.meta = {
+                    blockTime: timestamp,
+                    txId: event.transactionHash,
+                    timestamp //Maybe deprecated
+                };
+                for (let listener of this.listeners) {
+                    await listener([parsedEvent]);
+                }
+                this.addProcessedEvent(event);
+            })();
+            this.eventsProcessing[eventIdentifier] = promise;
+            try {
+                await promise;
+                delete this.eventsProcessing[eventIdentifier];
+            }
+            catch (e) {
+                delete this.eventsProcessing[eventIdentifier];
+                throw e;
+            }
         }
     }
     async checkEventsEcrowManager(currentBlock, lastProcessedEvent, lastBlockNumber) {
@@ -269,8 +310,67 @@ class EVMChainEventsBrowser {
         };
         await func();
     }
+    //Websocket
+    handleWsEvents(events) {
+        if (this.chainInterface.config.safeBlockTag === "latest" || this.chainInterface.config.safeBlockTag === "pending") {
+            return this.processEvents(events);
+        }
+        this.unconfirmedEventQueue.push(...events);
+    }
+    async setupWebsocket() {
+        this.wsStarted = true;
+        await this.provider.on(this.spvVaultContractLogFilter, this.spvVaultContractListener = (log) => {
+            let events = this.evmSpvVaultContract.Events.toTypedEvents([log]);
+            events = events.filter(val => !val.removed);
+            this.handleWsEvents(events);
+        });
+        await this.provider.on(this.swapContractLogFilter, this.swapContractListener = (log) => {
+            let events = this.evmSwapContract.Events.toTypedEvents([log]);
+            events = events.filter(val => !val.removed && (val.eventName === "Initialize" || val.eventName === "Refund" || val.eventName === "Claim"));
+            this.handleWsEvents(events);
+        });
+        const safeBlockTag = this.chainInterface.config.safeBlockTag;
+        let processing = false;
+        if (safeBlockTag !== "latest" && safeBlockTag !== "pending")
+            await this.provider.on("block", this.blockListener = async (blockNumber) => {
+                if (processing)
+                    return;
+                processing = true;
+                try {
+                    const latestSafeBlock = await this.provider.getBlock(this.chainInterface.config.safeBlockTag);
+                    const events = [];
+                    this.unconfirmedEventQueue = this.unconfirmedEventQueue.filter(event => {
+                        if (event.blockNumber <= latestSafeBlock.number) {
+                            events.push(event);
+                            return false;
+                        }
+                        return true;
+                    });
+                    const blocks = {};
+                    for (let event of events) {
+                        const block = blocks[event.blockNumber] ?? (blocks[event.blockNumber] = await this.provider.getBlock(event.blockNumber));
+                        if (block.hash === event.blockHash) {
+                            //Valid event
+                            await this.processEvents([event], block);
+                        }
+                        else {
+                            //Block hash doesn't match
+                        }
+                    }
+                }
+                catch (e) {
+                    this.logger.error(`on('block'): Error when processing new block ${blockNumber}:`, e);
+                }
+                processing = false;
+            });
+    }
     async init() {
-        this.setupPoll();
+        if (this.provider.websocket != null) {
+            await this.setupWebsocket();
+        }
+        else {
+            await this.setupPoll();
+        }
         this.stopped = false;
         return Promise.resolve();
     }
@@ -278,6 +378,12 @@ class EVMChainEventsBrowser {
         this.stopped = true;
         if (this.timeout != null)
             clearTimeout(this.timeout);
+        if (this.wsStarted) {
+            await this.provider.off(this.spvVaultContractLogFilter, this.spvVaultContractListener);
+            await this.provider.off(this.swapContractLogFilter, this.swapContractListener);
+            await this.provider.off("block", this.blockListener);
+            this.wsStarted = false;
+        }
     }
     registerListener(cbk) {
         this.listeners.push(cbk);

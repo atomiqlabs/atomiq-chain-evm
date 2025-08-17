@@ -1,11 +1,7 @@
 import {BaseTokenType, BitcoinNetwork, BitcoinRpc, ChainData, ChainInitializer, ChainSwapType} from "@atomiqlabs/base";
-import {JsonRpcApiProvider, JsonRpcProvider} from "ethers";
+import {JsonRpcApiProvider, JsonRpcProvider, WebSocketProvider} from "ethers";
 import {EVMChainInterface, EVMRetryPolicy} from "../../evm/chain/EVMChainInterface";
-import {EVMFees} from "../../evm/chain/modules/EVMFees";
 import {CitreaChainType} from "./CitreaChainType";
-import {EVMBtcRelay} from "../../evm/btcrelay/EVMBtcRelay";
-import {EVMSwapContract} from "../../evm/swaps/EVMSwapContract";
-import {EVMSpvVaultContract} from "../../evm/spv_swap/EVMSpvVaultContract";
 import {EVMChainEventsBrowser} from "../../evm/events/EVMChainEventsBrowser";
 import {EVMSwapData} from "../../evm/swaps/EVMSwapData";
 import {EVMSpvVaultData} from "../../evm/spv_swap/EVMSpvVaultData";
@@ -119,7 +115,11 @@ export function initializeCitrea(
     const chainId = CitreaChainIds[options.chainType];
 
     const provider = typeof(options.rpcUrl)==="string" ?
-        new JsonRpcProvider(options.rpcUrl, {name: "Citrea", chainId}) :
+        (
+            options.rpcUrl.startsWith("ws")
+                ? new WebSocketProvider(options.rpcUrl, {name: "Citrea", chainId})
+                : new JsonRpcProvider(options.rpcUrl, {name: "Citrea", chainId})
+        ):
         options.rpcUrl;
 
     const Fees = options.fees ?? new CitreaFees(provider, 2n * 1_000_000_000n, 1_000_000n);

@@ -77,7 +77,9 @@ function initializeBotanix(options, bitcoinRpc, network) {
     const defaultContractAddresses = BotanixContractAddresses[options.chainType];
     const chainId = BotanixChainIds[options.chainType];
     const provider = typeof (options.rpcUrl) === "string" ?
-        new ethers_1.JsonRpcProvider(options.rpcUrl, { name: "Botanix", chainId }) :
+        (options.rpcUrl.startsWith("ws")
+            ? new ethers_1.WebSocketProvider(options.rpcUrl, { name: "Botanix", chainId })
+            : new ethers_1.JsonRpcProvider(options.rpcUrl, { name: "Botanix", chainId })) :
         options.rpcUrl;
     const Fees = options.fees ?? new EVMFees_1.EVMFees(provider, 2n * 1000000000n, 1000000n);
     const chainInterface = new EVMChainInterface_1.EVMChainInterface("BOTANIX", chainId, provider, {

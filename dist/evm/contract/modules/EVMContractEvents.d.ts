@@ -1,4 +1,4 @@
-import { BaseContract } from "ethers";
+import { BaseContract, Log } from "ethers";
 import { EVMEvents } from "../../chain/modules/EVMEvents";
 import { EVMContractBase } from "../EVMContractBase";
 import { EVMChainInterface } from "../../chain/EVMChainInterface";
@@ -7,7 +7,7 @@ export declare class EVMContractEvents<T extends BaseContract> extends EVMEvents
     readonly contract: EVMContractBase<T>;
     readonly baseContract: T;
     constructor(chainInterface: EVMChainInterface<any>, contract: EVMContractBase<T>);
-    private toTypedEvents;
+    toTypedEvents<TEventName extends keyof T["filters"]>(blockEvents: Log[]): TypedEventLog<T["filters"][TEventName]>[];
     private toFilter;
     /**
      * Returns the events occuring in a range of EVM blocks as identified by the contract and keys,

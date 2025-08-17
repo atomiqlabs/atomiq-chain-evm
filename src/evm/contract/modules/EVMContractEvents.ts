@@ -15,7 +15,7 @@ export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
         this.baseContract = contract.contract;
     }
 
-    private toTypedEvents<TEventName extends keyof T["filters"]>(blockEvents: Log[]): TypedEventLog<T["filters"][TEventName]>[] {
+    public toTypedEvents<TEventName extends keyof T["filters"]>(blockEvents: Log[]): TypedEventLog<T["filters"][TEventName]>[] {
         return blockEvents.map(log => this.contract.toTypedEvent<TEventName>(log));
     }
 

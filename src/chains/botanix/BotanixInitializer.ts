@@ -1,5 +1,5 @@
 import {BaseTokenType, BitcoinNetwork, BitcoinRpc, ChainData, ChainInitializer, ChainSwapType} from "@atomiqlabs/base";
-import {JsonRpcApiProvider, JsonRpcProvider} from "ethers";
+import {JsonRpcApiProvider, JsonRpcProvider, WebSocketProvider} from "ethers";
 import {EVMChainInterface, EVMRetryPolicy} from "../../evm/chain/EVMChainInterface";
 import {EVMFees} from "../../evm/chain/modules/EVMFees";
 import {EVMBtcRelay} from "../../evm/btcrelay/EVMBtcRelay";
@@ -109,7 +109,11 @@ export function initializeBotanix(
     const chainId = BotanixChainIds[options.chainType];
 
     const provider = typeof(options.rpcUrl)==="string" ?
-        new JsonRpcProvider(options.rpcUrl, {name: "Botanix", chainId}) :
+        (
+            options.rpcUrl.startsWith("ws")
+                ? new WebSocketProvider(options.rpcUrl, {name: "Botanix", chainId})
+                : new JsonRpcProvider(options.rpcUrl, {name: "Botanix", chainId})
+        ):
         options.rpcUrl;
 
     const Fees = options.fees ?? new EVMFees(provider, 2n * 1_000_000_000n, 1_000_000n);

@@ -1,7 +1,7 @@
 import { ChainEvents, ClaimEvent, EventListener, InitializeEvent, RefundEvent, SpvVaultClaimEvent, SpvVaultCloseEvent, SpvVaultDepositEvent, SpvVaultFrontEvent, SpvVaultOpenEvent } from "@atomiqlabs/base";
 import { IClaimHandler } from "../swaps/handlers/claim/ClaimHandlers";
 import { EVMSwapData } from "../swaps/EVMSwapData";
-import { Block, JsonRpcApiProvider } from "ethers";
+import { Block, JsonRpcApiProvider, EventFilter, Log } from "ethers";
 import { EVMSwapContract } from "../swaps/EVMSwapContract";
 import { EVMSpvVaultContract } from "../spv_swap/EVMSpvVaultContract";
 import { EVMChainInterface } from "../chain/EVMChainInterface";
@@ -16,12 +16,16 @@ export type EVMEventListenerState = {
         logIndex: number;
     };
 };
+type AtomiqTypedEvent = (TypedEventLog<EscrowManager["filters"]["Initialize" | "Refund" | "Claim"]> | TypedEventLog<SpvVaultManager["filters"]["Opened" | "Deposited" | "Fronted" | "Claimed" | "Closed"]>);
 /**
  * EVM on-chain event handler for front-end systems without access to fs, uses WS or long-polling to subscribe, might lose
  *  out on some events if the network is unreliable, front-end systems should take this into consideration and not
  *  rely purely on events
  */
 export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
+    private eventsProcessing;
+    private processedEvents;
+    private processedEventsIndex;
     protected readonly listeners: EventListener<EVMSwapData>[];
     protected readonly provider: JsonRpcApiProvider;
     protected readonly chainInterface: EVMChainInterface;
@@ -31,7 +35,12 @@ export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
     protected stopped: boolean;
     protected pollIntervalSeconds: number;
     private timeout;
+    protected readonly spvVaultContractLogFilter: EventFilter;
+    protected readonly swapContractLogFilter: EventFilter;
+    protected unconfirmedEventQueue: AtomiqTypedEvent[];
     constructor(chainInterface: EVMChainInterface, evmSwapContract: EVMSwapContract, evmSpvVaultContract: EVMSpvVaultContract<any>, pollIntervalSeconds?: number);
+    private addProcessedEvent;
+    private isEventProcessed;
     findInitSwapData(call: EVMTxTrace, escrowHash: string, claimHandler: IClaimHandler<any, any>): EVMSwapData;
     /**
      * Returns async getter for fetching on-demand initialize event swap data
@@ -57,7 +66,7 @@ export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
      * @param currentBlock
      * @protected
      */
-    protected processEvents(events: (TypedEventLog<EscrowManager["filters"]["Initialize" | "Refund" | "Claim"]> | TypedEventLog<SpvVaultManager["filters"]["Opened" | "Deposited" | "Fronted" | "Claimed" | "Closed"]>)[], currentBlock: Block): Promise<void>;
+    protected processEvents(events: (TypedEventLog<EscrowManager["filters"]["Initialize" | "Refund" | "Claim"]> | TypedEventLog<SpvVaultManager["filters"]["Opened" | "Deposited" | "Fronted" | "Claimed" | "Closed"]>)[], currentBlock?: Block): Promise<void>;
     protected checkEventsEcrowManager(currentBlock: Block, lastProcessedEvent?: {
         blockHash: string;
         logIndex: number;
@@ -79,8 +88,15 @@ export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
      * @protected
      */
     protected setupPoll(lastState?: EVMEventListenerState[], saveLatestProcessedBlockNumber?: (newState: EVMEventListenerState[]) => Promise<void>): Promise<void>;
+    protected handleWsEvents(events: AtomiqTypedEvent[]): Promise<void>;
+    protected spvVaultContractListener: (log: Log) => void;
+    protected swapContractListener: (log: Log) => void;
+    protected blockListener: (blockNumber: number) => Promise<void>;
+    protected wsStarted: boolean;
+    protected setupWebsocket(): Promise<void>;
     init(): Promise<void>;
     stop(): Promise<void>;
     registerListener(cbk: EventListener<EVMSwapData>): void;
     unregisterListener(cbk: EventListener<EVMSwapData>): boolean;
 }
+export {};

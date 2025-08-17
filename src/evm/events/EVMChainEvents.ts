@@ -72,6 +72,7 @@ export class EVMChainEvents extends EVMChainEventsBrowser {
 
     async init(): Promise<void> {
         const lastState = await this.getLastEventData();
+        if((this.provider as any).websocket!=null) await this.setupWebsocket();
         await this.setupPoll(
             lastState,
             (newState: EVMEventListenerState[]) => this.saveLastEventData(newState)
