@@ -4,6 +4,7 @@ exports.EVMTransactions = void 0;
 const EVMModule_1 = require("../EVMModule");
 const ethers_1 = require("ethers");
 const Utils_1 = require("../../../utils/Utils");
+const MAX_UNCONFIRMED_TXNS = 10;
 class EVMTransactions extends EVMModule_1.EVMModule {
     constructor() {
         super(...arguments);
@@ -116,7 +117,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
             " waitForConfirmation: " + waitForConfirmation + " parallel: " + parallel);
         const txIds = [];
         if (parallel) {
-            const promises = [];
+            let promises = [];
             for (let i = 0; i < txs.length; i++) {
                 let tx;
                 if (signer.isBrowserWallet) {
@@ -131,6 +132,10 @@ class EVMTransactions extends EVMModule_1.EVMModule {
                     promises.push(this.confirmTransaction(tx, abortSignal));
                 txIds.push(tx.hash);
                 this.logger.debug("sendAndConfirm(): transaction sent (" + (i + 1) + "/" + signedTxs.length + "): " + tx.hash);
+                if (promises.length >= MAX_UNCONFIRMED_TXNS) {
+                    await Promise.all(promises);
+                    promises = [];
+                }
             }
             if (promises.length > 0)
                 await Promise.all(promises);

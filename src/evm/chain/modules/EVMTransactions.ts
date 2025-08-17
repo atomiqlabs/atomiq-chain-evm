@@ -18,6 +18,8 @@ export type EVMTxTrace = {
     type: "CREATE" | "CALL" | "STATICCALL"
 };
 
+const MAX_UNCONFIRMED_TXNS = 10;
+
 export class EVMTransactions extends EVMModule<any> {
 
     private readonly latestConfirmedNonces: {[address: string]: number} = {};
@@ -140,7 +142,7 @@ export class EVMTransactions extends EVMModule<any> {
 
         const txIds: string[] = [];
         if(parallel) {
-            const promises: Promise<void>[] = [];
+            let promises: Promise<void>[] = [];
             for(let i=0;i<txs.length;i++) {
                 let tx: {nonce: number, from: string, hash: string};
                 if(signer.isBrowserWallet) {
@@ -153,6 +155,10 @@ export class EVMTransactions extends EVMModule<any> {
                 if(waitForConfirmation) promises.push(this.confirmTransaction(tx, abortSignal));
                 txIds.push(tx.hash);
                 this.logger.debug("sendAndConfirm(): transaction sent ("+(i+1)+"/"+signedTxs.length+"): "+tx.hash);
+                if(promises.length >= MAX_UNCONFIRMED_TXNS) {
+                    await Promise.all(promises);
+                    promises = [];
+                }
             }
             if(promises.length>0) await Promise.all(promises);
         } else {
