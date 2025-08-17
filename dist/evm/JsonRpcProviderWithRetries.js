@@ -10,8 +10,9 @@ class JsonRpcProviderWithRetries extends ethers_1.JsonRpcProvider {
     }
     send(method, params) {
         return (0, Utils_1.tryWithRetries)(() => super.send(method, params), this.retryPolicy, e => {
+            return false;
             // if(e?.error?.code!=null) return false; //Error returned by the RPC
-            return true;
+            // return true;
         });
     }
 }
