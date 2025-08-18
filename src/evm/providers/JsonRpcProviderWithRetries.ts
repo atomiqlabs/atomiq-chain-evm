@@ -1,6 +1,6 @@
 import {JsonRpcProvider, JsonRpcApiProviderOptions} from "ethers";
 import type {Networkish, FetchRequest} from "ethers";
-import {tryWithRetries} from "../utils/Utils";
+import {tryWithRetries} from "../../utils/Utils";
 
 
 export class JsonRpcProviderWithRetries extends JsonRpcProvider {

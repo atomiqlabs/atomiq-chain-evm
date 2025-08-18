@@ -82,13 +82,13 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
     }
 
     private addProcessedEvent(event: AtomiqTypedEvent) {
-        this.processedEvents[this.processedEventsIndex] = event.transactionHash+":"+event.transactionIndex;
+        this.processedEvents[this.processedEventsIndex] = event.transactionHash+":"+event.index;
         this.processedEventsIndex += 1;
         if(this.processedEventsIndex >= PROCESSED_EVENTS_BACKLOG) this.processedEventsIndex = 0;
     }
 
     private isEventProcessed(event: AtomiqTypedEvent): boolean {
-        return this.processedEvents.includes(event.transactionHash+":"+event.transactionIndex);
+        return this.processedEvents.includes(event.transactionHash+":"+event.index);
     }
 
     findInitSwapData(call: EVMTxTrace, escrowHash: string, claimHandler: IClaimHandler<any, any>): EVMSwapData {
@@ -255,7 +255,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         currentBlock?: Block
     ) {
         for(let event of events) {
-            const eventIdentifier = event.transactionHash+":"+event.transactionIndex;
+            const eventIdentifier = event.transactionHash+":"+event.index;
 
             if(this.isEventProcessed(event)) {
                 this.logger.debug("processEvents(): skipping already processed event: "+eventIdentifier);
@@ -457,6 +457,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         let processing = false;
         if(safeBlockTag!=="latest" && safeBlockTag!=="pending") await this.provider.on("block", this.blockListener = async (blockNumber: number) => {
             if(processing) return;
+            if(this.unconfirmedEventQueue.length===0) return;
             processing = true;
             try {
                 const latestSafeBlock = await this.provider.getBlock(this.chainInterface.config.safeBlockTag);

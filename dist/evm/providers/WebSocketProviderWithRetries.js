@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WebSocketProviderWithRetries = void 0;
-const ethers_1 = require("ethers");
-const Utils_1 = require("../utils/Utils");
-class WebSocketProviderWithRetries extends ethers_1.WebSocketProvider {
+const Utils_1 = require("../../utils/Utils");
+const ReconnectingWebSocketProvider_1 = require("./ReconnectingWebSocketProvider");
+class WebSocketProviderWithRetries extends ReconnectingWebSocketProvider_1.ReconnectingWebSocketProvider {
     constructor(url, network, options) {
         super(url, network, options);
         this.retryPolicy = options;

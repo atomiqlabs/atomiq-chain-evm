@@ -1,15 +1,17 @@
-import {JsonRpcApiProviderOptions, WebSocketProvider} from "ethers";
-import type {Networkish, WebSocketCreator, WebSocketLike} from "ethers";
-import {tryWithRetries} from "../utils/Utils";
+import {JsonRpcApiProviderOptions} from "ethers";
+import type {Networkish} from "ethers";
+import {tryWithRetries} from "../../utils/Utils";
+import {ReconnectingWebSocketProvider} from "./ReconnectingWebSocketProvider";
+import type {WebSocketLike} from "ethers/lib.esm";
 
 
-export class WebSocketProviderWithRetries extends WebSocketProvider {
+export class WebSocketProviderWithRetries extends ReconnectingWebSocketProvider {
 
     readonly retryPolicy?: {
         maxRetries?: number, delay?: number, exponential?: boolean
     };
 
-    constructor(url: string | WebSocketLike | WebSocketCreator, network?: Networkish, options?: JsonRpcApiProviderOptions & {
+    constructor(url: string | (() => WebSocketLike), network?: Networkish, options?: JsonRpcApiProviderOptions & {
         maxRetries?: number, delay?: number, exponential?: boolean
     }) {
         super(url, network, options);

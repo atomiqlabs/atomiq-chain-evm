@@ -35,13 +35,13 @@ class EVMChainEventsBrowser {
         };
     }
     addProcessedEvent(event) {
-        this.processedEvents[this.processedEventsIndex] = event.transactionHash + ":" + event.transactionIndex;
+        this.processedEvents[this.processedEventsIndex] = event.transactionHash + ":" + event.index;
         this.processedEventsIndex += 1;
         if (this.processedEventsIndex >= PROCESSED_EVENTS_BACKLOG)
             this.processedEventsIndex = 0;
     }
     isEventProcessed(event) {
-        return this.processedEvents.includes(event.transactionHash + ":" + event.transactionIndex);
+        return this.processedEvents.includes(event.transactionHash + ":" + event.index);
     }
     findInitSwapData(call, escrowHash, claimHandler) {
         if (call.to.toLowerCase() === this.evmSwapContract.contractAddress.toLowerCase()) {
@@ -163,7 +163,7 @@ class EVMChainEventsBrowser {
      */
     async processEvents(events, currentBlock) {
         for (let event of events) {
-            const eventIdentifier = event.transactionHash + ":" + event.transactionIndex;
+            const eventIdentifier = event.transactionHash + ":" + event.index;
             if (this.isEventProcessed(event)) {
                 this.logger.debug("processEvents(): skipping already processed event: " + eventIdentifier);
                 continue;
@@ -334,6 +334,8 @@ class EVMChainEventsBrowser {
         if (safeBlockTag !== "latest" && safeBlockTag !== "pending")
             await this.provider.on("block", this.blockListener = async (blockNumber) => {
                 if (processing)
+                    return;
+                if (this.unconfirmedEventQueue.length === 0)
                     return;
                 processing = true;
                 try {

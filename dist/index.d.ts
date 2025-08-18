@@ -38,5 +38,6 @@ export * from "./chains/citrea/CitreaChainType";
 export * from "./chains/citrea/CitreaFees";
 export * from "./chains/botanix/BotanixInitializer";
 export * from "./chains/botanix/BotanixChainType";
-export * from "./evm/JsonRpcProviderWithRetries";
-export * from "./evm/WebSocketProviderWithRetries";
+export * from "./evm/providers/JsonRpcProviderWithRetries";
+export * from "./evm/providers/WebSocketProviderWithRetries";
+export * from "./evm/providers/ReconnectingWebSocketProvider";
