@@ -1,5 +1,5 @@
 import {EVMModule} from "../EVMModule";
-import {Transaction, TransactionRequest} from "ethers";
+import {Transaction, TransactionRequest, TransactionResponse} from "ethers";
 import {timeoutPromise} from "../../../utils/Utils";
 import {EVMSigner} from "../../wallet/EVMSigner";
 
@@ -23,6 +23,8 @@ const MAX_UNCONFIRMED_TXNS = 10;
 export class EVMTransactions extends EVMModule<any> {
 
     private readonly latestConfirmedNonces: {[address: string]: number} = {};
+    private readonly latestPendingNonces: {[address: string]: number} = {};
+    private readonly latestSignedNonces: {[address: string]: number} = {};
 
     private cbkBeforeTxSigned: (tx: TransactionRequest) => Promise<void>;
     private cbkSendTransaction: (tx: string) => Promise<string>;
@@ -35,20 +37,19 @@ export class EVMTransactions extends EVMModule<any> {
      * @param abortSignal signal to abort waiting for tx confirmation
      * @private
      */
-    private async confirmTransaction(tx: {nonce: number, from: string, hash: string}, abortSignal?: AbortSignal) {
+    private async confirmTransaction(tx: TransactionResponse | Transaction, abortSignal?: AbortSignal) {
         let state = "pending";
         while(state==="pending" || state==="not_found") {
             await timeoutPromise(3000, abortSignal);
             state = await this.getTxIdStatus(tx.hash);
-            //Don't re-send transactions
-            // if(state==="not_found") await this.sendSignedTransaction(tx).catch(e => {
-            //     if(e.baseError?.code === 59) return; //Transaction already in the mempool
+            // if(state==="not_found" && tx instanceof Transaction) await this.sendSignedTransaction(tx).catch(e => {
             //     this.logger.error("confirmTransaction(): Error on transaction re-send: ", e);
-            // });
+            // });`
         }
+
         const nextAccountNonce = tx.nonce + 1;
-        const currentNonce = this.latestConfirmedNonces[tx.from];
-        if(currentNonce==null || nextAccountNonce > currentNonce) {
+        const currentConfirmedNonce = this.latestConfirmedNonces[tx.from];
+        if(currentConfirmedNonce==null || nextAccountNonce > currentConfirmedNonce) {
             this.latestConfirmedNonces[tx.from] = nextAccountNonce;
         }
         if(state==="reverted") throw new Error("Transaction reverted!");
@@ -63,10 +64,10 @@ export class EVMTransactions extends EVMModule<any> {
      */
     private async prepareTransactions(signer: EVMSigner, txs: TransactionRequest[]): Promise<void> {
         let nonce: number = (await signer.getNonce()) ?? await this.root.provider.getTransactionCount(signer.getAddress(), "pending");
-        const latestConfirmedNonce = this.latestConfirmedNonces[signer.getAddress()];
-        if(latestConfirmedNonce!=null && latestConfirmedNonce > nonce) {
+        const latestKnownNonce = this.latestPendingNonces[signer.getAddress()];
+        if(latestKnownNonce!=null && latestKnownNonce > nonce) {
             this.logger.debug("prepareTransactions(): Using nonce from local cache!");
-            nonce = latestConfirmedNonce;
+            nonce = latestKnownNonce;
         }
 
         for(let i=0;i<txs.length;i++) {
@@ -135,6 +136,12 @@ export class EVMTransactions extends EVMModule<any> {
             const signedTx = Transaction.from(await signer.account.signTransaction(tx));
             signedTxs.push(signedTx);
             this.logger.debug("sendAndConfirm(): transaction signed ("+(i+1)+"/"+txs.length+"): "+signedTx);
+
+            const nextAccountNonce = signedTx.nonce + 1;
+            const currentSignedNonce = this.latestSignedNonces[signedTx.from];
+            if(currentSignedNonce==null || nextAccountNonce > currentSignedNonce) {
+                this.latestSignedNonces[signedTx.from] = nextAccountNonce;
+            }
         }
 
         this.logger.debug("sendAndConfirm(): sending transactions, count: "+txs.length+
@@ -144,7 +151,7 @@ export class EVMTransactions extends EVMModule<any> {
         if(parallel) {
             let promises: Promise<void>[] = [];
             for(let i=0;i<txs.length;i++) {
-                let tx: {nonce: number, from: string, hash: string};
+                let tx: TransactionResponse | Transaction;
                 if(signer.isBrowserWallet) {
                     tx = await signer.account.sendTransaction(txs[i]);
                 } else {
@@ -152,6 +159,13 @@ export class EVMTransactions extends EVMModule<any> {
                     await this.sendSignedTransaction(signedTx, onBeforePublish);
                     tx = signedTx;
                 }
+
+                const nextAccountNonce = tx.nonce + 1;
+                const currentPendingNonce = this.latestPendingNonces[tx.from];
+                if(currentPendingNonce==null || nextAccountNonce > currentPendingNonce) {
+                    this.latestPendingNonces[tx.from] = nextAccountNonce;
+                }
+
                 if(waitForConfirmation) promises.push(this.confirmTransaction(tx, abortSignal));
                 txIds.push(tx.hash);
                 this.logger.debug("sendAndConfirm(): transaction sent ("+(i+1)+"/"+signedTxs.length+"): "+tx.hash);
@@ -163,7 +177,7 @@ export class EVMTransactions extends EVMModule<any> {
             if(promises.length>0) await Promise.all(promises);
         } else {
             for(let i=0;i<txs.length;i++) {
-                let tx: {nonce: number, from: string, hash: string};
+                let tx: TransactionResponse | Transaction;
                 if(signer.isBrowserWallet) {
                     tx = await signer.account.sendTransaction(txs[i]);
                 } else {
@@ -171,6 +185,13 @@ export class EVMTransactions extends EVMModule<any> {
                     await this.sendSignedTransaction(signedTx, onBeforePublish);
                     tx = signedTx;
                 }
+
+                const nextAccountNonce = tx.nonce + 1;
+                const currentPendingNonce = this.latestPendingNonces[tx.from];
+                if(currentPendingNonce==null || nextAccountNonce > currentPendingNonce) {
+                    this.latestPendingNonces[tx.from] = nextAccountNonce;
+                }
+
                 const confirmPromise = this.confirmTransaction(tx, abortSignal);
                 this.logger.debug("sendAndConfirm(): transaction sent ("+(i+1)+"/"+txs.length+"): "+tx.hash);
                 //Don't await the last promise when !waitForConfirmation

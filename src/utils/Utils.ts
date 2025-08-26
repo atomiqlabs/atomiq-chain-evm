@@ -79,3 +79,7 @@ export function uint32ReverseEndianness(value: number): number {
         ((valueBN >> 8n) & 0xFF00n) |
         ((valueBN >> 24n) & 0xFFn));
 }
+
+export function bigIntMax(a: bigint, b: bigint) {
+    return a>b ? a : b;
+}
