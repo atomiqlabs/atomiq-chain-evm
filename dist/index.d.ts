@@ -33,6 +33,7 @@ export * from "./evm/swaps/handlers/claim/btc/BitcoinTxIdClaimHandler";
 export * from "./evm/swaps/handlers/claim/btc/BitcoinOutputClaimHandler";
 export * from "./evm/swaps/handlers/claim/btc/BitcoinNoncedOutputClaimHandler";
 export * from "./evm/wallet/EVMSigner";
+export * from "./evm/wallet/EVMBrowserSigner";
 export * from "./chains/citrea/CitreaInitializer";
 export * from "./chains/citrea/CitreaChainType";
 export * from "./chains/citrea/CitreaFees";

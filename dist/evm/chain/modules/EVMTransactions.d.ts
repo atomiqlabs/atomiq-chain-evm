@@ -18,11 +18,12 @@ export declare class EVMTransactions extends EVMModule<any> {
     private readonly latestConfirmedNonces;
     private readonly latestPendingNonces;
     private readonly latestSignedNonces;
-    private cbkBeforeTxSigned;
+    readonly _cbksBeforeTxReplace: ((oldTx: string, oldTxId: string, newTx: string, newTxId: string) => Promise<void>)[];
+    private readonly cbksBeforeTxSigned;
     private cbkSendTransaction;
+    readonly _knownTxSet: Set<string>;
     /**
-     * Waits for transaction confirmation using WS subscription and occasional HTTP polling, also re-sends
-     *  the transaction at regular interval
+     * Waits for transaction confirmation using HTTP polling
      *
      * @param tx EVM transaction to wait for confirmation for
      * @param abortSignal signal to abort waiting for tx confirmation
@@ -78,7 +79,7 @@ export declare class EVMTransactions extends EVMModule<any> {
      */
     getTxStatus(tx: string): Promise<"pending" | "success" | "not_found" | "reverted">;
     /**
-     * Gets the status of the starknet transaction with a specific txId
+     * Gets the status of the EVM transaction with a specific txId
      *
      * @param txId
      */
@@ -87,5 +88,7 @@ export declare class EVMTransactions extends EVMModule<any> {
     offBeforeTxSigned(callback: (tx: TransactionRequest) => Promise<void>): boolean;
     onSendTransaction(callback: (tx: string) => Promise<string>): void;
     offSendTransaction(callback: (tx: string) => Promise<string>): boolean;
+    onBeforeTxReplace(callback: (oldTx: string, oldTxId: string, newTx: string, newTxId: string) => Promise<void>): void;
+    offBeforeTxReplace(callback: (oldTx: string, oldTxId: string, newTx: string, newTxId: string) => Promise<void>): boolean;
     traceTransaction(txId: string): Promise<EVMTxTrace>;
 }

@@ -1,29 +1,34 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PersistentEVMSigner = void 0;
+exports.EVMPersistentSigner = void 0;
 const fs = require("fs/promises");
 const ethers_1 = require("ethers");
 const Utils_1 = require("../../utils/Utils");
+const EVMFees_1 = require("../chain/modules/EVMFees");
+const EVMSigner_1 = require("./EVMSigner");
 const WAIT_BEFORE_BUMP = 15 * 1000;
 const MIN_FEE_INCREASE_ABSOLUTE = 1n * 1000000000n; //1GWei
 const MIN_FEE_INCREASE_PPM = 100000n; // +10%
-class PersistentEVMSigner extends ethers_1.Wallet {
-    constructor(privateKey, provider, directory, safeBlockTag, minFeeIncreaseAbsolute, minFeeIncreasePpm, waitBeforeBumpMillis, getGasPriceFunc) {
-        super(privateKey, provider);
-        this.type = "PersistentEVMSigner";
+class EVMPersistentSigner extends EVMSigner_1.EVMSigner {
+    constructor(account, address, chainInterface, directory, minFeeIncreaseAbsolute, minFeeIncreasePpm, waitBeforeBumpMillis) {
+        super(account, address, true);
         this.pendingTxs = new Map();
         this.stopped = false;
-        this.callbacks = [];
         this.saveCount = 0;
+        this.signTransaction = null;
+        this.chainInterface = chainInterface;
         this.directory = directory;
         this.minFeeIncreaseAbsolute = minFeeIncreaseAbsolute ?? MIN_FEE_INCREASE_ABSOLUTE;
         this.minFeeIncreasePpm = minFeeIncreasePpm ?? MIN_FEE_INCREASE_PPM;
         this.waitBeforeBump = waitBeforeBumpMillis ?? WAIT_BEFORE_BUMP;
-        this.safeBlockTag = safeBlockTag;
-        this.getGasPriceFunc = getGasPriceFunc;
+        this.safeBlockTag = chainInterface.config.safeBlockTag;
+        this.logger = (0, Utils_1.getLogger)("EVMPersistentSigner(" + address + "): ");
     }
     async load() {
-        const res = await fs.readFile(this.directory + "/txs.json").catch(e => console.error(e));
+        const fileExists = await fs.access(this.directory + "/txs.json", fs.constants.F_OK).then(() => true).catch(() => false);
+        if (!fileExists)
+            return;
+        const res = await fs.readFile(this.directory + "/txs.json");
         if (res != null) {
             const pendingTxs = JSON.parse(res.toString());
             for (let nonceStr in pendingTxs) {
@@ -40,7 +45,7 @@ class PersistentEVMSigner extends ethers_1.Wallet {
                     lastBumped: nonceData.lastBumped
                 });
                 for (let tx of parsedPendingTxns) {
-                    this.txMap.set(tx.hash, tx.nonce);
+                    this.chainInterface.Transactions._knownTxSet.add(tx.hash);
                 }
             }
         }
@@ -67,47 +72,57 @@ class PersistentEVMSigner extends ethers_1.Wallet {
         let _safeBlockTxCount = null;
         for (let [nonce, data] of this.pendingTxs) {
             if (data.lastBumped < Date.now() - this.waitBeforeBump) {
-                _safeBlockTxCount = await this.provider.getTransactionCount(this.address, this.safeBlockTag);
+                _safeBlockTxCount = await this.chainInterface.provider.getTransactionCount(this.address, this.safeBlockTag);
                 this.confirmedNonce = _safeBlockTxCount;
                 if (_safeBlockTxCount > nonce) {
                     this.pendingTxs.delete(nonce);
-                    data.txs.forEach(tx => this.txMap.delete(tx.hash));
-                    console.log("Tx confirmed, required fee bumps: ", data.txs.length);
+                    data.txs.forEach(tx => this.chainInterface.Transactions._knownTxSet.delete(tx.hash));
+                    this.logger.info("checkPastTransactions(): Tx confirmed, required fee bumps: ", data.txs.length);
                     continue;
                 }
                 const lastTx = data.txs[data.txs.length - 1];
-                if (_gasPrice == null)
-                    _gasPrice = this.getGasPriceFunc != null ? await this.getGasPriceFunc() : await this.provider.getFeeData();
-                let newTx = lastTx.clone();
-                newTx.maxFeePerGas = (0, Utils_1.bigIntMax)(_gasPrice.maxFeePerGas, this.minFeeIncreaseAbsolute + (lastTx.maxFeePerGas * (1000000n + this.minFeeIncreasePpm) / 1000000n));
-                newTx.maxPriorityFeePerGas = (0, Utils_1.bigIntMax)(_gasPrice.maxPriorityFeePerGas, this.minFeeIncreaseAbsolute + (lastTx.maxPriorityFeePerGas * (1000000n + this.minFeeIncreasePpm) / 1000000n));
-                if (newTx.maxFeePerGas > (this.minFeeIncreaseAbsolute + (_gasPrice.maxFeePerGas * (1000000n + this.minFeeIncreasePpm) / 1000000n)) &&
-                    newTx.maxPriorityFeePerGas > (this.minFeeIncreaseAbsolute + (_gasPrice.maxPriorityFeePerGas * (1000000n + this.minFeeIncreasePpm) / 1000000n))) {
+                if (_gasPrice == null) {
+                    const feeRate = await this.chainInterface.Fees.getFeeRate();
+                    const [baseFee, priorityFee] = feeRate.split(",");
+                    _gasPrice = {
+                        baseFee: BigInt(baseFee),
+                        priorityFee: BigInt(priorityFee)
+                    };
+                }
+                let priorityFee = lastTx.maxPriorityFeePerGas;
+                let baseFee = lastTx.maxFeePerGas - lastTx.maxPriorityFeePerGas;
+                baseFee = (0, Utils_1.bigIntMax)(_gasPrice.baseFee, this.minFeeIncreaseAbsolute + (baseFee * (1000000n + this.minFeeIncreasePpm) / 1000000n));
+                priorityFee = (0, Utils_1.bigIntMax)(_gasPrice.priorityFee, this.minFeeIncreaseAbsolute + (priorityFee * (1000000n + this.minFeeIncreasePpm) / 1000000n));
+                if (baseFee > (this.minFeeIncreaseAbsolute + (_gasPrice.baseFee * (1000000n + this.minFeeIncreasePpm) / 1000000n)) &&
+                    priorityFee > (this.minFeeIncreaseAbsolute + (_gasPrice.priorityFee * (1000000n + this.minFeeIncreasePpm) / 1000000n))) {
                     //Too big of an increase over the current fee rate, don't fee bump
-                    console.log("Tx yet unconfirmed but not increasing fee for ", lastTx.hash);
+                    this.logger.debug("checkPastTransactions(): Tx yet unconfirmed but not increasing fee for ", lastTx.hash);
+                    await this.chainInterface.provider.broadcastTransaction(lastTx.serialized).catch(e => this.logger.error("checkPastTransactions(): Tx re-broadcast error", e));
                     continue;
                 }
-                console.log("Bump fee for tx: ", lastTx.hash);
+                let newTx = lastTx.clone();
+                EVMFees_1.EVMFees.applyFeeRate(newTx, null, baseFee.toString(10) + "," + priorityFee.toString(10));
+                this.logger.info("checkPastTransactions(): Bump fee for tx: ", lastTx.hash);
                 newTx.signature = null;
-                const signedRawTx = await this.signTransaction(newTx);
+                const signedRawTx = await this.account.signTransaction(newTx);
                 //Double check pending txns still has nonce after async signTransaction was called
                 if (!this.pendingTxs.has(nonce))
                     continue;
                 newTx = ethers_1.Transaction.from(signedRawTx);
-                for (let callback of this.callbacks) {
+                for (let callback of this.chainInterface.Transactions._cbksBeforeTxReplace) {
                     try {
                         await callback(lastTx.hash, lastTx.serialized, newTx.hash, signedRawTx);
                     }
                     catch (e) {
-                        console.error(e);
+                        this.logger.error("checkPastTransactions(): beforeTxReplace callback error: ", e);
                     }
                 }
                 data.txs.push(newTx);
                 data.lastBumped = Date.now();
                 this.save();
-                this.txMap.set(newTx.hash, newTx.nonce);
+                this.chainInterface.Transactions._knownTxSet.add(newTx.hash);
                 //TODO: Better error handling when sending tx
-                await this.provider.sendTransaction(newTx).catch(e => console.error(e));
+                await this.chainInterface.provider.broadcastTransaction(signedRawTx).catch(e => this.logger.error("checkPastTransactions(): Fee-bumped tx broadcast error", e));
             }
         }
     }
@@ -118,7 +133,7 @@ class PersistentEVMSigner extends ethers_1.Wallet {
                 await this.checkPastTransactions();
             }
             catch (e) {
-                console.error(e);
+                this.logger.error("startFeeBumper(): Error when check past transactions: ", e);
             }
             if (this.stopped)
                 return;
@@ -131,7 +146,7 @@ class PersistentEVMSigner extends ethers_1.Wallet {
             await fs.mkdir(this.directory);
         }
         catch (e) { }
-        const txCount = await this.provider.getTransactionCount(this.address, this.safeBlockTag);
+        const txCount = await this.chainInterface.provider.getTransactionCount(this.address, this.safeBlockTag);
         this.confirmedNonce = txCount - 1;
         this.pendingNonce = txCount - 1;
         await this.load();
@@ -143,10 +158,7 @@ class PersistentEVMSigner extends ethers_1.Wallet {
             clearTimeout(this.feeBumper);
             this.feeBumper = null;
         }
-    }
-    async signTransaction(transaction) {
-        transaction.from = this.address;
-        return await super.signTransaction(transaction);
+        return Promise.resolve();
     }
     async sendTransaction(transaction, onBeforePublish) {
         if (transaction.nonce != null) {
@@ -167,34 +179,20 @@ class PersistentEVMSigner extends ethers_1.Wallet {
                 tx[key] = transaction[key];
             }
         }
-        const signedRawTx = await this.signTransaction(tx);
+        const signedRawTx = await this.account.signTransaction(tx);
         const signedTx = ethers_1.Transaction.from(signedRawTx);
         if (onBeforePublish != null) {
             try {
                 await onBeforePublish(signedTx.hash, signedRawTx);
             }
             catch (e) {
-                console.error(e);
+                this.logger.error("sendTransaction(): Error when calling onBeforePublish function: ", e);
             }
         }
         this.pendingTxs.set(transaction.nonce, { txs: [signedTx], lastBumped: Date.now() });
         this.save();
-        this.txMap.set(signedTx.hash, signedTx.nonce);
-        return await this.provider.sendTransaction(signedTx);
-    }
-    isTxPending(txId) {
-        return this.txMap.has(txId);
-    }
-    onBeforeTxReplace(callback) {
-        this.callbacks.push(callback);
-    }
-    offBeforeTxReplace(callback) {
-        const index = this.callbacks.indexOf(callback);
-        if (index < 0) {
-            return false;
-        }
-        this.callbacks.splice(index, 1);
-        return true;
+        this.chainInterface.Transactions._knownTxSet.add(signedTx.hash);
+        return await this.chainInterface.provider.broadcastTransaction(signedRawTx);
     }
 }
-exports.PersistentEVMSigner = PersistentEVMSigner;
+exports.EVMPersistentSigner = EVMPersistentSigner;

@@ -26,26 +26,38 @@ export class EVMTransactions extends EVMModule<any> {
     private readonly latestPendingNonces: {[address: string]: number} = {};
     private readonly latestSignedNonces: {[address: string]: number} = {};
 
-    private cbkBeforeTxSigned: (tx: TransactionRequest) => Promise<void>;
+    readonly _cbksBeforeTxReplace: ((oldTx: string, oldTxId: string, newTx: string, newTxId: string) => Promise<void>)[] = [];
+    private readonly cbksBeforeTxSigned: ((tx: TransactionRequest) => Promise<void>)[] = [];
     private cbkSendTransaction: (tx: string) => Promise<string>;
 
+    readonly _knownTxSet: Set<string> = new Set();
+
     /**
-     * Waits for transaction confirmation using WS subscription and occasional HTTP polling, also re-sends
-     *  the transaction at regular interval
+     * Waits for transaction confirmation using HTTP polling
      *
      * @param tx EVM transaction to wait for confirmation for
      * @param abortSignal signal to abort waiting for tx confirmation
      * @private
      */
     private async confirmTransaction(tx: TransactionResponse | Transaction, abortSignal?: AbortSignal) {
+        const checkTxns: Set<string> = new Set([tx.hash]);
+
+        const txReplaceListener = (oldTx: string, oldTxId: string, newTx: string, newTxId: string) => {
+            if(checkTxns.has(oldTxId)) checkTxns.add(newTxId);
+            return Promise.resolve();
+        };
+        this.onBeforeTxReplace(txReplaceListener);
+
         let state = "pending";
         while(state==="pending" || state==="not_found") {
             await timeoutPromise(3000, abortSignal);
-            state = await this.getTxIdStatus(tx.hash);
-            // if(state==="not_found" && tx instanceof Transaction) await this.sendSignedTransaction(tx).catch(e => {
-            //     this.logger.error("confirmTransaction(): Error on transaction re-send: ", e);
-            // });`
+            for(let txId of checkTxns) {
+                state = await this.getTxIdStatus(txId);
+                if(state==="reverted" || state==="success") break;
+            }
         }
+
+        this.offBeforeTxReplace(txReplaceListener);
 
         const nextAccountNonce = tx.nonce + 1;
         const currentConfirmedNonce = this.latestConfirmedNonces[tx.from];
@@ -63,26 +75,35 @@ export class EVMTransactions extends EVMModule<any> {
      * @private
      */
     private async prepareTransactions(signer: EVMSigner, txs: TransactionRequest[]): Promise<void> {
-        let nonce: number = (await signer.getNonce()) ?? await this.root.provider.getTransactionCount(signer.getAddress(), "pending");
-        const latestKnownNonce = this.latestPendingNonces[signer.getAddress()];
-        if(latestKnownNonce!=null && latestKnownNonce > nonce) {
-            this.logger.debug("prepareTransactions(): Using nonce from local cache!");
-            nonce = latestKnownNonce;
-        }
-
-        for(let i=0;i<txs.length;i++) {
-            const tx = txs[i];
+        for(let tx of txs) {
             tx.chainId = this.root.evmChainId;
             tx.from = signer.getAddress();
-            if(tx.nonce!=null) nonce = tx.nonce; //Take the nonce from last tx
-            if(nonce==null) nonce = await this.root.provider.getTransactionCount(signer.getAddress(), "pending"); //Fetch the nonce
-            if(tx.nonce==null) tx.nonce = nonce;
+        }
 
-            this.logger.debug("sendAndConfirm(): transaction prepared ("+(i+1)+"/"+txs.length+"), nonce: "+tx.nonce);
+        if(!signer.isManagingNoncesInternally) {
+            let nonce: number = await this.root.provider.getTransactionCount(signer.getAddress(), "pending");
+            const latestKnownNonce = this.latestPendingNonces[signer.getAddress()];
+            if(latestKnownNonce!=null && latestKnownNonce > nonce) {
+                this.logger.debug("prepareTransactions(): Using nonce from local cache!");
+                nonce = latestKnownNonce;
+            }
 
-            nonce++;
+            for(let i=0;i<txs.length;i++) {
+                const tx = txs[i];
+                if(tx.nonce!=null) nonce = tx.nonce; //Take the nonce from last tx
+                if(nonce==null) nonce = await this.root.provider.getTransactionCount(signer.getAddress(), "pending"); //Fetch the nonce
+                if(tx.nonce==null) tx.nonce = nonce;
 
-            if(this.cbkBeforeTxSigned!=null) await this.cbkBeforeTxSigned(tx);
+                this.logger.debug("sendAndConfirm(): transaction prepared ("+(i+1)+"/"+txs.length+"), nonce: "+tx.nonce);
+
+                nonce++;
+            }
+        }
+
+        for(let tx of txs) {
+            for(let callback of this.cbksBeforeTxSigned) {
+                await callback(tx);
+            }
         }
     }
 
@@ -131,9 +152,9 @@ export class EVMTransactions extends EVMModule<any> {
         const signedTxs: Transaction[] = [];
 
         //Don't separate the signing process from the sending when using browser-based wallet
-        if(!signer.isBrowserWallet) for(let i=0;i<txs.length;i++) {
+        if(signer.signTransaction!=null) for(let i=0;i<txs.length;i++) {
             const tx = txs[i];
-            const signedTx = Transaction.from(await signer.account.signTransaction(tx));
+            const signedTx = Transaction.from(await signer.signTransaction(tx));
             signedTxs.push(signedTx);
             this.logger.debug("sendAndConfirm(): transaction signed ("+(i+1)+"/"+txs.length+"): "+signedTx);
 
@@ -152,8 +173,8 @@ export class EVMTransactions extends EVMModule<any> {
             let promises: Promise<void>[] = [];
             for(let i=0;i<txs.length;i++) {
                 let tx: TransactionResponse | Transaction;
-                if(signer.isBrowserWallet) {
-                    tx = await signer.account.sendTransaction(txs[i]);
+                if(signer.signTransaction==null) {
+                    tx = await signer.sendTransaction(txs[i], onBeforePublish);
                 } else {
                     const signedTx = signedTxs[i];
                     await this.sendSignedTransaction(signedTx, onBeforePublish);
@@ -178,8 +199,8 @@ export class EVMTransactions extends EVMModule<any> {
         } else {
             for(let i=0;i<txs.length;i++) {
                 let tx: TransactionResponse | Transaction;
-                if(signer.isBrowserWallet) {
-                    tx = await signer.account.sendTransaction(txs[i]);
+                if(signer.signTransaction==null) {
+                    tx = await signer.sendTransaction(txs[i], onBeforePublish);
                 } else {
                     const signedTx = signedTxs[i];
                     await this.sendSignedTransaction(signedTx, onBeforePublish);
@@ -235,13 +256,13 @@ export class EVMTransactions extends EVMModule<any> {
     }
 
     /**
-     * Gets the status of the starknet transaction with a specific txId
+     * Gets the status of the EVM transaction with a specific txId
      *
      * @param txId
      */
     public async getTxIdStatus(txId: string): Promise<"pending" | "success" | "not_found" | "reverted"> {
         const txResponse = await this.provider.getTransaction(txId);
-        if(txResponse==null) return "not_found";
+        if(txResponse==null) return this._knownTxSet.has(txId) ? "pending" : "not_found";
         if(txResponse.blockHash==null) return "pending";
 
         const [safeBlockNumber, txReceipt] = await Promise.all([
@@ -255,11 +276,13 @@ export class EVMTransactions extends EVMModule<any> {
     }
 
     public onBeforeTxSigned(callback: (tx: TransactionRequest) => Promise<void>): void {
-        this.cbkBeforeTxSigned = callback;
+        this.cbksBeforeTxSigned.push(callback);
     }
 
     public offBeforeTxSigned(callback: (tx: TransactionRequest) => Promise<void>): boolean {
-        this.cbkBeforeTxSigned = null;
+        const index = this.cbksBeforeTxSigned.indexOf(callback);
+        if(index===-1) return false;
+        this.cbksBeforeTxSigned.splice(index, 1);
         return true;
     }
 
@@ -269,6 +292,17 @@ export class EVMTransactions extends EVMModule<any> {
 
     public offSendTransaction(callback: (tx: string) => Promise<string>): boolean {
         this.cbkSendTransaction = null;
+        return true;
+    }
+
+    onBeforeTxReplace(callback: (oldTx: string, oldTxId: string, newTx: string, newTxId: string) => Promise<void>): void {
+        this._cbksBeforeTxReplace.push(callback);
+    }
+
+    offBeforeTxReplace(callback: (oldTx: string, oldTxId: string, newTx: string, newTxId: string) => Promise<void>): boolean {
+        const index = this._cbksBeforeTxReplace.indexOf(callback);
+        if(index===-1) return false;
+        this._cbksBeforeTxReplace.splice(index, 1);
         return true;
     }
 

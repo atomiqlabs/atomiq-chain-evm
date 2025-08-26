@@ -1,17 +1,24 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVMSigner = void 0;
+const ethers_1 = require("ethers");
 class EVMSigner {
-    constructor(account, address, isBrowserWallet = false) {
+    constructor(account, address, isManagingNoncesInternally = false) {
         this.account = account;
         this.address = address;
-        this.isBrowserWallet = isBrowserWallet;
-    }
-    getNonce() {
-        return Promise.resolve(null);
+        this.isManagingNoncesInternally = isManagingNoncesInternally;
     }
     getAddress() {
         return this.address;
+    }
+    async signTransaction(transaction) {
+        return this.account.signTransaction(transaction);
+    }
+    async sendTransaction(transaction, onBeforePublish) {
+        const txResponse = await this.account.sendTransaction(transaction);
+        if (onBeforePublish != null)
+            await onBeforePublish(txResponse.hash, ethers_1.Transaction.from(txResponse).serialized);
+        return txResponse;
     }
 }
 exports.EVMSigner = EVMSigner;

@@ -25,7 +25,7 @@ class EVMFees {
         return baseFee;
     }
     /**
-     * Gets the gas price with caching, format: <gas price in Wei>;<transaction version: v1/v3>
+     * Gets the gas price with caching, format: <base fee Wei>,<priority fee Wei>
      *
      * @private
      */

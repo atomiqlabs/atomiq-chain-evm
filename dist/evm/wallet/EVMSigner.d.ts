@@ -1,10 +1,11 @@
 import { AbstractSigner } from "@atomiqlabs/base";
-import { Signer } from "ethers";
+import { Signer, TransactionRequest, TransactionResponse } from "ethers";
 export declare class EVMSigner implements AbstractSigner {
     account: Signer;
     readonly address: string;
-    readonly isBrowserWallet: boolean;
-    constructor(account: Signer, address: string, isBrowserWallet?: boolean);
-    getNonce(): Promise<number>;
+    readonly isManagingNoncesInternally: boolean;
+    constructor(account: Signer, address: string, isManagingNoncesInternally?: boolean);
     getAddress(): string;
+    signTransaction?(transaction: TransactionRequest): Promise<string>;
+    sendTransaction(transaction: TransactionRequest, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>): Promise<TransactionResponse>;
 }

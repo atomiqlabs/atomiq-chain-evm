@@ -49,6 +49,7 @@ __exportStar(require("./evm/swaps/handlers/claim/btc/BitcoinTxIdClaimHandler"), 
 __exportStar(require("./evm/swaps/handlers/claim/btc/BitcoinOutputClaimHandler"), exports);
 __exportStar(require("./evm/swaps/handlers/claim/btc/BitcoinNoncedOutputClaimHandler"), exports);
 __exportStar(require("./evm/wallet/EVMSigner"), exports);
+__exportStar(require("./evm/wallet/EVMBrowserSigner"), exports);
 __exportStar(require("./chains/citrea/CitreaInitializer"), exports);
 __exportStar(require("./chains/citrea/CitreaChainType"), exports);
 __exportStar(require("./chains/citrea/CitreaFees"), exports);

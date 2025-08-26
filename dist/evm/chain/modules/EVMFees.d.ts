@@ -20,7 +20,7 @@ export declare class EVMFees {
      */
     private _getFeeRate;
     /**
-     * Gets the gas price with caching, format: <gas price in Wei>;<transaction version: v1/v3>
+     * Gets the gas price with caching, format: <base fee Wei>,<priority fee Wei>
      *
      * @private
      */
