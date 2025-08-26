@@ -39,7 +39,7 @@ export class EVMTransactions extends EVMModule<any> {
      * @param abortSignal signal to abort waiting for tx confirmation
      * @private
      */
-    private async confirmTransaction(tx: TransactionResponse | Transaction, abortSignal?: AbortSignal) {
+    private async confirmTransaction(tx: TransactionResponse | Transaction, abortSignal?: AbortSignal): Promise<string> {
         const checkTxns: Set<string> = new Set([tx.hash]);
 
         const txReplaceListener = (oldTx: string, oldTxId: string, newTx: string, newTxId: string) => {
@@ -49,11 +49,15 @@ export class EVMTransactions extends EVMModule<any> {
         this.onBeforeTxReplace(txReplaceListener);
 
         let state = "pending";
+        let confirmedTxId: string = null;
         while(state==="pending" || state==="not_found") {
             await timeoutPromise(3000, abortSignal);
             for(let txId of checkTxns) {
                 state = await this.getTxIdStatus(txId);
-                if(state==="reverted" || state==="success") break;
+                if(state==="reverted" || state==="success") {
+                    confirmedTxId = txId;
+                    break;
+                }
             }
         }
 
@@ -65,6 +69,8 @@ export class EVMTransactions extends EVMModule<any> {
             this.latestConfirmedNonces[tx.from] = nextAccountNonce;
         }
         if(state==="reverted") throw new Error("Transaction reverted!");
+
+        return confirmedTxId;
     }
 
     /**
@@ -168,9 +174,9 @@ export class EVMTransactions extends EVMModule<any> {
         this.logger.debug("sendAndConfirm(): sending transactions, count: "+txs.length+
             " waitForConfirmation: "+waitForConfirmation+" parallel: "+parallel);
 
-        const txIds: string[] = [];
+        let txIds: string[] = [];
         if(parallel) {
-            let promises: Promise<void>[] = [];
+            let promises: Promise<string>[] = [];
             for(let i=0;i<txs.length;i++) {
                 let tx: TransactionResponse | Transaction;
                 if(signer.signTransaction==null) {
@@ -195,7 +201,7 @@ export class EVMTransactions extends EVMModule<any> {
                     promises = [];
                 }
             }
-            if(promises.length>0) await Promise.all(promises);
+            if(promises.length>0) txIds = await Promise.all(promises);
         } else {
             for(let i=0;i<txs.length;i++) {
                 let tx: TransactionResponse | Transaction;
@@ -216,8 +222,9 @@ export class EVMTransactions extends EVMModule<any> {
                 const confirmPromise = this.confirmTransaction(tx, abortSignal);
                 this.logger.debug("sendAndConfirm(): transaction sent ("+(i+1)+"/"+txs.length+"): "+tx.hash);
                 //Don't await the last promise when !waitForConfirmation
-                if(i<txs.length-1 || waitForConfirmation) await confirmPromise;
-                txIds.push(tx.hash);
+                let txHash = tx.hash;
+                if(i<txs.length-1 || waitForConfirmation) txHash = await confirmPromise;
+                txIds.push(txHash);
             }
         }
 

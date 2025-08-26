@@ -1,7 +1,6 @@
-import {JsonRpcProvider, JsonRpcApiProviderOptions} from "ethers";
+import {JsonRpcProvider, JsonRpcApiProviderOptions, makeError} from "ethers";
 import type {Networkish, FetchRequest} from "ethers";
-import {tryWithRetries} from "../../utils/Utils";
-
+import {allowedEthersErrorCodes, tryWithRetries} from "../../utils/Utils";
 
 export class JsonRpcProviderWithRetries extends JsonRpcProvider {
 
@@ -18,9 +17,8 @@ export class JsonRpcProviderWithRetries extends JsonRpcProvider {
 
     send(method: string, params: Array<any> | Record<string, any>): Promise<any> {
         return tryWithRetries(() => super.send(method, params), this.retryPolicy, e => {
+            if(e.code!=null && typeof(e.code)==="string") return allowedEthersErrorCodes.has(e.code);
             return false;
-            // if(e?.error?.code!=null) return false; //Error returned by the RPC
-            // return true;
         });
     }
 

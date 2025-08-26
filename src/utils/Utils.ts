@@ -83,3 +83,10 @@ export function uint32ReverseEndianness(value: number): number {
 export function bigIntMax(a: bigint, b: bigint) {
     return a>b ? a : b;
 }
+
+export const allowedEthersErrorCodes: Set<string> = new Set([
+    "NOT_IMPLEMENTED", "UNSUPPORTED_OPERATION", "BAD_DATA",
+    "NUMERIC_FAULT",
+    "INVALID_ARGUMENT", "MISSING_ARGUMENT", "UNEXPECTED_ARGUMENT", "VALUE_MISMATCH",
+    "CALL_EXCEPTION", "NONCE_EXPIRED", "REPLACEMENT_UNDERPRICED", "TRANSACTION_REPLACED", "UNCONFIGURED_NAME", "OFFCHAIN_FAULT", "ACTION_REJECTED"
+]);

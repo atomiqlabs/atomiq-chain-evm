@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.bigIntMax = exports.uint32ReverseEndianness = exports.tryWithRetries = exports.getLogger = exports.onceAsync = exports.timeoutPromise = void 0;
+exports.allowedEthersErrorCodes = exports.bigIntMax = exports.uint32ReverseEndianness = exports.tryWithRetries = exports.getLogger = exports.onceAsync = exports.timeoutPromise = void 0;
 function timeoutPromise(timeoutMillis, abortSignal) {
     return new Promise((resolve, reject) => {
         const timeout = setTimeout(resolve, timeoutMillis);
@@ -73,3 +73,9 @@ function bigIntMax(a, b) {
     return a > b ? a : b;
 }
 exports.bigIntMax = bigIntMax;
+exports.allowedEthersErrorCodes = new Set([
+    "NOT_IMPLEMENTED", "UNSUPPORTED_OPERATION", "BAD_DATA",
+    "NUMERIC_FAULT",
+    "INVALID_ARGUMENT", "MISSING_ARGUMENT", "UNEXPECTED_ARGUMENT", "VALUE_MISMATCH",
+    "CALL_EXCEPTION", "NONCE_EXPIRED", "REPLACEMENT_UNDERPRICED", "TRANSACTION_REPLACED", "UNCONFIGURED_NAME", "OFFCHAIN_FAULT", "ACTION_REJECTED"
+]);

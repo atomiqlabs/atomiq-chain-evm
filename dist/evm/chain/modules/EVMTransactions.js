@@ -31,12 +31,15 @@ class EVMTransactions extends EVMModule_1.EVMModule {
         };
         this.onBeforeTxReplace(txReplaceListener);
         let state = "pending";
+        let confirmedTxId = null;
         while (state === "pending" || state === "not_found") {
             await (0, Utils_1.timeoutPromise)(3000, abortSignal);
             for (let txId of checkTxns) {
                 state = await this.getTxIdStatus(txId);
-                if (state === "reverted" || state === "success")
+                if (state === "reverted" || state === "success") {
+                    confirmedTxId = txId;
                     break;
+                }
             }
         }
         this.offBeforeTxReplace(txReplaceListener);
@@ -47,6 +50,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
         }
         if (state === "reverted")
             throw new Error("Transaction reverted!");
+        return confirmedTxId;
     }
     /**
      * Prepares starknet transactions, checks if the account is deployed, assigns nonces if needed & calls beforeTxSigned callback
@@ -138,7 +142,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
             }
         this.logger.debug("sendAndConfirm(): sending transactions, count: " + txs.length +
             " waitForConfirmation: " + waitForConfirmation + " parallel: " + parallel);
-        const txIds = [];
+        let txIds = [];
         if (parallel) {
             let promises = [];
             for (let i = 0; i < txs.length; i++) {
@@ -166,7 +170,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
                 }
             }
             if (promises.length > 0)
-                await Promise.all(promises);
+                txIds = await Promise.all(promises);
         }
         else {
             for (let i = 0; i < txs.length; i++) {
@@ -187,9 +191,10 @@ class EVMTransactions extends EVMModule_1.EVMModule {
                 const confirmPromise = this.confirmTransaction(tx, abortSignal);
                 this.logger.debug("sendAndConfirm(): transaction sent (" + (i + 1) + "/" + txs.length + "): " + tx.hash);
                 //Don't await the last promise when !waitForConfirmation
+                let txHash = tx.hash;
                 if (i < txs.length - 1 || waitForConfirmation)
-                    await confirmPromise;
-                txIds.push(tx.hash);
+                    txHash = await confirmPromise;
+                txIds.push(txHash);
             }
         }
         this.logger.info("sendAndConfirm(): sent transactions, count: " + txs.length +

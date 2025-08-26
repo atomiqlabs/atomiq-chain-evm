@@ -1,6 +1,6 @@
 import {JsonRpcApiProviderOptions} from "ethers";
 import type {Networkish} from "ethers";
-import {tryWithRetries} from "../../utils/Utils";
+import {allowedEthersErrorCodes, tryWithRetries} from "../../utils/Utils";
 import {ReconnectingWebSocketProvider} from "./ReconnectingWebSocketProvider";
 import type {WebSocketLike} from "ethers/lib.esm";
 
@@ -20,9 +20,8 @@ export class WebSocketProviderWithRetries extends ReconnectingWebSocketProvider 
 
     send(method: string, params: Array<any> | Record<string, any>): Promise<any> {
         return tryWithRetries(() => super.send(method, params), this.retryPolicy, e => {
+            if(e.code!=null && typeof(e.code)==="string") return allowedEthersErrorCodes.has(e.code);
             return false;
-            // if(e?.error?.code!=null) return false; //Error returned by the RPC
-            // return true;
         });
     }
 

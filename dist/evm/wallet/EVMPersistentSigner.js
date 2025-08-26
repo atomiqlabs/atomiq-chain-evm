@@ -78,6 +78,7 @@ class EVMPersistentSigner extends EVMSigner_1.EVMSigner {
                     this.pendingTxs.delete(nonce);
                     data.txs.forEach(tx => this.chainInterface.Transactions._knownTxSet.delete(tx.hash));
                     this.logger.info("checkPastTransactions(): Tx confirmed, required fee bumps: ", data.txs.length);
+                    this.save();
                     continue;
                 }
                 const lastTx = data.txs[data.txs.length - 1];
@@ -97,7 +98,11 @@ class EVMPersistentSigner extends EVMSigner_1.EVMSigner {
                     priorityFee > (this.minFeeIncreaseAbsolute + (_gasPrice.priorityFee * (1000000n + this.minFeeIncreasePpm) / 1000000n))) {
                     //Too big of an increase over the current fee rate, don't fee bump
                     this.logger.debug("checkPastTransactions(): Tx yet unconfirmed but not increasing fee for ", lastTx.hash);
-                    await this.chainInterface.provider.broadcastTransaction(lastTx.serialized).catch(e => this.logger.error("checkPastTransactions(): Tx re-broadcast error", e));
+                    await this.chainInterface.provider.broadcastTransaction(lastTx.serialized).catch(e => {
+                        if (e.code === "NONCE_EXPIRED")
+                            return;
+                        this.logger.error("checkPastTransactions(): Tx re-broadcast error", e);
+                    });
                     continue;
                 }
                 let newTx = lastTx.clone();
@@ -111,7 +116,7 @@ class EVMPersistentSigner extends EVMSigner_1.EVMSigner {
                 newTx = ethers_1.Transaction.from(signedRawTx);
                 for (let callback of this.chainInterface.Transactions._cbksBeforeTxReplace) {
                     try {
-                        await callback(lastTx.hash, lastTx.serialized, newTx.hash, signedRawTx);
+                        await callback(lastTx.serialized, lastTx.hash, signedRawTx, newTx.hash);
                     }
                     catch (e) {
                         this.logger.error("checkPastTransactions(): beforeTxReplace callback error: ", e);
@@ -122,7 +127,11 @@ class EVMPersistentSigner extends EVMSigner_1.EVMSigner {
                 this.save();
                 this.chainInterface.Transactions._knownTxSet.add(newTx.hash);
                 //TODO: Better error handling when sending tx
-                await this.chainInterface.provider.broadcastTransaction(signedRawTx).catch(e => this.logger.error("checkPastTransactions(): Fee-bumped tx broadcast error", e));
+                await this.chainInterface.provider.broadcastTransaction(signedRawTx).catch(e => {
+                    if (e.code === "NONCE_EXPIRED")
+                        return;
+                    this.logger.error("checkPastTransactions(): Fee-bumped tx broadcast error", e);
+                });
             }
         }
     }

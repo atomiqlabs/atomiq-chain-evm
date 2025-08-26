@@ -98,7 +98,7 @@ export class EVMFees {
 
         tx.maxFeePerGas = BigInt(baseFee) + BigInt(priorityFee);
         tx.maxPriorityFeePerGas = BigInt(priorityFee);
-        tx.gasLimit = BigInt(gas);
+        if(gas!=null) tx.gasLimit = BigInt(gas);
     }
 
 }

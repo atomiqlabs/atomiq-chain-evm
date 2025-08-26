@@ -134,6 +134,7 @@ export class EVMPersistentSigner extends EVMSigner {
                     this.pendingTxs.delete(nonce);
                     data.txs.forEach(tx => this.chainInterface.Transactions._knownTxSet.delete(tx.hash));
                     this.logger.info("checkPastTransactions(): Tx confirmed, required fee bumps: ", data.txs.length);
+                    this.save();
                     continue;
                 }
 
@@ -159,7 +160,10 @@ export class EVMPersistentSigner extends EVMSigner {
                 ) {
                     //Too big of an increase over the current fee rate, don't fee bump
                     this.logger.debug("checkPastTransactions(): Tx yet unconfirmed but not increasing fee for ", lastTx.hash);
-                    await this.chainInterface.provider.broadcastTransaction(lastTx.serialized).catch(e => this.logger.error("checkPastTransactions(): Tx re-broadcast error", e));
+                    await this.chainInterface.provider.broadcastTransaction(lastTx.serialized).catch(e => {
+                        if(e.code==="NONCE_EXPIRED") return;
+                        this.logger.error("checkPastTransactions(): Tx re-broadcast error", e)
+                    });
                     continue;
                 }
 
@@ -177,7 +181,7 @@ export class EVMPersistentSigner extends EVMSigner {
 
                 for(let callback of this.chainInterface.Transactions._cbksBeforeTxReplace) {
                     try {
-                        await callback(lastTx.hash, lastTx.serialized, newTx.hash, signedRawTx)
+                        await callback(lastTx.serialized, lastTx.hash, signedRawTx, newTx.hash)
                     } catch (e) {
                         this.logger.error("checkPastTransactions(): beforeTxReplace callback error: ", e);
                     }
@@ -190,7 +194,10 @@ export class EVMPersistentSigner extends EVMSigner {
                 this.chainInterface.Transactions._knownTxSet.add(newTx.hash);
 
                 //TODO: Better error handling when sending tx
-                await this.chainInterface.provider.broadcastTransaction(signedRawTx).catch(e => this.logger.error("checkPastTransactions(): Fee-bumped tx broadcast error", e));
+                await this.chainInterface.provider.broadcastTransaction(signedRawTx).catch(e => {
+                    if(e.code==="NONCE_EXPIRED") return;
+                    this.logger.error("checkPastTransactions(): Fee-bumped tx broadcast error", e)
+                });
             }
         }
     }
