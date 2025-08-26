@@ -5,8 +5,10 @@ export declare class ReconnectingWebSocketProvider extends SocketProvider {
     requestTimeoutSeconds: number;
     reconnectSeconds: number;
     pingIntervalSeconds: number;
+    connectionTimeout: number;
     pingInterval: any;
     reconnectTimer: any;
+    connectTimer: any;
     wsCtor: () => WebSocketLike;
     websocket: null | (WebSocketLike & {
         onclose?: (...args: any[]) => void;

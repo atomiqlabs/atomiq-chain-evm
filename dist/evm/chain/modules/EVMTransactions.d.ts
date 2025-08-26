@@ -16,6 +16,8 @@ export type EVMTxTrace = {
 };
 export declare class EVMTransactions extends EVMModule<any> {
     private readonly latestConfirmedNonces;
+    private readonly latestPendingNonces;
+    private readonly latestSignedNonces;
     private cbkBeforeTxSigned;
     private cbkSendTransaction;
     /**

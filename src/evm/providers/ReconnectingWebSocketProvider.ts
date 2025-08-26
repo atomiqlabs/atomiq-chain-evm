@@ -8,9 +8,11 @@ export class ReconnectingWebSocketProvider extends SocketProvider {
     requestTimeoutSeconds: number = 10;
     reconnectSeconds: number = 5;
     pingIntervalSeconds: number = 30;
+    connectionTimeout: number = 30;
 
     pingInterval: any;
     reconnectTimer: any;
+    connectTimer: any;
 
     wsCtor: () => WebSocketLike;
     websocket: null | WebSocketLike & {onclose?: (...args: any[]) => void, ping?: () => void};
@@ -27,6 +29,8 @@ export class ReconnectingWebSocketProvider extends SocketProvider {
         this.websocket.onopen = () => {
             this._connected();
             this._start();
+            clearTimeout(this.connectTimer);
+            this.connectTimer = null;
 
             this.pingInterval = setInterval(() => {
                 this._send({method: "eth_blockNumber", params: [], id: 1_000_000_000, jsonrpc: "2.0"}).catch(e => {
@@ -55,6 +59,12 @@ export class ReconnectingWebSocketProvider extends SocketProvider {
             console.error(`Websocket connection closed: `, event);
             this.disconnectedAndScheduleReconnect();
         };
+
+        this.connectTimer = setTimeout(() => {
+            console.error("Websocket connection taking too long, (above "+this.connectionTimeout+" seconds!), closing and re-attempting connection");
+            this.websocket.close();
+            this.disconnectedAndScheduleReconnect();
+        }, this.connectionTimeout * 1000);
     }
 
     private disconnectedAndScheduleReconnect() {
@@ -66,6 +76,7 @@ export class ReconnectingWebSocketProvider extends SocketProvider {
         this.websocket.onopen = null;
         this.websocket = null;
         if(this.pingInterval!=null) clearInterval(this.pingInterval);
+        if(this.connectTimer!=null) clearInterval(this.connectTimer);
 
         this._disconnected();
 
@@ -82,12 +93,9 @@ export class ReconnectingWebSocketProvider extends SocketProvider {
             this.websocket.close();
             this.websocket = null;
         }
-        if(this.reconnectTimer!=null) {
-            clearTimeout(this.reconnectTimer);
-        }
-        if(this.pingInterval!=null) {
-            clearInterval(this.pingInterval);
-        }
+        if(this.reconnectTimer!=null) clearTimeout(this.reconnectTimer);
+        if(this.pingInterval!=null) clearInterval(this.pingInterval);
+        if(this.connectTimer!=null) clearInterval(this.connectTimer);
         super.destroy();
     }
 

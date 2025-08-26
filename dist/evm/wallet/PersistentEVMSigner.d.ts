@@ -1,0 +1,32 @@
+import { FeeData, JsonRpcApiProvider, TransactionRequest, TransactionResponse, Wallet } from "ethers";
+import { EVMBlockTag } from "../chain/modules/EVMBlocks";
+export declare class PersistentEVMSigner extends Wallet {
+    readonly type: string;
+    readonly safeBlockTag: EVMBlockTag;
+    private pendingTxs;
+    private txMap;
+    private confirmedNonce;
+    private pendingNonce;
+    private feeBumper;
+    private stopped;
+    private readonly directory;
+    readonly waitBeforeBump: number;
+    readonly minFeeIncreaseAbsolute: bigint;
+    readonly minFeeIncreasePpm: bigint;
+    callbacks: ((oldTx: string, oldTxId: string, newTx: string, newTxId: string) => Promise<void>)[];
+    readonly getGasPriceFunc: () => Promise<FeeData>;
+    constructor(privateKey: string, provider: JsonRpcApiProvider, directory: string, safeBlockTag: EVMBlockTag, minFeeIncreaseAbsolute?: bigint, minFeeIncreasePpm?: bigint, waitBeforeBumpMillis?: number, getGasPriceFunc?: () => Promise<FeeData>);
+    load(): Promise<void>;
+    private priorSavePromise;
+    private saveCount;
+    save(): Promise<void>;
+    checkPastTransactions(): Promise<void>;
+    startFeeBumper(): void;
+    init(): Promise<void>;
+    stop(): void;
+    signTransaction(transaction: TransactionRequest): Promise<string>;
+    sendTransaction(transaction: TransactionRequest, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>): Promise<TransactionResponse>;
+    isTxPending(txId: string): boolean;
+    onBeforeTxReplace(callback: (oldTx: string, oldTxId: string, newTx: string, newTxId: string) => Promise<void>): void;
+    offBeforeTxReplace(callback: (oldTx: string, oldTxId: string, newTx: string, newTxId: string) => Promise<void>): boolean;
+}

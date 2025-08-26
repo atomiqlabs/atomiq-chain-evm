@@ -8,6 +8,7 @@ class ReconnectingWebSocketProvider extends SocketProvider_1.SocketProvider {
         this.requestTimeoutSeconds = 10;
         this.reconnectSeconds = 5;
         this.pingIntervalSeconds = 30;
+        this.connectionTimeout = 30;
         this.wsCtor = typeof (url) === "string" ? () => new WebSocket(url) : url;
         this.connect();
     }
@@ -16,6 +17,8 @@ class ReconnectingWebSocketProvider extends SocketProvider_1.SocketProvider {
         this.websocket.onopen = () => {
             this._connected();
             this._start();
+            clearTimeout(this.connectTimer);
+            this.connectTimer = null;
             this.pingInterval = setInterval(() => {
                 this._send({ method: "eth_blockNumber", params: [], id: 1000000000, jsonrpc: "2.0" }).catch(e => {
                     //Error
@@ -40,6 +43,11 @@ class ReconnectingWebSocketProvider extends SocketProvider_1.SocketProvider {
             console.error(`Websocket connection closed: `, event);
             this.disconnectedAndScheduleReconnect();
         };
+        this.connectTimer = setTimeout(() => {
+            console.error("Websocket connection taking too long, (above " + this.connectionTimeout + " seconds!), closing and re-attempting connection");
+            this.websocket.close();
+            this.disconnectedAndScheduleReconnect();
+        }, this.connectionTimeout * 1000);
     }
     disconnectedAndScheduleReconnect() {
         if (this.destroyed)
@@ -53,6 +61,8 @@ class ReconnectingWebSocketProvider extends SocketProvider_1.SocketProvider {
         this.websocket = null;
         if (this.pingInterval != null)
             clearInterval(this.pingInterval);
+        if (this.connectTimer != null)
+            clearInterval(this.connectTimer);
         this._disconnected();
         console.error(`Retrying in ${this.reconnectSeconds} seconds...`);
         this.reconnectTimer = setTimeout(() => this.connect(), this.reconnectSeconds * 1000);
@@ -65,12 +75,12 @@ class ReconnectingWebSocketProvider extends SocketProvider_1.SocketProvider {
             this.websocket.close();
             this.websocket = null;
         }
-        if (this.reconnectTimer != null) {
+        if (this.reconnectTimer != null)
             clearTimeout(this.reconnectTimer);
-        }
-        if (this.pingInterval != null) {
+        if (this.pingInterval != null)
             clearInterval(this.pingInterval);
-        }
+        if (this.connectTimer != null)
+            clearInterval(this.connectTimer);
         super.destroy();
     }
 }

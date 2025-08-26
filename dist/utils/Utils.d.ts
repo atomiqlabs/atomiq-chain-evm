@@ -13,3 +13,4 @@ export declare function tryWithRetries<T>(func: () => Promise<T>, retryPolicy?: 
     exponential?: boolean;
 }, errorAllowed?: (e: any) => boolean, abortSignal?: AbortSignal): Promise<T>;
 export declare function uint32ReverseEndianness(value: number): number;
+export declare function bigIntMax(a: bigint, b: bigint): bigint;

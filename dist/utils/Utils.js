@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uint32ReverseEndianness = exports.tryWithRetries = exports.getLogger = exports.onceAsync = exports.timeoutPromise = void 0;
+exports.bigIntMax = exports.uint32ReverseEndianness = exports.tryWithRetries = exports.getLogger = exports.onceAsync = exports.timeoutPromise = void 0;
 function timeoutPromise(timeoutMillis, abortSignal) {
     return new Promise((resolve, reject) => {
         const timeout = setTimeout(resolve, timeoutMillis);
@@ -69,3 +69,7 @@ function uint32ReverseEndianness(value) {
         ((valueBN >> 24n) & 0xffn));
 }
 exports.uint32ReverseEndianness = uint32ReverseEndianness;
+function bigIntMax(a, b) {
+    return a > b ? a : b;
+}
+exports.bigIntMax = bigIntMax;
