@@ -297,6 +297,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
             }
 
             const promise = (async() => {
+                if(parsedEvent==null) return;
                 const timestamp = event.blockNumber===currentBlock?.number ? currentBlock.timestamp : await this.chainInterface.Blocks.getBlockTime(event.blockNumber);
                 parsedEvent.meta = {
                     blockTime: timestamp,
