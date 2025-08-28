@@ -41,6 +41,7 @@ export declare class EVMSpvVaultContract<ChainId extends string> extends EVMCont
     checkWithdrawalTx(tx: SpvWithdrawalTransactionData): Promise<void>;
     createVaultData(owner: string, vaultId: bigint, utxo: string, confirmations: number, tokenData: SpvVaultTokenData[]): Promise<EVMSpvVaultData>;
     getFronterAddress(owner: string, vaultId: bigint, withdrawal: EVMSpvWithdrawalData): Promise<string>;
+    private vaultParamsCache;
     getVaultData(owner: string, vaultId: bigint): Promise<EVMSpvVaultData>;
     getAllVaults(owner?: string): Promise<EVMSpvVaultData[]>;
     getWithdrawalState(btcTxId: string): Promise<SpvWithdrawalState>;

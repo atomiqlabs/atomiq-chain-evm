@@ -54,6 +54,8 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         this.maxHeadersPerTx = 100;
         this.maxForkHeadersPerTx = 50;
         this.maxShortForkHeadersPerTx = 100;
+        this.commitHashCache = new Map;
+        this.blockHashCache = new Map;
         this.bitcoinRpc = bitcoinRpc;
     }
     /**
@@ -151,14 +153,27 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         return null;
     }
     getBlock(commitHash, blockHash) {
+        if (commitHash != null && this.commitHashCache.has(commitHash)) {
+            logger.debug("getBlock(): Returning block from commit hash cache: ", commitHash);
+            return Promise.resolve([this.commitHashCache.get(commitHash), commitHash]);
+        }
+        const blockHashString = blockHash == null ? null : "0x" + Buffer.from([...blockHash]).reverse().toString("hex");
+        if (blockHashString != null && this.blockHashCache.has(blockHashString)) {
+            logger.debug("getBlock(): Returning block from block hash cache: ", blockHashString);
+            const storedBlockheader = this.blockHashCache.get(blockHashString);
+            return Promise.resolve([storedBlockheader, storedBlockheader.getCommitHash()]);
+        }
         return this.Events.findInContractEvents(["StoreHeader", "StoreForkHeader"], [
             commitHash,
-            blockHash == null ? null : "0x" + Buffer.from([...blockHash]).reverse().toString("hex")
+            blockHashString
         ], async (event) => {
             const txTrace = await this.Chain.Transactions.traceTransaction(event.transactionHash);
             const storedBlockheader = await this.findStoredBlockheaderInTraces(txTrace, event.args.commitHash);
-            if (storedBlockheader != null)
+            if (storedBlockheader != null) {
+                this.commitHashCache.set(event.args.commitHash, storedBlockheader);
+                this.blockHashCache.set(event.args.blockHash, storedBlockheader);
                 return [storedBlockheader, event.args.commitHash];
+            }
         });
     }
     async getBlockHeight() {

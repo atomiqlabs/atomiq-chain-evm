@@ -191,17 +191,35 @@ export class EVMBtcRelay<B extends BtcBlock>
         return null;
     }
 
+    private commitHashCache: Map<string, EVMBtcStoredHeader> = new Map<string, EVMBtcStoredHeader>;
+    private blockHashCache: Map<string, EVMBtcStoredHeader> = new Map<string, EVMBtcStoredHeader>;
+
     private getBlock(commitHash?: string, blockHash?: Buffer): Promise<[EVMBtcStoredHeader, string] | null> {
+        if(commitHash!=null && this.commitHashCache.has(commitHash)) {
+            logger.debug("getBlock(): Returning block from commit hash cache: ", commitHash);
+            return Promise.resolve([this.commitHashCache.get(commitHash), commitHash]);
+        }
+        const blockHashString = blockHash==null ? null : "0x"+Buffer.from([...blockHash]).reverse().toString("hex");
+        if(blockHashString!=null && this.blockHashCache.has(blockHashString)) {
+            logger.debug("getBlock(): Returning block from block hash cache: ", blockHashString);
+            const storedBlockheader = this.blockHashCache.get(blockHashString);
+            return Promise.resolve([storedBlockheader, storedBlockheader.getCommitHash()]);
+        }
+
         return this.Events.findInContractEvents(
             ["StoreHeader", "StoreForkHeader"],
             [
                 commitHash,
-                blockHash==null ? null : "0x"+Buffer.from([...blockHash]).reverse().toString("hex")
+                blockHashString
             ],
             async (event) => {
                 const txTrace = await this.Chain.Transactions.traceTransaction(event.transactionHash);
                 const storedBlockheader = await this.findStoredBlockheaderInTraces(txTrace, event.args.commitHash);
-                if(storedBlockheader!=null) return [storedBlockheader, event.args.commitHash];
+                if(storedBlockheader!=null) {
+                    this.commitHashCache.set(event.args.commitHash, storedBlockheader);
+                    this.blockHashCache.set(event.args.blockHash, storedBlockheader);
+                    return [storedBlockheader, event.args.commitHash];
+                }
             }
         );
     }

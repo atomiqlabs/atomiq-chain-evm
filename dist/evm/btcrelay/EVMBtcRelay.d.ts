@@ -47,6 +47,8 @@ export declare class EVMBtcRelay<B extends BtcBlock> extends EVMContractBase<Btc
      */
     private _saveHeaders;
     private findStoredBlockheaderInTraces;
+    private commitHashCache;
+    private blockHashCache;
     private getBlock;
     private getBlockHeight;
     /**

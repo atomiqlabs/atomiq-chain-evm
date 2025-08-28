@@ -209,24 +209,32 @@ export class EVMSpvVaultContract<ChainId extends string>
         return frontingAddress;
     }
 
+    private vaultParamsCache: Map<string, SpvVaultParametersStructOutput> = new Map();
+
     async getVaultData(owner: string, vaultId: bigint): Promise<EVMSpvVaultData> {
         const vaultState = await this.contract.getVault(owner, vaultId);
-        const blockheight = Number(vaultState.openBlockheight);
-        const events = await this.Events.getContractBlockEvents(
-            ["Opened"],
-            [
-                "0x"+owner.substring(2).padStart(64, "0"),
-                hexlify(BigIntBufferUtils.toBuffer(vaultId, "be", 32))
-            ],
-            blockheight
-        );
 
-        const foundEvent = events.find(
-            event => getVaultParamsCommitment(event.args.params)===vaultState.spvVaultParametersCommitment
-        );
-        if(foundEvent==null) throw new Error("Valid open event not found!");
+        let vaultParams = this.vaultParamsCache.get(vaultState.spvVaultParametersCommitment);
+        if(vaultParams==null) {
+            const blockheight = Number(vaultState.openBlockheight);
+            const events = await this.Events.getContractBlockEvents(
+                ["Opened"],
+                [
+                    "0x"+owner.substring(2).padStart(64, "0"),
+                    hexlify(BigIntBufferUtils.toBuffer(vaultId, "be", 32))
+                ],
+                blockheight
+            );
 
-        const vaultParams = foundEvent.args.params;
+            const foundEvent = events.find(
+                event => getVaultParamsCommitment(event.args.params)===vaultState.spvVaultParametersCommitment
+            );
+            if(foundEvent==null) throw new Error("Valid open event not found!");
+
+            vaultParams = foundEvent.args.params;
+            this.vaultParamsCache.set(vaultState.spvVaultParametersCommitment, vaultParams);
+        }
+
         if(vaultParams.btcRelayContract.toLowerCase()!==this.btcRelay.contractAddress.toLowerCase()) return null;
 
         return new EVMSpvVaultData(owner, vaultId, vaultState, vaultParams);
