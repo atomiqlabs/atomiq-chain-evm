@@ -26,6 +26,7 @@ import {EVMSpvWithdrawalData} from "./EVMSpvWithdrawalData";
 import {EVMFees} from "../chain/modules/EVMFees";
 import {EVMBtcStoredHeader} from "../btcrelay/headers/EVMBtcStoredHeader";
 import {TypedEventLog} from "../typechain/common";
+import {PromiseLruCache} from "promise-cache-ts";
 
 function decodeUtxo(utxo: string): {txHash: string, vout: bigint} {
     const [txId, vout] = utxo.split(":");
@@ -209,13 +210,12 @@ export class EVMSpvVaultContract<ChainId extends string>
         return frontingAddress;
     }
 
-    private vaultParamsCache: Map<string, SpvVaultParametersStructOutput> = new Map();
+    private vaultParamsCache: PromiseLruCache<string, SpvVaultParametersStructOutput> = new PromiseLruCache<string, SpvVaultParametersStructOutput>(5000);
 
     async getVaultData(owner: string, vaultId: bigint): Promise<EVMSpvVaultData> {
         const vaultState = await this.contract.getVault(owner, vaultId);
 
-        let vaultParams = this.vaultParamsCache.get(vaultState.spvVaultParametersCommitment);
-        if(vaultParams==null) {
+        const vaultParams = await this.vaultParamsCache.getOrComputeAsync(vaultState.spvVaultParametersCommitment, async () => {
             const blockheight = Number(vaultState.openBlockheight);
             const events = await this.Events.getContractBlockEvents(
                 ["Opened"],
@@ -231,9 +231,8 @@ export class EVMSpvVaultContract<ChainId extends string>
             );
             if(foundEvent==null) throw new Error("Valid open event not found!");
 
-            vaultParams = foundEvent.args.params;
-            this.vaultParamsCache.set(vaultState.spvVaultParametersCommitment, vaultParams);
-        }
+            return foundEvent.args.params;
+        });
 
         if(vaultParams.btcRelayContract.toLowerCase()!==this.btcRelay.contractAddress.toLowerCase()) return null;
 

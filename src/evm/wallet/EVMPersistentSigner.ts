@@ -10,6 +10,7 @@ import {EVMBlockTag} from "../chain/modules/EVMBlocks";
 import {EVMChainInterface} from "../chain/EVMChainInterface";
 import {EVMFees} from "../chain/modules/EVMFees";
 import {EVMSigner} from "./EVMSigner";
+import {PromiseQueue} from "promise-queue-ts";
 
 const WAIT_BEFORE_BUMP = 15*1000;
 const MIN_FEE_INCREASE_ABSOLUTE = 1n*1_000_000_000n; //1GWei
@@ -21,7 +22,8 @@ export class EVMPersistentSigner extends EVMSigner {
 
     private pendingTxs: Map<number, {
         txs: Transaction[],
-        lastBumped: number
+        lastBumped: number,
+        sending?: boolean //Not saved
     }> = new Map();
 
     private confirmedNonce: number;
@@ -127,7 +129,7 @@ export class EVMPersistentSigner extends EVMSigner {
         let _safeBlockTxCount: number = null;
 
         for(let [nonce, data] of this.pendingTxs) {
-            if(data.lastBumped<Date.now()-this.waitBeforeBump) {
+            if(!data.sending && data.lastBumped<Date.now()-this.waitBeforeBump) {
                 _safeBlockTxCount = await this.chainInterface.provider.getTransactionCount(this.address, this.safeBlockTag);
                 this.confirmedNonce = _safeBlockTxCount;
                 if(_safeBlockTxCount > nonce) {
@@ -241,42 +243,56 @@ export class EVMPersistentSigner extends EVMSigner {
         return Promise.resolve();
     }
 
-    async sendTransaction(transaction: TransactionRequest, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>): Promise<TransactionResponse> {
-        if(transaction.nonce!=null) {
-            if(transaction.nonce !== this.pendingNonce + 1)
-                throw new Error("Invalid transaction nonce!");
-            this.pendingNonce++;
-        } else {
-            this.pendingNonce++;
-            transaction.nonce = this.pendingNonce;
-        }
+    private readonly sendTransactionQueue: PromiseQueue = new PromiseQueue();
 
-        const tx: TransactionRequest = {};
-        for(let key in transaction) {
-            if(transaction[key] instanceof Promise) {
-                tx[key] = await transaction[key];
+    sendTransaction(transaction: TransactionRequest, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>): Promise<TransactionResponse> {
+        return this.sendTransactionQueue.enqueue(async () => {
+            if(transaction.nonce!=null) {
+                if(transaction.nonce !== this.pendingNonce + 1)
+                    throw new Error("Invalid transaction nonce!");
+                this.pendingNonce++;
             } else {
-                tx[key] = transaction[key];
+                this.pendingNonce++;
+                transaction.nonce = this.pendingNonce;
             }
-        }
 
-        const signedRawTx = await this.account.signTransaction(tx);
-        const signedTx = Transaction.from(signedRawTx);
+            const tx: TransactionRequest = {};
+            for(let key in transaction) {
+                if(transaction[key] instanceof Promise) {
+                    tx[key] = await transaction[key];
+                } else {
+                    tx[key] = transaction[key];
+                }
+            }
 
-        if(onBeforePublish!=null) {
+            const signedRawTx = await this.account.signTransaction(tx);
+            const signedTx = Transaction.from(signedRawTx);
+
+            if(onBeforePublish!=null) {
+                try {
+                    await onBeforePublish(signedTx.hash, signedRawTx);
+                } catch (e) {
+                    this.logger.error("sendTransaction(): Error when calling onBeforePublish function: ", e);
+                }
+            }
+
+            const pendingTxObject = {txs: [signedTx], lastBumped: Date.now(), sending: true};
+            this.pendingTxs.set(transaction.nonce, pendingTxObject);
+            this.save();
+
+            this.chainInterface.Transactions._knownTxSet.add(signedTx.hash);
+
             try {
-                await onBeforePublish(signedTx.hash, signedRawTx);
+                const result = await this.chainInterface.provider.broadcastTransaction(signedRawTx);
+                pendingTxObject.sending = false;
+                return result;
             } catch (e) {
-                this.logger.error("sendTransaction(): Error when calling onBeforePublish function: ", e);
+                this.chainInterface.Transactions._knownTxSet.delete(signedTx.hash);
+                this.pendingTxs.delete(transaction.nonce);
+                this.pendingNonce--;
+                throw e;
             }
-        }
-
-        this.pendingTxs.set(transaction.nonce, {txs: [signedTx], lastBumped: Date.now()});
-        this.save();
-
-        this.chainInterface.Transactions._knownTxSet.add(signedTx.hash);
-
-        return await this.chainInterface.provider.broadcastTransaction(signedRawTx);
+        });
     }
 
 }

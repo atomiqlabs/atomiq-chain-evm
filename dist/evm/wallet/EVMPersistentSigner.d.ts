@@ -24,5 +24,6 @@ export declare class EVMPersistentSigner extends EVMSigner {
     private startFeeBumper;
     init(): Promise<void>;
     stop(): Promise<void>;
+    private readonly sendTransactionQueue;
     sendTransaction(transaction: TransactionRequest, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>): Promise<TransactionResponse>;
 }

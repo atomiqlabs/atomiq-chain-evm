@@ -1,6 +1,6 @@
 {
   "name": "@atomiqlabs/chain-evm",
-  "version": "1.0.0-dev.74",
+  "version": "1.0.0-dev.75",
   "description": "EVM specific base implementation",
   "main": "./dist/index.js",
   "types:": "./dist/index.d.ts",
@@ -26,7 +26,9 @@
     "@atomiqlabs/base": "^10.0.0-dev.10",
     "@noble/hashes": "^1.8.0",
     "@scure/btc-signer": "1.6.0",
-    "buffer": "6.0.3"
+    "buffer": "6.0.3",
+    "promise-cache-ts": "^0.0.4",
+    "promise-queue-ts": "^1.0.0"
   },
   "peerDependencies": {
     "ethers": "^6.15.0"

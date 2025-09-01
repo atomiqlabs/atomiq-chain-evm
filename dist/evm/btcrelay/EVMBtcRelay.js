@@ -9,6 +9,7 @@ const EVMBtcStoredHeader_1 = require("./headers/EVMBtcStoredHeader");
 const EVMFees_1 = require("../chain/modules/EVMFees");
 const BtcRelayAbi_1 = require("./BtcRelayAbi");
 const ethers_1 = require("ethers");
+const promise_cache_ts_1 = require("promise-cache-ts");
 function serializeBlockHeader(e) {
     return new EVMBtcHeader_1.EVMBtcHeader({
         version: e.getVersion(),
@@ -54,8 +55,8 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         this.maxHeadersPerTx = 100;
         this.maxForkHeadersPerTx = 50;
         this.maxShortForkHeadersPerTx = 100;
-        this.commitHashCache = new Map;
-        this.blockHashCache = new Map;
+        this.commitHashCache = new promise_cache_ts_1.PromiseLruCache(1000);
+        this.blockHashCache = new promise_cache_ts_1.PromiseLruCache(1000);
         this.bitcoinRpc = bitcoinRpc;
     }
     /**
@@ -153,28 +154,24 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         return null;
     }
     getBlock(commitHash, blockHash) {
-        if (commitHash != null && this.commitHashCache.has(commitHash)) {
-            logger.debug("getBlock(): Returning block from commit hash cache: ", commitHash);
-            return Promise.resolve([this.commitHashCache.get(commitHash), commitHash]);
-        }
         const blockHashString = blockHash == null ? null : "0x" + Buffer.from([...blockHash]).reverse().toString("hex");
-        if (blockHashString != null && this.blockHashCache.has(blockHashString)) {
-            logger.debug("getBlock(): Returning block from block hash cache: ", blockHashString);
-            const storedBlockheader = this.blockHashCache.get(blockHashString);
-            return Promise.resolve([storedBlockheader, storedBlockheader.getCommitHash()]);
-        }
-        return this.Events.findInContractEvents(["StoreHeader", "StoreForkHeader"], [
+        const generator = () => this.Events.findInContractEvents(["StoreHeader", "StoreForkHeader"], [
             commitHash,
             blockHashString
         ], async (event) => {
             const txTrace = await this.Chain.Transactions.traceTransaction(event.transactionHash);
             const storedBlockheader = await this.findStoredBlockheaderInTraces(txTrace, event.args.commitHash);
-            if (storedBlockheader != null) {
-                this.commitHashCache.set(event.args.commitHash, storedBlockheader);
-                this.blockHashCache.set(event.args.blockHash, storedBlockheader);
-                return [storedBlockheader, event.args.commitHash];
-            }
+            if (storedBlockheader == null)
+                return null;
+            this.commitHashCache.set(event.args.commitHash, Promise.resolve([storedBlockheader, event.args.commitHash]));
+            this.blockHashCache.set(event.args.blockHash, Promise.resolve([storedBlockheader, event.args.commitHash]));
+            return [storedBlockheader, event.args.commitHash];
         });
+        if (commitHash != null)
+            return this.commitHashCache.getOrComputeAsync(commitHash, generator);
+        if (blockHashString != null)
+            return this.blockHashCache.getOrComputeAsync(blockHashString, generator);
+        return null;
     }
     async getBlockHeight() {
         return Number(await this.contract.getBlockheight());

@@ -10,6 +10,7 @@ import {EVMFees} from "../chain/modules/EVMFees";
 import {EVMChainInterface} from "../chain/EVMChainInterface";
 import {BtcRelayAbi} from "./BtcRelayAbi";
 import {AbiCoder, hexlify} from "ethers";
+import {PromiseLruCache} from "promise-cache-ts";
 
 function serializeBlockHeader(e: BtcBlock): EVMBtcHeader {
     return new EVMBtcHeader({
@@ -191,22 +192,13 @@ export class EVMBtcRelay<B extends BtcBlock>
         return null;
     }
 
-    private commitHashCache: Map<string, EVMBtcStoredHeader> = new Map<string, EVMBtcStoredHeader>;
-    private blockHashCache: Map<string, EVMBtcStoredHeader> = new Map<string, EVMBtcStoredHeader>;
+    private commitHashCache: PromiseLruCache<string, [EVMBtcStoredHeader, string]> = new PromiseLruCache<string, [EVMBtcStoredHeader, string]>(1000);
+    private blockHashCache: PromiseLruCache<string, [EVMBtcStoredHeader, string]> = new PromiseLruCache<string, [EVMBtcStoredHeader, string]>(1000);
 
     private getBlock(commitHash?: string, blockHash?: Buffer): Promise<[EVMBtcStoredHeader, string] | null> {
-        if(commitHash!=null && this.commitHashCache.has(commitHash)) {
-            logger.debug("getBlock(): Returning block from commit hash cache: ", commitHash);
-            return Promise.resolve([this.commitHashCache.get(commitHash), commitHash]);
-        }
         const blockHashString = blockHash==null ? null : "0x"+Buffer.from([...blockHash]).reverse().toString("hex");
-        if(blockHashString!=null && this.blockHashCache.has(blockHashString)) {
-            logger.debug("getBlock(): Returning block from block hash cache: ", blockHashString);
-            const storedBlockheader = this.blockHashCache.get(blockHashString);
-            return Promise.resolve([storedBlockheader, storedBlockheader.getCommitHash()]);
-        }
 
-        return this.Events.findInContractEvents(
+        const generator = () => this.Events.findInContractEvents<[EVMBtcStoredHeader, string], "StoreHeader" | "StoreForkHeader">(
             ["StoreHeader", "StoreForkHeader"],
             [
                 commitHash,
@@ -215,13 +207,18 @@ export class EVMBtcRelay<B extends BtcBlock>
             async (event) => {
                 const txTrace = await this.Chain.Transactions.traceTransaction(event.transactionHash);
                 const storedBlockheader = await this.findStoredBlockheaderInTraces(txTrace, event.args.commitHash);
-                if(storedBlockheader!=null) {
-                    this.commitHashCache.set(event.args.commitHash, storedBlockheader);
-                    this.blockHashCache.set(event.args.blockHash, storedBlockheader);
-                    return [storedBlockheader, event.args.commitHash];
-                }
+                if(storedBlockheader==null) return null;
+
+                this.commitHashCache.set(event.args.commitHash, Promise.resolve([storedBlockheader, event.args.commitHash]));
+                this.blockHashCache.set(event.args.blockHash, Promise.resolve([storedBlockheader, event.args.commitHash]));
+                return [storedBlockheader, event.args.commitHash];
             }
         );
+
+        if(commitHash!=null) return this.commitHashCache.getOrComputeAsync(commitHash, generator);
+        if(blockHashString!=null) return this.blockHashCache.getOrComputeAsync(blockHashString, generator);
+
+        return null;
     }
 
     private async getBlockHeight(): Promise<number> {

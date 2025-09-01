@@ -12,6 +12,7 @@ const EVMAddresses_1 = require("../chain/modules/EVMAddresses");
 const EVMSpvVaultData_1 = require("./EVMSpvVaultData");
 const EVMSpvWithdrawalData_1 = require("./EVMSpvWithdrawalData");
 const EVMFees_1 = require("../chain/modules/EVMFees");
+const promise_cache_ts_1 = require("promise-cache-ts");
 function decodeUtxo(utxo) {
     const [txId, vout] = utxo.split(":");
     return {
@@ -34,7 +35,7 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         super(chainInterface, contractAddress, SpvVaultContractAbi_1.SpvVaultContractAbi, contractDeploymentHeight);
         this.claimTimeout = 180;
         this.logger = (0, Utils_1.getLogger)("EVMSpvVaultContract: ");
-        this.vaultParamsCache = new Map();
+        this.vaultParamsCache = new promise_cache_ts_1.PromiseLruCache(5000);
         this.btcRelay = btcRelay;
         this.bitcoinRpc = bitcoinRpc;
     }
@@ -126,8 +127,7 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
     }
     async getVaultData(owner, vaultId) {
         const vaultState = await this.contract.getVault(owner, vaultId);
-        let vaultParams = this.vaultParamsCache.get(vaultState.spvVaultParametersCommitment);
-        if (vaultParams == null) {
+        const vaultParams = await this.vaultParamsCache.getOrComputeAsync(vaultState.spvVaultParametersCommitment, async () => {
             const blockheight = Number(vaultState.openBlockheight);
             const events = await this.Events.getContractBlockEvents(["Opened"], [
                 "0x" + owner.substring(2).padStart(64, "0"),
@@ -136,9 +136,8 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
             const foundEvent = events.find(event => (0, EVMSpvVaultData_1.getVaultParamsCommitment)(event.args.params) === vaultState.spvVaultParametersCommitment);
             if (foundEvent == null)
                 throw new Error("Valid open event not found!");
-            vaultParams = foundEvent.args.params;
-            this.vaultParamsCache.set(vaultState.spvVaultParametersCommitment, vaultParams);
-        }
+            return foundEvent.args.params;
+        });
         if (vaultParams.btcRelayContract.toLowerCase() !== this.btcRelay.contractAddress.toLowerCase())
             return null;
         return new EVMSpvVaultData_1.EVMSpvVaultData(owner, vaultId, vaultState, vaultParams);
