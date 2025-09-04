@@ -227,6 +227,10 @@ class EVMChainEventsBrowser {
     }
     async checkEventsEcrowManager(currentBlock, lastProcessedEvent, lastBlockNumber) {
         lastBlockNumber ?? (lastBlockNumber = currentBlock.number);
+        if (currentBlock.number < lastBlockNumber) {
+            this.logger.warn(`checkEventsEscrowManager(): Sanity check triggered - not processing events, currentBlock: ${currentBlock.number}, lastBlock: ${lastBlockNumber}`);
+            return;
+        }
         // this.logger.debug(`checkEvents(EscrowManager): Requesting logs: ${lastBlockNumber}...${currentBlock.number}`);
         let events = await this.evmSwapContract.Events.getContractBlockEvents(["Initialize", "Claim", "Refund"], [], lastBlockNumber, currentBlock.number);
         if (lastProcessedEvent != null) {
@@ -254,6 +258,10 @@ class EVMChainEventsBrowser {
     }
     async checkEventsSpvVaults(currentBlock, lastProcessedEvent, lastBlockNumber) {
         lastBlockNumber ?? (lastBlockNumber = currentBlock.number);
+        if (currentBlock.number < lastBlockNumber) {
+            this.logger.warn(`checkEventsSpvVaults(): Sanity check triggered - not processing events, currentBlock: ${currentBlock.number}, lastBlock: ${lastBlockNumber}`);
+            return;
+        }
         // this.logger.debug(`checkEvents(SpvVaults): Requesting logs: ${lastBlockNumber}...${currentBlock.number}`);
         let events = await this.evmSpvVaultContract.Events.getContractBlockEvents(["Opened", "Deposited", "Closed", "Fronted", "Claimed"], [], lastBlockNumber, currentBlock.number);
         if (lastProcessedEvent != null) {
@@ -281,6 +289,7 @@ class EVMChainEventsBrowser {
     }
     async checkEvents(lastState) {
         lastState ?? (lastState = []);
+        //TODO: Sanity check if the blockheight is higher than the last state
         const currentBlock = await this.provider.getBlock(this.chainInterface.config.safeBlockTag, false);
         const [lastEscrowEvent, lastEscrowHeight] = await this.checkEventsEcrowManager(currentBlock, lastState?.[0]?.lastEvent, lastState?.[0]?.lastBlockNumber);
         const [lastSpvVaultEvent, lastSpvVaultHeight] = await this.checkEventsSpvVaults(currentBlock, lastState?.[1]?.lastEvent, lastState?.[1]?.lastBlockNumber);

@@ -322,6 +322,10 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
 
     protected async checkEventsEcrowManager(currentBlock: Block, lastProcessedEvent?: {blockHash: string, logIndex: number}, lastBlockNumber?: number): Promise<[{blockHash: string, logIndex: number}, number]> {
         lastBlockNumber ??= currentBlock.number;
+        if(currentBlock.number < lastBlockNumber) {
+            this.logger.warn(`checkEventsEscrowManager(): Sanity check triggered - not processing events, currentBlock: ${currentBlock.number}, lastBlock: ${lastBlockNumber}`);
+            return;
+        }
         // this.logger.debug(`checkEvents(EscrowManager): Requesting logs: ${lastBlockNumber}...${currentBlock.number}`);
         let events = await this.evmSwapContract.Events.getContractBlockEvents(
             ["Initialize", "Claim", "Refund"],
@@ -353,6 +357,10 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
 
     protected async checkEventsSpvVaults(currentBlock: Block, lastProcessedEvent?: {blockHash: string, logIndex: number}, lastBlockNumber?: number): Promise<[{blockHash: string, logIndex: number}, number]> {
         lastBlockNumber ??= currentBlock.number;
+        if(currentBlock.number < lastBlockNumber) {
+            this.logger.warn(`checkEventsSpvVaults(): Sanity check triggered - not processing events, currentBlock: ${currentBlock.number}, lastBlock: ${lastBlockNumber}`);
+            return;
+        }
         // this.logger.debug(`checkEvents(SpvVaults): Requesting logs: ${lastBlockNumber}...${currentBlock.number}`);
         let events = await this.evmSpvVaultContract.Events.getContractBlockEvents(
             ["Opened", "Deposited", "Closed", "Fronted", "Claimed"],
@@ -385,6 +393,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
     protected async checkEvents(lastState: EVMEventListenerState[]): Promise<EVMEventListenerState[]> {
         lastState ??= [];
 
+        //TODO: Sanity check if the blockheight is higher than the last state
         const currentBlock = await this.provider.getBlock(this.chainInterface.config.safeBlockTag, false);
 
         const [lastEscrowEvent, lastEscrowHeight] = await this.checkEventsEcrowManager(currentBlock, lastState?.[0]?.lastEvent, lastState?.[0]?.lastBlockNumber);
