@@ -4,6 +4,41 @@ exports.EVMEvents = void 0;
 const EVMModule_1 = require("../EVMModule");
 class EVMEvents extends EVMModule_1.EVMModule {
     /**
+     * Wrapper for provider.getLogs(), automatically retries with smaller ranges if limits are reached
+     *
+     * @param contract
+     * @param topics
+     * @param startBlock
+     * @param endBlock
+     * @private
+     */
+    async getLogs(contract, topics, startBlock, endBlock) {
+        try {
+            return await this.root.provider.getLogs({
+                address: contract,
+                fromBlock: startBlock,
+                toBlock: endBlock,
+                topics
+            });
+        }
+        catch (e) {
+            if (e.error?.code === -32008 || //Response is too big
+                e.error?.code === -32005 //Limit exceeded
+            ) {
+                if (startBlock === endBlock)
+                    throw e;
+                const difference = (endBlock - startBlock) / 2;
+                const midpoint = startBlock + Math.floor(difference);
+                this.logger.warn(`getLogs(): Error getting logs, limits reached, splitting to 2 ranges: ${startBlock}..${midpoint} & ${midpoint + 1}..${endBlock}: `, e);
+                return [
+                    ...await this.getLogs(contract, topics, startBlock, midpoint),
+                    ...await this.getLogs(contract, topics, midpoint + 1, endBlock),
+                ];
+            }
+            throw e;
+        }
+    }
+    /**
      * Returns the all the events occuring in a block range as identified by the contract and keys
      *
      * @param contract
@@ -17,7 +52,7 @@ class EVMEvents extends EVMModule_1.EVMModule {
         if (startBlock === endBlock) {
             events = await this.root.provider.getLogs({
                 address: contract,
-                fromBlock: startBlock == null ? this.root.config.safeBlockTag : startBlock,
+                fromBlock: startBlock,
                 toBlock: endBlock == null ? this.root.config.safeBlockTag : endBlock,
                 topics
             });
@@ -26,41 +61,21 @@ class EVMEvents extends EVMModule_1.EVMModule {
             const safeBlock = await this.root.provider.getBlock(this.root.config.safeBlockTag);
             if (safeBlock.number - startBlock > this.root.config.maxLogsBlockRange) {
                 for (let i = startBlock + this.root.config.maxLogsBlockRange; i < safeBlock.number; i += this.root.config.maxLogsBlockRange) {
-                    events.push(...await this.root.provider.getLogs({
-                        address: contract,
-                        fromBlock: i - this.root.config.maxLogsBlockRange,
-                        toBlock: i,
-                        topics
-                    }));
+                    events.push(...await this.getLogs(contract, topics, i - this.root.config.maxLogsBlockRange, i));
                     startBlock = i;
                 }
             }
-            events.push(...await this.root.provider.getLogs({
-                address: contract,
-                fromBlock: startBlock == null ? this.root.config.safeBlockTag : startBlock,
-                toBlock: endBlock == null ? this.root.config.safeBlockTag : endBlock,
-                topics
-            }));
+            events.push(...await this.getLogs(contract, topics, startBlock, safeBlock.number));
         }
         else {
             //Both numeric
             if (endBlock - startBlock > this.root.config.maxLogsBlockRange) {
                 for (let i = startBlock + this.root.config.maxLogsBlockRange; i < endBlock; i += this.root.config.maxLogsBlockRange) {
-                    events.push(...await this.root.provider.getLogs({
-                        address: contract,
-                        fromBlock: i - this.root.config.maxLogsBlockRange,
-                        toBlock: i,
-                        topics
-                    }));
+                    events.push(...await this.getLogs(contract, topics, i - this.root.config.maxLogsBlockRange, i));
                     startBlock = i;
                 }
             }
-            events.push(...await this.root.provider.getLogs({
-                address: contract,
-                fromBlock: startBlock,
-                toBlock: endBlock,
-                topics
-            }));
+            events.push(...await this.getLogs(contract, topics, startBlock, endBlock));
         }
         return events.filter(val => !val.removed);
     }

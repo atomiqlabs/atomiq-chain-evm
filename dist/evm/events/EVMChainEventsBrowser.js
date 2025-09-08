@@ -289,7 +289,6 @@ class EVMChainEventsBrowser {
     }
     async checkEvents(lastState) {
         lastState ?? (lastState = []);
-        //TODO: Sanity check if the blockheight is higher than the last state
         const currentBlock = await this.provider.getBlock(this.chainInterface.config.safeBlockTag, false);
         const [lastEscrowEvent, lastEscrowHeight] = await this.checkEventsEcrowManager(currentBlock, lastState?.[0]?.lastEvent, lastState?.[0]?.lastBlockNumber);
         const [lastSpvVaultEvent, lastSpvVaultHeight] = await this.checkEventsSpvVaults(currentBlock, lastState?.[1]?.lastEvent, lastState?.[1]?.lastBlockNumber);

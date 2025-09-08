@@ -393,7 +393,6 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
     protected async checkEvents(lastState: EVMEventListenerState[]): Promise<EVMEventListenerState[]> {
         lastState ??= [];
 
-        //TODO: Sanity check if the blockheight is higher than the last state
         const currentBlock = await this.provider.getBlock(this.chainInterface.config.safeBlockTag, false);
 
         const [lastEscrowEvent, lastEscrowHeight] = await this.checkEventsEcrowManager(currentBlock, lastState?.[0]?.lastEvent, lastState?.[0]?.lastBlockNumber);

@@ -2,6 +2,16 @@ import { EVMModule } from "../EVMModule";
 import { Log } from "ethers";
 export declare class EVMEvents extends EVMModule<any> {
     /**
+     * Wrapper for provider.getLogs(), automatically retries with smaller ranges if limits are reached
+     *
+     * @param contract
+     * @param topics
+     * @param startBlock
+     * @param endBlock
+     * @private
+     */
+    private getLogs;
+    /**
      * Returns the all the events occuring in a block range as identified by the contract and keys
      *
      * @param contract
@@ -10,7 +20,7 @@ export declare class EVMEvents extends EVMModule<any> {
      * @param endBlock
      * @param abortSignal
      */
-    getBlockEvents(contract: string, topics: (string[] | string | null)[], startBlock?: number, endBlock?: number, abortSignal?: AbortSignal): Promise<Log[]>;
+    getBlockEvents(contract: string, topics: (string[] | string | null)[], startBlock: number, endBlock?: number, abortSignal?: AbortSignal): Promise<Log[]>;
     /**
      * Runs a search backwards in time, processing events from a specific contract and keys
      *
