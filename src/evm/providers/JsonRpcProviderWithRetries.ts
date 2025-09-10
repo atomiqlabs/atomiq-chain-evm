@@ -12,7 +12,7 @@ export class JsonRpcProviderWithRetries extends JsonRpcProvider {
         maxRetries?: number, delay?: number, exponential?: boolean, timeout?: number
     }) {
         if(typeof(url)==="string") url = new FetchRequest(url);
-        url.timeout = options.timeout ?? 10*1000;
+        url.timeout = options?.timeout ?? 10*1000;
         super(url, network, options);
         this.retryPolicy = options;
     }

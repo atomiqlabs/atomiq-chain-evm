@@ -8,7 +8,7 @@ class JsonRpcProviderWithRetries extends ethers_1.JsonRpcProvider {
     constructor(url, network, options) {
         if (typeof (url) === "string")
             url = new ethers_2.FetchRequest(url);
-        url.timeout = options.timeout ?? 10 * 1000;
+        url.timeout = options?.timeout ?? 10 * 1000;
         super(url, network, options);
         this.retryPolicy = options;
     }
