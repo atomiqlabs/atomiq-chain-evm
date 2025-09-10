@@ -20,7 +20,7 @@ class ReconnectingWebSocketProvider extends SocketProvider_1.SocketProvider {
             clearTimeout(this.connectTimer);
             this.connectTimer = null;
             this.pingInterval = setInterval(() => {
-                this._send({ method: "eth_blockNumber", params: [], id: 1000000000, jsonrpc: "2.0" }).catch(e => {
+                this._send({ method: "eth_chainId", params: [], id: 1000000000, jsonrpc: "2.0" }).catch(e => {
                     //Error
                     if (e.code === "NETWORK_ERROR") {
                         console.error("Websocket ping error: ", e);

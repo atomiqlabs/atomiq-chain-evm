@@ -1,5 +1,5 @@
-import {JsonRpcProvider, JsonRpcApiProviderOptions, makeError} from "ethers";
-import type {Networkish, FetchRequest} from "ethers";
+import {JsonRpcProvider, JsonRpcApiProviderOptions, makeError, JsonRpcPayload, JsonRpcResult} from "ethers";
+import {Networkish, FetchRequest} from "ethers";
 import {allowedEthersErrorCodes, tryWithRetries} from "../../utils/Utils";
 
 export class JsonRpcProviderWithRetries extends JsonRpcProvider {
@@ -9,8 +9,10 @@ export class JsonRpcProviderWithRetries extends JsonRpcProvider {
     };
 
     constructor(url?: string | FetchRequest, network?: Networkish, options?: JsonRpcApiProviderOptions & {
-        maxRetries?: number, delay?: number, exponential?: boolean
+        maxRetries?: number, delay?: number, exponential?: boolean, timeout?: number
     }) {
+        if(typeof(url)==="string") url = new FetchRequest(url);
+        url.timeout = options.timeout ?? 10*1000;
         super(url, network, options);
         this.retryPolicy = options;
     }

@@ -1,5 +1,5 @@
 import { JsonRpcProvider, JsonRpcApiProviderOptions } from "ethers";
-import type { Networkish, FetchRequest } from "ethers";
+import { Networkish, FetchRequest } from "ethers";
 export declare class JsonRpcProviderWithRetries extends JsonRpcProvider {
     readonly retryPolicy?: {
         maxRetries?: number;
@@ -10,6 +10,7 @@ export declare class JsonRpcProviderWithRetries extends JsonRpcProvider {
         maxRetries?: number;
         delay?: number;
         exponential?: boolean;
+        timeout?: number;
     });
     send(method: string, params: Array<any> | Record<string, any>): Promise<any>;
 }
