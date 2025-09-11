@@ -10,4 +10,4 @@ import { EVMSpvWithdrawalData } from "../../evm/spv_swap/EVMSpvWithdrawalData";
 import { CitreaSwapContract } from "./CitreaSwapContract";
 import { CitreaBtcRelay } from "./CitreaBtcRelay";
 import { CitreaSpvVaultContract } from "./CitreaSpvVaultContract";
-export type CitreaChainType = ChainType<"CITREA", never, EVMPreFetchVerification, EVMTx, EVMSigner, EVMSwapData, CitreaSwapContract, EVMChainInterface<"CITREA", 5115>, EVMChainEventsBrowser, CitreaBtcRelay<any>, EVMSpvVaultData, EVMSpvWithdrawalData, CitreaSpvVaultContract>;
+export type CitreaChainType = ChainType<"CITREA", never, EVMPreFetchVerification, EVMTx, EVMSigner, EVMSwapData, CitreaSwapContract, EVMChainInterface<"CITREA">, EVMChainEventsBrowser, CitreaBtcRelay<any>, EVMSpvVaultData, EVMSpvWithdrawalData, CitreaSpvVaultContract>;

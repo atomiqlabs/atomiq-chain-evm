@@ -13,26 +13,26 @@ const EVMSwapData_1 = require("../../evm/swaps/EVMSwapData");
 const EVMSpvVaultData_1 = require("../../evm/spv_swap/EVMSpvVaultData");
 const EVMSpvWithdrawalData_1 = require("../../evm/spv_swap/EVMSpvWithdrawalData");
 const BotanixChainIds = {
-    MAINNET: null,
+    MAINNET: 3637,
     TESTNET: 3636
 };
 const BotanixContractAddresses = {
     MAINNET: {
-        executionContract: "",
-        swapContract: "",
-        btcRelayContract: "",
-        btcRelayDeploymentHeight: 0,
-        spvVaultContract: "",
-        spvVaultDeploymentHeight: 0,
+        executionContract: "0x5bb0C725939cB825d1322A99a3FeB570097628c3",
+        swapContract: "0x8A44f1995a54fD976c904Cccf9EbaB49c3182eb3",
+        btcRelayContract: "0x6a373b6Adad83964727bA0fa15E22Be05173fc12",
+        btcRelayDeploymentHeight: 1791247,
+        spvVaultContract: "0xc98Ef084d3911C8447DBbE4dDa18bC2c9bB0584e",
+        spvVaultDeploymentHeight: 1791249,
         handlerContracts: {
             refund: {
-                timelock: ""
+                timelock: "0x3887B02217726bB36958Dd595e57293fB63D5082"
             },
             claim: {
-                [base_1.ChainSwapType.HTLC]: "",
-                [base_1.ChainSwapType.CHAIN_TXID]: "",
-                [base_1.ChainSwapType.CHAIN]: "",
-                [base_1.ChainSwapType.CHAIN_NONCED]: ""
+                [base_1.ChainSwapType.HTLC]: "0x59A54378B6bA9C21ba66487C6A701D702baDEabE",
+                [base_1.ChainSwapType.CHAIN_TXID]: "0x32EB4DbDdC31e19ba908fecc7cae03F0d04F01Fa",
+                [base_1.ChainSwapType.CHAIN]: "0xaB2D14745362B26a732dD8B7F95daAE3D2914bBF",
+                [base_1.ChainSwapType.CHAIN_NONCED]: "0x2920EE496693A5027249a027A6FD3F643E743745"
             }
         }
     },

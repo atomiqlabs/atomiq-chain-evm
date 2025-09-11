@@ -19,7 +19,7 @@ export type CitreaChainType = ChainType<
     EVMSigner,
     EVMSwapData,
     CitreaSwapContract,
-    EVMChainInterface<"CITREA", 5115>,
+    EVMChainInterface<"CITREA">,
     EVMChainEventsBrowser,
     CitreaBtcRelay<any>,
     EVMSpvVaultData,

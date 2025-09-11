@@ -21,14 +21,14 @@ export type EVMConfiguration = {
     maxLogsBlockRange: number
 };
 
-export class EVMChainInterface<ChainId extends string = string, EVMChainId extends number = number> implements ChainInterface {
+export class EVMChainInterface<ChainId extends string = string> implements ChainInterface {
 
     readonly chainId: ChainId;
 
     readonly provider: JsonRpcApiProvider;
     readonly retryPolicy: EVMRetryPolicy;
 
-    public readonly evmChainId: EVMChainId;
+    public readonly evmChainId: number;
 
     public readonly config: EVMConfiguration;
 
@@ -43,7 +43,7 @@ export class EVMChainInterface<ChainId extends string = string, EVMChainId exten
 
     constructor(
         chainId: ChainId,
-        evmChainId: EVMChainId,
+        evmChainId: number,
         provider: JsonRpcApiProvider,
         config: EVMConfiguration,
         retryPolicy?: EVMRetryPolicy,

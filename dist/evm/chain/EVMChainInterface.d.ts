@@ -17,11 +17,11 @@ export type EVMConfiguration = {
     safeBlockTag: EVMBlockTag;
     maxLogsBlockRange: number;
 };
-export declare class EVMChainInterface<ChainId extends string = string, EVMChainId extends number = number> implements ChainInterface {
+export declare class EVMChainInterface<ChainId extends string = string> implements ChainInterface {
     readonly chainId: ChainId;
     readonly provider: JsonRpcApiProvider;
     readonly retryPolicy: EVMRetryPolicy;
-    readonly evmChainId: EVMChainId;
+    readonly evmChainId: number;
     readonly config: EVMConfiguration;
     Fees: EVMFees;
     Tokens: EVMTokens;
@@ -30,7 +30,7 @@ export declare class EVMChainInterface<ChainId extends string = string, EVMChain
     Events: EVMEvents;
     Blocks: EVMBlocks;
     protected logger: LoggerType;
-    constructor(chainId: ChainId, evmChainId: EVMChainId, provider: JsonRpcApiProvider, config: EVMConfiguration, retryPolicy?: EVMRetryPolicy, evmFeeEstimator?: EVMFees);
+    constructor(chainId: ChainId, evmChainId: number, provider: JsonRpcApiProvider, config: EVMConfiguration, retryPolicy?: EVMRetryPolicy, evmFeeEstimator?: EVMFees);
     getBalance(signer: string, tokenAddress: string): Promise<bigint>;
     getNativeCurrencyAddress(): string;
     isValidToken(tokenIdentifier: string): boolean;

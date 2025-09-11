@@ -1,7 +1,9 @@
 import {JsonRpcApiProviderOptions} from "ethers";
 import type {Networkish, WebSocketLike} from "ethers";
 import {SocketProvider} from "./SocketProvider";
+import {getLogger} from "../../utils/Utils";
 
+const logger = getLogger("ReconnectingWebSocketProvider: ");
 
 export class ReconnectingWebSocketProvider extends SocketProvider {
 
@@ -36,7 +38,7 @@ export class ReconnectingWebSocketProvider extends SocketProvider {
                 this._send({method: "eth_chainId", params: [], id: 1_000_000_000, jsonrpc: "2.0"}).catch(e => {
                     //Error
                     if(e.code==="NETWORK_ERROR") {
-                        console.error("Websocket ping error: ", e);
+                        logger.error("connect(): pingInterval: Websocket ping error: ", e);
                         if(this.websocket!=null) {
                             this.websocket.close();
                             this.disconnectedAndScheduleReconnect();
@@ -44,10 +46,12 @@ export class ReconnectingWebSocketProvider extends SocketProvider {
                     }
                 });
             }, this.pingIntervalSeconds * 1000);
+
+            logger.info("connect(): Websocket connected!");
         };
 
         this.websocket.onerror = (err) => {
-            console.error(`Websocket connection error: `, err);
+            logger.error(`connect(): onerror: Websocket connection error: `, err);
             this.disconnectedAndScheduleReconnect();
         };
 
@@ -56,12 +60,12 @@ export class ReconnectingWebSocketProvider extends SocketProvider {
         };
 
         this.websocket.onclose = (event) => {
-            console.error(`Websocket connection closed: `, event);
+            logger.error(`connect(): onclose: Websocket connection closed: `, event);
             this.disconnectedAndScheduleReconnect();
         };
 
         this.connectTimer = setTimeout(() => {
-            console.error("Websocket connection taking too long, (above "+this.connectionTimeout+" seconds!), closing and re-attempting connection");
+            logger.warn("connect(): Websocket connection taking too long, (above "+this.connectionTimeout+" seconds!), closing and re-attempting connection");
             this.websocket.close();
             this.disconnectedAndScheduleReconnect();
         }, this.connectionTimeout * 1000);
@@ -71,7 +75,8 @@ export class ReconnectingWebSocketProvider extends SocketProvider {
         if(this.destroyed) return;
         if(this.websocket==null) return;
         this.websocket.onclose = null;
-        this.websocket.onerror = null;
+        //Register dummy handler, otherwise we get unhandled `error` event which crashes the whole thing
+        this.websocket.onerror = (err) => logger.error("disconnectedAndScheduleReconnect(): Post-close onerror: ", err);
         this.websocket.onmessage = null;
         this.websocket.onopen = null;
         this.websocket = null;
@@ -80,7 +85,7 @@ export class ReconnectingWebSocketProvider extends SocketProvider {
 
         this._disconnected();
 
-        console.error(`Retrying in ${this.reconnectSeconds} seconds...`);
+        logger.info(`disconnectedAndScheduleReconnect(): Retrying in ${this.reconnectSeconds} seconds...`);
         this.reconnectTimer = setTimeout(() => this.connect(), this.reconnectSeconds * 1000);
     }
 
