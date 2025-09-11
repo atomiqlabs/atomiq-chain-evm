@@ -245,6 +245,8 @@ class SocketProvider extends ethers_1.JsonRpcApiProvider {
     async _send(payload) {
         // WebSocket provider doesn't accept batches
         (0, ethers_1.assertArgument)(!Array.isArray(payload), "WebSocket does not support batch send", "payload", payload);
+        if (!__classPrivateFieldGet(this, _SocketProvider_connected, "f") && payload.method === "eth_subscribe")
+            return Promise.reject((0, ethers_1.makeError)("WebSocket not connected!", "NETWORK_ERROR"));
         // Wait until the socket is connected before writing to it
         await this._waitUntilReady();
         if (!__classPrivateFieldGet(this, _SocketProvider_connected, "f") && payload.method === "eth_subscribe")

@@ -10,8 +10,12 @@ class WebSocketProviderWithRetries extends ReconnectingWebSocketProvider_1.Recon
     }
     send(method, params) {
         return (0, Utils_1.tryWithRetries)(() => super.send(method, params), this.retryPolicy, e => {
-            if (e.code != null && typeof (e.code) === "string")
-                return Utils_1.allowedEthersErrorCodes.has(e.code);
+            if (e.code != null && typeof (e.code) === "string" && Utils_1.allowedEthersErrorCodes.has(e.code))
+                return true;
+            if (e.error?.code != null && typeof (e.error.code) === "number" && Utils_1.allowedEthersErrorNumbers.has(e.error.code))
+                return true;
+            if (e.error?.message != null && typeof (e.error.message) === "string" && Utils_1.allowedEthersErrorMessages.has(e.error.message))
+                return true;
             return false;
         });
     }

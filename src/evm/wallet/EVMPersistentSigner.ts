@@ -163,9 +163,17 @@ export class EVMPersistentSigner extends EVMSigner {
                     //Too big of an increase over the current fee rate, don't fee bump
                     this.logger.debug("checkPastTransactions(): Tx yet unconfirmed but not increasing fee for ", lastTx.hash);
                     await this.chainInterface.provider.broadcastTransaction(lastTx.serialized).catch(e => {
-                        if(e.code==="NONCE_EXPIRED") return;
+                        if(e.code==="NONCE_EXPIRED") {
+                            this.logger.debug("checkPastTransactions(): Tx re-broadcast success, tx already confirmed: ", lastTx.hash);
+                            return;
+                        }
+                        if(e.error?.message==="already known") {
+                            this.logger.debug("checkPastTransactions(): Tx re-broadcast success, tx already known to the RPC: ", lastTx.hash);
+                            return;
+                        }
                         this.logger.error("checkPastTransactions(): Tx re-broadcast error", e)
                     });
+                    data.lastBumped = Date.now();
                     continue;
                 }
 
@@ -250,10 +258,8 @@ export class EVMPersistentSigner extends EVMSigner {
             if(transaction.nonce!=null) {
                 if(transaction.nonce !== this.pendingNonce + 1)
                     throw new Error("Invalid transaction nonce!");
-                this.pendingNonce++;
             } else {
-                this.pendingNonce++;
-                transaction.nonce = this.pendingNonce;
+                transaction.nonce = this.pendingNonce + 1;
             }
 
             const tx: TransactionRequest = {};
@@ -277,6 +283,8 @@ export class EVMPersistentSigner extends EVMSigner {
             }
 
             const pendingTxObject = {txs: [signedTx], lastBumped: Date.now(), sending: true};
+            this.pendingNonce++;
+            this.logger.debug("sendTransaction(): Incrementing pending nonce to: ", this.pendingNonce);
             this.pendingTxs.set(transaction.nonce, pendingTxObject);
             this.save();
 
@@ -290,6 +298,7 @@ export class EVMPersistentSigner extends EVMSigner {
                 this.chainInterface.Transactions._knownTxSet.delete(signedTx.hash);
                 this.pendingTxs.delete(transaction.nonce);
                 this.pendingNonce--;
+                this.logger.debug("sendTransaction(): Error when broadcasting transaction, reverting pending nonce to: ", this.pendingNonce);
                 throw e;
             }
         });

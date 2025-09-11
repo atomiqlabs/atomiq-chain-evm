@@ -271,6 +271,9 @@ export class SocketProvider extends JsonRpcApiProvider {
         // WebSocket provider doesn't accept batches
         assertArgument(!Array.isArray(payload), "WebSocket does not support batch send", "payload", payload);
 
+        if(!this.#connected && payload.method==="eth_subscribe")
+            return Promise.reject(makeError("WebSocket not connected!", "NETWORK_ERROR"));
+
         // Wait until the socket is connected before writing to it
         await this._waitUntilReady();
 

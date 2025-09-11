@@ -90,3 +90,22 @@ export const allowedEthersErrorCodes: Set<string> = new Set([
     "INVALID_ARGUMENT", "MISSING_ARGUMENT", "UNEXPECTED_ARGUMENT", "VALUE_MISMATCH",
     "CALL_EXCEPTION", "NONCE_EXPIRED", "REPLACEMENT_UNDERPRICED", "TRANSACTION_REPLACED", "UNCONFIGURED_NAME", "OFFCHAIN_FAULT", "ACTION_REJECTED"
 ]);
+
+export const allowedEthersErrorNumbers: Set<number> = new Set([
+    -32700, //Invalid JSON
+    -32600, //Invalid request
+    -32601, //Method not found
+    // -32602, //Invalid params
+    // -32603, //Internal error
+    -32000, //Invalid input
+    // -32001, //Resource not found
+    // -32002, //Resource unavailable
+    // -32003, //Transaction rejected
+    -32004, //Method not supported
+    // -32005, //Limit exceeded
+    -32006 //JSON-RPC version not supported
+]);
+
+export const allowedEthersErrorMessages: Set<string> = new Set([
+    "already known"
+]);

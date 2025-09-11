@@ -15,3 +15,5 @@ export declare function tryWithRetries<T>(func: () => Promise<T>, retryPolicy?: 
 export declare function uint32ReverseEndianness(value: number): number;
 export declare function bigIntMax(a: bigint, b: bigint): bigint;
 export declare const allowedEthersErrorCodes: Set<string>;
+export declare const allowedEthersErrorNumbers: Set<number>;
+export declare const allowedEthersErrorMessages: Set<string>;

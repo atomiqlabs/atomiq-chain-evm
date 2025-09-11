@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.allowedEthersErrorCodes = exports.bigIntMax = exports.uint32ReverseEndianness = exports.tryWithRetries = exports.getLogger = exports.onceAsync = exports.timeoutPromise = void 0;
+exports.allowedEthersErrorMessages = exports.allowedEthersErrorNumbers = exports.allowedEthersErrorCodes = exports.bigIntMax = exports.uint32ReverseEndianness = exports.tryWithRetries = exports.getLogger = exports.onceAsync = exports.timeoutPromise = void 0;
 function timeoutPromise(timeoutMillis, abortSignal) {
     return new Promise((resolve, reject) => {
         const timeout = setTimeout(resolve, timeoutMillis);
@@ -78,4 +78,21 @@ exports.allowedEthersErrorCodes = new Set([
     "NUMERIC_FAULT",
     "INVALID_ARGUMENT", "MISSING_ARGUMENT", "UNEXPECTED_ARGUMENT", "VALUE_MISMATCH",
     "CALL_EXCEPTION", "NONCE_EXPIRED", "REPLACEMENT_UNDERPRICED", "TRANSACTION_REPLACED", "UNCONFIGURED_NAME", "OFFCHAIN_FAULT", "ACTION_REJECTED"
+]);
+exports.allowedEthersErrorNumbers = new Set([
+    -32700,
+    -32600,
+    -32601,
+    // -32602, //Invalid params
+    // -32603, //Internal error
+    -32000,
+    // -32001, //Resource not found
+    // -32002, //Resource unavailable
+    // -32003, //Transaction rejected
+    -32004,
+    // -32005, //Limit exceeded
+    -32006 //JSON-RPC version not supported
+]);
+exports.allowedEthersErrorMessages = new Set([
+    "already known"
 ]);
