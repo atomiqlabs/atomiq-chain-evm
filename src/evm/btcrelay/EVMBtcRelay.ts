@@ -255,7 +255,7 @@ export class EVMBtcRelay<B extends BtcBlock>
     public async retrieveLogAndBlockheight(blockData: {blockhash: string}, requiredBlockheight?: number): Promise<{
         header: EVMBtcStoredHeader,
         height: number
-    } | null> {
+    }> {
         //TODO: we can fetch the blockheight and events in parallel
         const blockHeight = await this.getBlockHeight();
         if(requiredBlockheight!=null && blockHeight < requiredBlockheight) {

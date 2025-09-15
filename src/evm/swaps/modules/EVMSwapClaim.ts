@@ -102,7 +102,7 @@ export class EVMSwapClaim extends EVMSwapModule {
         commitedHeader?: EVMBtcStoredHeader,
         synchronizer?: RelaySynchronizer<EVMBtcStoredHeader, EVMTx, any>,
         feeRate?: string
-    ): Promise<EVMTx[] | null> {
+    ): Promise<EVMTx[]> {
         const claimHandler: IClaimHandler<any, BitcoinOutputWitnessData | BitcoinWitnessData> = this.contract.claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
         if(claimHandler==null) throw new SwapDataVerificationError("Unknown claim handler!");
         if(

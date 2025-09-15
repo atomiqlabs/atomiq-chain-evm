@@ -72,7 +72,7 @@ export declare class EVMBtcRelay<B extends BtcBlock> extends EVMContractBase<Btc
     }, requiredBlockheight?: number): Promise<{
         header: EVMBtcStoredHeader;
         height: number;
-    } | null>;
+    }>;
     /**
      * Retrieves blockheader data by blockheader's commit hash,
      *

@@ -420,7 +420,7 @@ export class EVMSwapContract<ChainId extends string = string>
         synchronizer?: RelaySynchronizer<EVMBtcStoredHeader, EVMTx, any>,
         initAta?: boolean,
         feeRate?: string
-    ): Promise<EVMTx[] | null> {
+    ): Promise<EVMTx[]> {
         return this.Claim.txsClaimWithTxData(
             typeof(signer)==="string" ? signer : signer.getAddress(),
             swapData,

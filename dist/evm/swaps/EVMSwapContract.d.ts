@@ -150,7 +150,7 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
         txid: string;
         hex: string;
         height: number;
-    }, requiredConfirmations: number, vout: number, commitedHeader?: EVMBtcStoredHeader, synchronizer?: RelaySynchronizer<EVMBtcStoredHeader, EVMTx, any>, initAta?: boolean, feeRate?: string): Promise<EVMTx[] | null>;
+    }, requiredConfirmations: number, vout: number, commitedHeader?: EVMBtcStoredHeader, synchronizer?: RelaySynchronizer<EVMBtcStoredHeader, EVMTx, any>, initAta?: boolean, feeRate?: string): Promise<EVMTx[]>;
     txsRefund(signer: string, swapData: EVMSwapData, check?: boolean, initAta?: boolean, feeRate?: string): Promise<EVMTx[]>;
     txsRefundWithAuthorization(signer: string, swapData: EVMSwapData, { timeout, prefix, signature }: {
         timeout: any;
