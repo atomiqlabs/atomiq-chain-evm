@@ -23,6 +23,11 @@ export function getVaultParamsCommitment(vaultParams: SpvVaultParametersStruct) 
     ));
 }
 
+export function getVaultUtxoFromState(state: SpvVaultStateStruct): string {
+    const txHash = Buffer.from(hexlify(state.utxoTxHash).substring(2), "hex");
+    return txHash.reverse().toString("hex")+":"+BigInt(state.utxoVout).toString(10);
+}
+
 export class EVMSpvVaultData extends SpvVaultData<EVMSpvWithdrawalData> {
 
     readonly owner: string;
@@ -63,8 +68,7 @@ export class EVMSpvVaultData extends SpvVaultData<EVMSpvWithdrawalData> {
                 multiplier: BigInt(params.token1Multiplier),
                 rawAmount: BigInt(state.token1Amount)
             };
-            const txHash = Buffer.from(hexlify(state.utxoTxHash).substring(2), "hex");
-            this.utxo = txHash.reverse().toString("hex")+":"+BigInt(state.utxoVout).toString(10);
+            this.utxo = getVaultUtxoFromState(state);
             this.confirmations = Number(params.confirmations);
             this.withdrawCount = Number(state.withdrawCount);
             this.depositCount = Number(state.depositCount);

@@ -125,6 +125,22 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
             return null;
         return frontingAddress;
     }
+    async getFronterAddresses(withdrawals) {
+        const result = {};
+        let promises = [];
+        //TODO: We can upgrade this to use multicall
+        for (let { owner, vaultId, withdrawal } of withdrawals) {
+            promises.push(this.getFronterAddress(owner, vaultId, withdrawal).then(val => {
+                result[withdrawal.getTxId()] = val;
+            }));
+            if (promises.length >= this.Chain.config.maxParallelCalls) {
+                await Promise.all(promises);
+                promises = [];
+            }
+        }
+        await Promise.all(promises);
+        return result;
+    }
     async getVaultData(owner, vaultId) {
         const vaultState = await this.contract.getVault(owner, vaultId);
         const vaultParams = await this.vaultParamsCache.getOrComputeAsync(vaultState.spvVaultParametersCommitment, async () => {
@@ -141,6 +157,47 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         if (vaultParams.btcRelayContract.toLowerCase() !== this.btcRelay.contractAddress.toLowerCase())
             return null;
         return new EVMSpvVaultData_1.EVMSpvVaultData(owner, vaultId, vaultState, vaultParams);
+    }
+    async getMultipleVaultData(vaults) {
+        const result = {};
+        let promises = [];
+        //TODO: We can upgrade this to use multicall
+        for (let { owner, vaultId } of vaults) {
+            promises.push(this.getVaultData(owner, vaultId).then(val => {
+                result[owner] ?? (result[owner] = {});
+                result[owner][vaultId.toString(10)] = val;
+            }));
+            if (promises.length >= this.Chain.config.maxParallelCalls) {
+                await Promise.all(promises);
+                promises = [];
+            }
+        }
+        await Promise.all(promises);
+        return result;
+    }
+    async getVaultLatestUtxo(owner, vaultId) {
+        const vaultState = await this.contract.getVault(owner, vaultId);
+        const utxo = (0, EVMSpvVaultData_1.getVaultUtxoFromState)(vaultState);
+        if (utxo === "0000000000000000000000000000000000000000000000000000000000000000:0")
+            return null;
+        return utxo;
+    }
+    async getVaultLatestUtxos(vaults) {
+        const result = {};
+        let promises = [];
+        //TODO: We can upgrade this to use multicall
+        for (let { owner, vaultId } of vaults) {
+            promises.push(this.getVaultLatestUtxo(owner, vaultId).then(val => {
+                result[owner] ?? (result[owner] = {});
+                result[owner][vaultId.toString(10)] = val;
+            }));
+            if (promises.length >= this.Chain.config.maxParallelCalls) {
+                await Promise.all(promises);
+                promises = [];
+            }
+        }
+        await Promise.all(promises);
+        return result;
     }
     async getAllVaults(owner) {
         const openedVaults = new Map();

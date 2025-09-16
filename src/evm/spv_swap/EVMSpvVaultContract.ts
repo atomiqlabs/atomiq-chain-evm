@@ -21,7 +21,7 @@ import {getLogger} from "../../utils/Utils";
 import {EVMChainInterface} from "../chain/EVMChainInterface";
 import {AbiCoder, getAddress, hexlify, keccak256, TransactionRequest, ZeroAddress, ZeroHash} from "ethers";
 import {EVMAddresses} from "../chain/modules/EVMAddresses";
-import {EVMSpvVaultData, getVaultParamsCommitment} from "./EVMSpvVaultData";
+import {EVMSpvVaultData, getVaultParamsCommitment, getVaultUtxoFromState} from "./EVMSpvVaultData";
 import {EVMSpvWithdrawalData} from "./EVMSpvWithdrawalData";
 import {EVMFees} from "../chain/modules/EVMFees";
 import {EVMBtcStoredHeader} from "../btcrelay/headers/EVMBtcStoredHeader";
@@ -210,6 +210,25 @@ export class EVMSpvVaultContract<ChainId extends string>
         return frontingAddress;
     }
 
+    async getFronterAddresses(withdrawals: {owner: string, vaultId: bigint, withdrawal: EVMSpvWithdrawalData}[]): Promise<{[btcTxId: string]: string | null}> {
+        const result: {
+            [btcTxId: string]: string | null
+        } = {};
+        let promises: Promise<void>[] = [];
+        //TODO: We can upgrade this to use multicall
+        for(let {owner, vaultId, withdrawal} of withdrawals) {
+            promises.push(this.getFronterAddress(owner, vaultId, withdrawal).then(val => {
+                result[withdrawal.getTxId()] = val;
+            }));
+            if(promises.length>=this.Chain.config.maxParallelCalls) {
+                await Promise.all(promises);
+                promises = [];
+            }
+        }
+        await Promise.all(promises);
+        return result;
+    }
+
     private vaultParamsCache: PromiseLruCache<string, SpvVaultParametersStructOutput> = new PromiseLruCache<string, SpvVaultParametersStructOutput>(5000);
 
     async getVaultData(owner: string, vaultId: bigint): Promise<EVMSpvVaultData> {
@@ -237,6 +256,49 @@ export class EVMSpvVaultContract<ChainId extends string>
         if(vaultParams.btcRelayContract.toLowerCase()!==this.btcRelay.contractAddress.toLowerCase()) return null;
 
         return new EVMSpvVaultData(owner, vaultId, vaultState, vaultParams);
+    }
+
+    async getMultipleVaultData(vaults: {owner: string, vaultId: bigint}[]): Promise<{[owner: string]: {[vaultId: string]: EVMSpvVaultData}}> {
+        const result: {[owner: string]: {[vaultId: string]: EVMSpvVaultData}} = {};
+        let promises: Promise<void>[] = [];
+        //TODO: We can upgrade this to use multicall
+        for(let {owner, vaultId} of vaults) {
+            promises.push(this.getVaultData(owner, vaultId).then(val => {
+                result[owner] ??= {};
+                result[owner][vaultId.toString(10)] = val;
+            }));
+            if(promises.length>=this.Chain.config.maxParallelCalls) {
+                await Promise.all(promises);
+                promises = [];
+            }
+        }
+        await Promise.all(promises);
+        return result;
+    }
+
+    async getVaultLatestUtxo(owner: string, vaultId: bigint): Promise<string | null> {
+        const vaultState = await this.contract.getVault(owner, vaultId);
+        const utxo = getVaultUtxoFromState(vaultState);
+        if(utxo==="0000000000000000000000000000000000000000000000000000000000000000:0") return null;
+        return utxo;
+    }
+
+    async getVaultLatestUtxos(vaults: {owner: string, vaultId: bigint}[]): Promise<{[owner: string]: {[vaultId: string]: string | null}}> {
+        const result: {[owner: string]: {[vaultId: string]: string | null}} = {};
+        let promises: Promise<void>[] = [];
+        //TODO: We can upgrade this to use multicall
+        for(let {owner, vaultId} of vaults) {
+            promises.push(this.getVaultLatestUtxo(owner, vaultId).then(val => {
+                result[owner] ??= {};
+                result[owner][vaultId.toString(10)] = val;
+            }));
+            if(promises.length>=this.Chain.config.maxParallelCalls) {
+                await Promise.all(promises);
+                promises = [];
+            }
+        }
+        await Promise.all(promises);
+        return result;
     }
 
     async getAllVaults(owner?: string): Promise<EVMSpvVaultData[]> {

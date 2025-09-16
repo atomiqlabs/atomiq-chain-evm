@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EVMSpvVaultData = exports.getVaultParamsCommitment = void 0;
+exports.EVMSpvVaultData = exports.getVaultUtxoFromState = exports.getVaultParamsCommitment = void 0;
 const base_1 = require("@atomiqlabs/base");
 const buffer_1 = require("buffer");
 const EVMSpvWithdrawalData_1 = require("./EVMSpvWithdrawalData");
@@ -11,6 +11,11 @@ function getVaultParamsCommitment(vaultParams) {
     return (0, ethers_2.keccak256)(ethers_2.AbiCoder.defaultAbiCoder().encode(["address", "address", "address", "uint192", "uint192", "uint256"], [vaultParams.btcRelayContract, vaultParams.token0, vaultParams.token1, vaultParams.token0Multiplier, vaultParams.token1Multiplier, vaultParams.confirmations]));
 }
 exports.getVaultParamsCommitment = getVaultParamsCommitment;
+function getVaultUtxoFromState(state) {
+    const txHash = buffer_1.Buffer.from((0, ethers_1.hexlify)(state.utxoTxHash).substring(2), "hex");
+    return txHash.reverse().toString("hex") + ":" + BigInt(state.utxoVout).toString(10);
+}
+exports.getVaultUtxoFromState = getVaultUtxoFromState;
 class EVMSpvVaultData extends base_1.SpvVaultData {
     constructor(ownerOrObj, vaultId, state, params, initialUtxo) {
         super();
@@ -28,8 +33,7 @@ class EVMSpvVaultData extends base_1.SpvVaultData {
                 multiplier: BigInt(params.token1Multiplier),
                 rawAmount: BigInt(state.token1Amount)
             };
-            const txHash = buffer_1.Buffer.from((0, ethers_1.hexlify)(state.utxoTxHash).substring(2), "hex");
-            this.utxo = txHash.reverse().toString("hex") + ":" + BigInt(state.utxoVout).toString(10);
+            this.utxo = getVaultUtxoFromState(state);
             this.confirmations = Number(params.confirmations);
             this.withdrawCount = Number(state.withdrawCount);
             this.depositCount = Number(state.depositCount);
