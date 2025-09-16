@@ -1,6 +1,6 @@
 import {BaseTokenType, BitcoinNetwork, BitcoinRpc, ChainData, ChainInitializer, ChainSwapType} from "@atomiqlabs/base";
 import {JsonRpcApiProvider, JsonRpcProvider, WebSocketProvider} from "ethers";
-import {EVMChainInterface, EVMRetryPolicy} from "../../evm/chain/EVMChainInterface";
+import {EVMChainInterface, EVMConfiguration, EVMRetryPolicy} from "../../evm/chain/EVMChainInterface";
 import {EVMFees} from "../../evm/chain/modules/EVMFees";
 import {EVMBtcRelay} from "../../evm/btcrelay/EVMBtcRelay";
 import {EVMSwapContract} from "../../evm/swaps/EVMSwapContract";
@@ -70,7 +70,6 @@ export type BotanixOptions = {
     rpcUrl: string | JsonRpcApiProvider,
     retryPolicy?: EVMRetryPolicy,
     chainType?: "MAINNET" | "TESTNET",
-    maxLogsBlockRange?: number,
 
     swapContract?: string,
     btcRelayContract?: string,
@@ -86,7 +85,9 @@ export type BotanixOptions = {
         }
     }
 
-    fees?: EVMFees
+    fees?: EVMFees,
+
+    evmConfig?: Omit<EVMConfiguration, "safeBlockTag">
 }
 
 export function initializeBotanix(
@@ -120,7 +121,11 @@ export function initializeBotanix(
 
     const chainInterface = new EVMChainInterface("BOTANIX", chainId, provider, {
         safeBlockTag: "finalized",
-        maxLogsBlockRange: options.maxLogsBlockRange ?? 500
+        maxLogsBlockRange: 1000,
+        maxLogTopics: 64,
+        maxParallelLogRequests: 5,
+        maxParallelCalls: 5,
+        ...options?.evmConfig
     }, options.retryPolicy, Fees);
 
     const btcRelay = new EVMBtcRelay(

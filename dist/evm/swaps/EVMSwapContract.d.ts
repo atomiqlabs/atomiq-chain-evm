@@ -128,6 +128,12 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
      * @param data
      */
     getCommitStatus(signer: string, data: EVMSwapData): Promise<SwapCommitState>;
+    getCommitStatuses(request: {
+        signer: string;
+        swapData: EVMSwapData;
+    }[]): Promise<{
+        [p: string]: SwapCommitState;
+    }>;
     /**
      * Returns the data committed for a specific payment hash, or null if no data is currently commited for
      *  the specific swap

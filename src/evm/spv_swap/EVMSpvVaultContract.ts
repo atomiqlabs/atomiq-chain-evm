@@ -269,6 +269,45 @@ export class EVMSpvVaultContract<ChainId extends string>
         return vaults;
     }
 
+    private parseWithdrawalEvent(event: TypedEventLog<SpvVaultManager["filters"][keyof SpvVaultManager["filters"]]>): SpvWithdrawalState | null {
+        switch(event.eventName) {
+            case "Fronted":
+                const frontedEvent = event as TypedEventLog<SpvVaultManager["filters"]["Fronted"]>;
+                const [ownerFront, vaultIdFront] = unpackOwnerAndVaultId(frontedEvent.args.ownerAndVaultId);
+                return {
+                    type: SpvWithdrawalStateType.FRONTED,
+                    txId: event.transactionHash,
+                    owner: ownerFront,
+                    vaultId: vaultIdFront,
+                    recipient: frontedEvent.args.recipient,
+                    fronter: frontedEvent.args.caller
+                };
+            case "Claimed":
+                const claimedEvent = event as TypedEventLog<SpvVaultManager["filters"]["Claimed"]>;
+                const [ownerClaim, vaultIdClaim] = unpackOwnerAndVaultId(claimedEvent.args.ownerAndVaultId);
+                return {
+                    type: SpvWithdrawalStateType.CLAIMED,
+                    txId: event.transactionHash,
+                    owner: ownerClaim,
+                    vaultId: vaultIdClaim,
+                    recipient: claimedEvent.args.recipient,
+                    claimer: claimedEvent.args.caller,
+                    fronter: claimedEvent.args.frontingAddress
+                };
+            case "Closed":
+                const closedEvent = event as TypedEventLog<SpvVaultManager["filters"]["Closed"]>;
+                return {
+                    type: SpvWithdrawalStateType.CLOSED,
+                    txId: event.transactionHash,
+                    owner: closedEvent.args.owner,
+                    vaultId: closedEvent.args.vaultId,
+                    error: closedEvent.args.error
+                };
+            default:
+                return null;
+        }
+    }
+
     async getWithdrawalState(btcTxId: string): Promise<SpvWithdrawalState> {
         const txHash = Buffer.from(btcTxId, "hex").reverse();
         let result: SpvWithdrawalState = await this.Events.findInContractEvents(
@@ -279,45 +318,52 @@ export class EVMSpvVaultContract<ChainId extends string>
                 hexlify(txHash)
             ],
             async (event) => {
-                switch(event.eventName) {
-                    case "Fronted":
-                        const frontedEvent = event as TypedEventLog<SpvVaultManager["filters"]["Fronted"]>;
-                        const [ownerFront, vaultIdFront] = unpackOwnerAndVaultId(frontedEvent.args.ownerAndVaultId);
-                        return {
-                            type: SpvWithdrawalStateType.FRONTED,
-                            txId: event.transactionHash,
-                            owner: ownerFront,
-                            vaultId: vaultIdFront,
-                            recipient: frontedEvent.args.recipient,
-                            fronter: frontedEvent.args.caller
-                        };
-                    case "Claimed":
-                        const claimedEvent = event as TypedEventLog<SpvVaultManager["filters"]["Claimed"]>;
-                        const [ownerClaim, vaultIdClaim] = unpackOwnerAndVaultId(claimedEvent.args.ownerAndVaultId);
-                        return {
-                            type: SpvWithdrawalStateType.CLAIMED,
-                            txId: event.transactionHash,
-                            owner: ownerClaim,
-                            vaultId: vaultIdClaim,
-                            recipient: claimedEvent.args.recipient,
-                            claimer: claimedEvent.args.caller,
-                            fronter: claimedEvent.args.frontingAddress
-                        };
-                    case "Closed":
-                        const closedEvent = event as TypedEventLog<SpvVaultManager["filters"]["Closed"]>;
-                        return {
-                            type: SpvWithdrawalStateType.CLOSED,
-                            txId: event.transactionHash,
-                            owner: closedEvent.args.owner,
-                            vaultId: closedEvent.args.vaultId,
-                            error: closedEvent.args.error
-                        };
-                }
+                const result = this.parseWithdrawalEvent(event);
+                if(result!=null) return result;
             }
         );
         result ??= {
             type: SpvWithdrawalStateType.NOT_FOUND
         };
+        return result;
+    }
+
+    async getWithdrawalStates(btcTxIds: string[]): Promise<{[btcTxId: string]: SpvWithdrawalState}> {
+        const result: {[btcTxId: string]: SpvWithdrawalState} = {};
+
+        for(let i=0;i<btcTxIds.length;i+=this.Chain.config.maxLogTopics) {
+            const checkBtcTxIds = btcTxIds.slice(i, i+this.Chain.config.maxLogTopics);
+            const checkBtcTxIdsSet = new Set(checkBtcTxIds);
+
+            await this.Events.findInContractEvents(
+                ["Fronted", "Claimed", "Closed"],
+                [
+                    null,
+                    null,
+                    checkBtcTxIds.map(btcTxId => hexlify(Buffer.from(btcTxId, "hex").reverse()))
+                ],
+                async (event) => {
+                    const _event = event as TypedEventLog<SpvVaultManager["filters"]["Fronted" | "Claimed" | "Closed"]>;
+                    const btcTxId = Buffer.from(_event.args.btcTxHash.substring(2), "hex").reverse().toString("hex");
+                    if(!checkBtcTxIdsSet.has(btcTxId)) {
+                        this.logger.warn(`getWithdrawalStates(): findInContractEvents-callback: loaded event for ${btcTxId}, but transaction not found in input params!`)
+                        return null;
+                    }
+                    const eventResult = this.parseWithdrawalEvent(event);
+                    if(eventResult==null) return null;
+                    checkBtcTxIdsSet.delete(btcTxId);
+                    result[btcTxId] = eventResult;
+                    if(checkBtcTxIdsSet.size===0) return true; //All processed
+                }
+            );
+        }
+
+        for(let btcTxId of btcTxIds) {
+            result[btcTxId] ??= {
+                type: SpvWithdrawalStateType.NOT_FOUND
+            };
+        }
+
         return result;
     }
 

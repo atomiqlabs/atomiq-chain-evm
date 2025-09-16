@@ -1,6 +1,6 @@
 import { BaseTokenType, BitcoinNetwork, BitcoinRpc, ChainData, ChainInitializer, ChainSwapType } from "@atomiqlabs/base";
 import { JsonRpcApiProvider } from "ethers";
-import { EVMRetryPolicy } from "../../evm/chain/EVMChainInterface";
+import { EVMConfiguration, EVMRetryPolicy } from "../../evm/chain/EVMChainInterface";
 import { EVMFees } from "../../evm/chain/modules/EVMFees";
 import { BotanixChainType } from "./BotanixChainType";
 export type BotanixAssetsType = BaseTokenType<"BBTC">;
@@ -9,7 +9,6 @@ export type BotanixOptions = {
     rpcUrl: string | JsonRpcApiProvider;
     retryPolicy?: EVMRetryPolicy;
     chainType?: "MAINNET" | "TESTNET";
-    maxLogsBlockRange?: number;
     swapContract?: string;
     btcRelayContract?: string;
     btcRelayDeploymentHeight?: number;
@@ -24,6 +23,7 @@ export type BotanixOptions = {
         };
     };
     fees?: EVMFees;
+    evmConfig?: Omit<EVMConfiguration, "safeBlockTag">;
 };
 export declare function initializeBotanix(options: BotanixOptions, bitcoinRpc: BitcoinRpc<any>, network: BitcoinNetwork): ChainData<BotanixChainType>;
 export type BotanixInitializerType = ChainInitializer<BotanixOptions, BotanixChainType, BotanixAssetsType>;

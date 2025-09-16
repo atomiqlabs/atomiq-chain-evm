@@ -28,7 +28,7 @@ export declare class EVMContractEvents<T extends BaseContract> extends EVMEvents
      *  if the search should continue
      * @param abortSignal
      */
-    findInContractEvents<TResult, TEventName extends keyof T["filters"]>(events: TEventName[], keys: string[], processor: (event: TypedEventLog<T["filters"][TEventName]>) => Promise<TResult>, abortSignal?: AbortSignal): Promise<TResult>;
+    findInContractEvents<TResult, TEventName extends keyof T["filters"]>(events: TEventName[], keys: (string | string[])[], processor: (event: TypedEventLog<T["filters"][TEventName]>) => Promise<TResult>, abortSignal?: AbortSignal): Promise<TResult>;
     /**
      * Runs a search forwards in time, processing the events for a specific topic
      *
@@ -38,5 +38,5 @@ export declare class EVMContractEvents<T extends BaseContract> extends EVMEvents
      *  if the search should continue
      * @param abortSignal
      */
-    findInContractEventsForward<TResult, TEventName extends keyof T["filters"]>(events: TEventName[], keys: string[], processor: (event: TypedEventLog<T["filters"][TEventName]>) => Promise<TResult>, abortSignal?: AbortSignal): Promise<TResult>;
+    findInContractEventsForward<TResult, TEventName extends keyof T["filters"]>(events: TEventName[], keys: (string | string[])[], processor: (event: TypedEventLog<T["filters"][TEventName]>) => Promise<TResult>, abortSignal?: AbortSignal): Promise<TResult>;
 }

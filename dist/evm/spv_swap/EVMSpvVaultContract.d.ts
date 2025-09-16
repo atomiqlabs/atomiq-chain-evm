@@ -44,7 +44,11 @@ export declare class EVMSpvVaultContract<ChainId extends string> extends EVMCont
     private vaultParamsCache;
     getVaultData(owner: string, vaultId: bigint): Promise<EVMSpvVaultData>;
     getAllVaults(owner?: string): Promise<EVMSpvVaultData[]>;
+    private parseWithdrawalEvent;
     getWithdrawalState(btcTxId: string): Promise<SpvWithdrawalState>;
+    getWithdrawalStates(btcTxIds: string[]): Promise<{
+        [btcTxId: string]: SpvWithdrawalState;
+    }>;
     getWithdrawalData(btcTx: BtcTx): Promise<EVMSpvWithdrawalData>;
     fromOpReturnData(data: Buffer): {
         recipient: string;

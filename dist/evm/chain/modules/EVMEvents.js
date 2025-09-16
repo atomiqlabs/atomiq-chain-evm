@@ -91,19 +91,27 @@ class EVMEvents extends EVMModule_1.EVMModule {
      */
     async findInEvents(contract, topics, processor, abortSignal, genesisHeight) {
         const { number: latestBlockNumber } = await this.provider.getBlock(this.root.config.safeBlockTag);
+        let promises = [];
         for (let blockNumber = latestBlockNumber; blockNumber >= (genesisHeight ?? 0); blockNumber -= this.root.config.maxLogsBlockRange) {
-            const eventsResult = await this.provider.getLogs({
-                address: contract,
-                topics,
-                fromBlock: Math.max(blockNumber - this.root.config.maxLogsBlockRange, 0),
-                toBlock: blockNumber === latestBlockNumber ? this.root.config.safeBlockTag : blockNumber
-            });
-            if (abortSignal != null)
-                abortSignal.throwIfAborted();
-            const result = await processor(eventsResult.reverse()); //Newest events first
-            if (result != null)
-                return result;
+            promises.push(this.getLogs(contract, topics, Math.max(blockNumber - this.root.config.maxLogsBlockRange, 0), blockNumber));
+            if (promises.length >= this.root.config.maxParallelLogRequests) {
+                const eventsResult = (await Promise.all(promises)).map(arr => arr.reverse() //Oldest events first
+                ).flat();
+                promises = [];
+                if (abortSignal != null)
+                    abortSignal.throwIfAborted();
+                const result = await processor(eventsResult);
+                if (result != null)
+                    return result;
+            }
         }
+        const eventsResult = (await Promise.all(promises)).map(arr => arr.reverse() //Oldest events first
+        ).flat();
+        if (abortSignal != null)
+            abortSignal.throwIfAborted();
+        const result = await processor(eventsResult); //Oldest events first
+        if (result != null)
+            return result;
         return null;
     }
     /**
@@ -118,19 +126,25 @@ class EVMEvents extends EVMModule_1.EVMModule {
      */
     async findInEventsForward(contract, topics, processor, abortSignal, startHeight) {
         const { number: latestBlockNumber } = await this.provider.getBlock(this.root.config.safeBlockTag);
+        let promises = [];
         for (let blockNumber = startHeight ?? 0; blockNumber < latestBlockNumber; blockNumber += this.root.config.maxLogsBlockRange) {
-            const eventsResult = await this.provider.getLogs({
-                address: contract,
-                topics,
-                fromBlock: blockNumber,
-                toBlock: (blockNumber + this.root.config.maxLogsBlockRange) > latestBlockNumber ? this.root.config.safeBlockTag : blockNumber + this.root.config.maxLogsBlockRange
-            });
-            if (abortSignal != null)
-                abortSignal.throwIfAborted();
-            const result = await processor(eventsResult); //Oldest events first
-            if (result != null)
-                return result;
+            promises.push(this.getLogs(contract, topics, blockNumber, Math.min(blockNumber + this.root.config.maxLogsBlockRange, latestBlockNumber)));
+            if (promises.length >= this.root.config.maxParallelLogRequests) {
+                const eventsResult = (await Promise.all(promises)).flat();
+                promises = [];
+                if (abortSignal != null)
+                    abortSignal.throwIfAborted();
+                const result = await processor(eventsResult); //Oldest events first
+                if (result != null)
+                    return result;
+            }
         }
+        const eventsResult = (await Promise.all(promises)).flat();
+        if (abortSignal != null)
+            abortSignal.throwIfAborted();
+        const result = await processor(eventsResult); //Oldest events first
+        if (result != null)
+            return result;
         return null;
     }
 }

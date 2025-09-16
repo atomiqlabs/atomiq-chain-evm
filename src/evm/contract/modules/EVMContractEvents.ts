@@ -21,7 +21,7 @@ export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
 
     private toFilter<TEventName extends keyof T["filters"]>(
         events: TEventName[],
-        keys: string[],
+        keys: (string | string[])[],
     ): (string | string[])[] {
         const filterArray: (string | string[])[] = [];
         filterArray.push(events.map(name => {
@@ -61,7 +61,7 @@ export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
      */
     public async findInContractEvents<TResult, TEventName extends keyof T["filters"]>(
         events: TEventName[],
-        keys: string[],
+        keys: (string | string[])[],
         processor: (event: TypedEventLog<T["filters"][TEventName]>) => Promise<TResult>,
         abortSignal?: AbortSignal
     ): Promise<TResult> {
@@ -85,7 +85,7 @@ export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
      */
     public async findInContractEventsForward<TResult, TEventName extends keyof T["filters"]>(
         events: TEventName[],
-        keys: string[],
+        keys: (string | string[])[],
         processor: (event: TypedEventLog<T["filters"][TEventName]>) => Promise<TResult>,
         abortSignal?: AbortSignal
     ): Promise<TResult> {

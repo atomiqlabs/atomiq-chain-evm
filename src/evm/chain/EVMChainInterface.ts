@@ -18,7 +18,10 @@ export type EVMRetryPolicy = {
 
 export type EVMConfiguration = {
     safeBlockTag: EVMBlockTag,
-    maxLogsBlockRange: number
+    maxLogsBlockRange: number,
+    maxParallelLogRequests: number,
+    maxParallelCalls: number,
+    maxLogTopics: number
 };
 
 export class EVMChainInterface<ChainId extends string = string> implements ChainInterface {

@@ -102,19 +102,35 @@ export class EVMEvents extends EVMModule<any> {
     ): Promise<T> {
         const {number: latestBlockNumber} = await this.provider.getBlock(this.root.config.safeBlockTag);
 
+        let promises: Promise<Log[]>[] = [];
         for(let blockNumber = latestBlockNumber; blockNumber >= (genesisHeight ?? 0); blockNumber-=this.root.config.maxLogsBlockRange) {
-            const eventsResult = await this.provider.getLogs({
-                address: contract,
+            promises.push(this.getLogs(
+                contract,
                 topics,
-                fromBlock: Math.max(blockNumber-this.root.config.maxLogsBlockRange, 0),
-                toBlock: blockNumber===latestBlockNumber ? this.root.config.safeBlockTag : blockNumber
-            });
+                Math.max(blockNumber-this.root.config.maxLogsBlockRange, 0),
+                blockNumber
+            ));
 
-            if(abortSignal!=null) abortSignal.throwIfAborted();
+            if(promises.length>=this.root.config.maxParallelLogRequests) {
+                const eventsResult = (await Promise.all(promises)).map(
+                    arr => arr.reverse() //Oldest events first
+                ).flat();
+                promises = [];
+                if(abortSignal!=null) abortSignal.throwIfAborted();
 
-            const result: T = await processor(eventsResult.reverse()); //Newest events first
-            if(result!=null) return result;
+                const result: T = await processor(eventsResult);
+                if(result!=null) return result;
+            }
         }
+
+        const eventsResult = (await Promise.all(promises)).map(
+            arr => arr.reverse() //Oldest events first
+        ).flat();
+        if(abortSignal!=null) abortSignal.throwIfAborted();
+
+        const result: T = await processor(eventsResult); //Oldest events first
+        if(result!=null) return result;
+
         return null;
     }
 
@@ -136,19 +152,29 @@ export class EVMEvents extends EVMModule<any> {
     ): Promise<T> {
         const {number: latestBlockNumber} = await this.provider.getBlock(this.root.config.safeBlockTag);
 
+        let promises: Promise<Log[]>[] = [];
         for(let blockNumber = startHeight ?? 0; blockNumber < latestBlockNumber; blockNumber += this.root.config.maxLogsBlockRange) {
-            const eventsResult = await this.provider.getLogs({
-                address: contract,
+            promises.push(this.getLogs(
+                contract,
                 topics,
-                fromBlock: blockNumber,
-                toBlock: (blockNumber + this.root.config.maxLogsBlockRange) > latestBlockNumber ? this.root.config.safeBlockTag : blockNumber + this.root.config.maxLogsBlockRange
-            });
+                blockNumber,
+                Math.min(blockNumber + this.root.config.maxLogsBlockRange, latestBlockNumber)
+            ));
+            if(promises.length>=this.root.config.maxParallelLogRequests) {
+                const eventsResult = (await Promise.all(promises)).flat();
+                promises = [];
+                if(abortSignal!=null) abortSignal.throwIfAborted();
 
-            if(abortSignal!=null) abortSignal.throwIfAborted();
-
-            const result: T = await processor(eventsResult); //Oldest events first
-            if(result!=null) return result;
+                const result: T = await processor(eventsResult); //Oldest events first
+                if(result!=null) return result;
+            }
         }
+
+        const eventsResult = (await Promise.all(promises)).flat();
+        if(abortSignal!=null) abortSignal.throwIfAborted();
+
+        const result: T = await processor(eventsResult); //Oldest events first
+        if(result!=null) return result;
 
         return null;
     }

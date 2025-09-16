@@ -84,7 +84,11 @@ function initializeBotanix(options, bitcoinRpc, network) {
     const Fees = options.fees ?? new EVMFees_1.EVMFees(provider, 2n * 1000000000n, 1000000n);
     const chainInterface = new EVMChainInterface_1.EVMChainInterface("BOTANIX", chainId, provider, {
         safeBlockTag: "finalized",
-        maxLogsBlockRange: options.maxLogsBlockRange ?? 500
+        maxLogsBlockRange: 1000,
+        maxLogTopics: 64,
+        maxParallelLogRequests: 5,
+        maxParallelCalls: 5,
+        ...options?.evmConfig
     }, options.retryPolicy, Fees);
     const btcRelay = new EVMBtcRelay_1.EVMBtcRelay(chainInterface, bitcoinRpc, network, options.btcRelayContract ?? defaultContractAddresses.btcRelayContract, options.btcRelayDeploymentHeight ?? defaultContractAddresses.btcRelayDeploymentHeight);
     const swapContract = new EVMSwapContract_1.EVMSwapContract(chainInterface, btcRelay, options.swapContract ?? defaultContractAddresses.swapContract, {

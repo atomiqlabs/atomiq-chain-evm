@@ -1,6 +1,6 @@
 import {BaseTokenType, BitcoinNetwork, BitcoinRpc, ChainData, ChainInitializer, ChainSwapType} from "@atomiqlabs/base";
 import {JsonRpcApiProvider, JsonRpcProvider, WebSocketProvider} from "ethers";
-import {EVMChainInterface, EVMRetryPolicy} from "../../evm/chain/EVMChainInterface";
+import {EVMChainInterface, EVMConfiguration, EVMRetryPolicy} from "../../evm/chain/EVMChainInterface";
 import {CitreaChainType} from "./CitreaChainType";
 import {EVMChainEventsBrowser} from "../../evm/events/EVMChainEventsBrowser";
 import {EVMSwapData} from "../../evm/swaps/EVMSwapData";
@@ -76,7 +76,6 @@ export type CitreaOptions = {
     rpcUrl: string | JsonRpcApiProvider,
     retryPolicy?: EVMRetryPolicy,
     chainType?: "MAINNET" | "TESTNET4",
-    maxLogsBlockRange?: number,
 
     swapContract?: string,
     btcRelayContract?: string,
@@ -92,7 +91,9 @@ export type CitreaOptions = {
         }
     }
 
-    fees?: CitreaFees
+    fees?: CitreaFees,
+
+    evmConfig?: Omit<EVMConfiguration, "safeBlockTag">
 }
 
 export function initializeCitrea(
@@ -126,7 +127,11 @@ export function initializeCitrea(
 
     const chainInterface = new EVMChainInterface("CITREA", chainId, provider, {
         safeBlockTag: "latest",
-        maxLogsBlockRange: options.maxLogsBlockRange ?? 500
+        maxLogsBlockRange: 1000,
+        maxLogTopics: 64,
+        maxParallelLogRequests: 5,
+        maxParallelCalls: 5,
+        ...options?.evmConfig
     }, options.retryPolicy, Fees);
     chainInterface.Tokens = new CitreaTokens(chainInterface); //Override with custom token module allowing l1 state diff based fee calculation
 

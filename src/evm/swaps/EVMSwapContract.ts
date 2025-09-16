@@ -324,6 +324,27 @@ export class EVMSwapContract<ChainId extends string = string>
         }
     }
 
+    async getCommitStatuses(request: { signer: string; swapData: EVMSwapData }[]): Promise<{
+        [p: string]: SwapCommitState
+    }> {
+        const result: {
+            [p: string]: SwapCommitState
+        } = {};
+        let promises: Promise<void>[] = [];
+        //TODO: We can upgrade this to use multicall
+        for(let {signer, swapData} of request) {
+            promises.push(this.getCommitStatus(signer, swapData).then(val => {
+                result[swapData.getEscrowHash()] = val;
+            }));
+            if(promises.length>=this.Chain.config.maxParallelCalls) {
+                await Promise.all(promises);
+                promises = [];
+            }
+        }
+        await Promise.all(promises);
+        return result;
+    }
+
     /**
      * Returns the data committed for a specific payment hash, or null if no data is currently commited for
      *  the specific swap
