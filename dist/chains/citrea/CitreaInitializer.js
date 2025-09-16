@@ -90,7 +90,7 @@ function initializeCitrea(options, bitcoinRpc, network) {
     const Fees = options.fees ?? new CitreaFees_1.CitreaFees(provider, 2n * 1000000000n, 1000000n);
     const chainInterface = new EVMChainInterface_1.EVMChainInterface("CITREA", chainId, provider, {
         safeBlockTag: "latest",
-        maxLogsBlockRange: 1000,
+        maxLogsBlockRange: 950,
         maxLogTopics: 64,
         maxParallelLogRequests: 5,
         maxParallelCalls: 5,

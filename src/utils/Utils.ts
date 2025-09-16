@@ -95,7 +95,7 @@ export const allowedEthersErrorNumbers: Set<number> = new Set([
     -32700, //Invalid JSON
     -32600, //Invalid request
     -32601, //Method not found
-    // -32602, //Invalid params
+    -32602, //Invalid params
     // -32603, //Internal error
     -32000, //Invalid input
     // -32001, //Resource not found

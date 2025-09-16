@@ -121,7 +121,7 @@ export function initializeBotanix(
 
     const chainInterface = new EVMChainInterface("BOTANIX", chainId, provider, {
         safeBlockTag: "finalized",
-        maxLogsBlockRange: 1000,
+        maxLogsBlockRange: 950,
         maxLogTopics: 64,
         maxParallelLogRequests: 5,
         maxParallelCalls: 5,

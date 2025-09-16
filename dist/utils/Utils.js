@@ -83,7 +83,7 @@ exports.allowedEthersErrorNumbers = new Set([
     -32700,
     -32600,
     -32601,
-    // -32602, //Invalid params
+    -32602,
     // -32603, //Internal error
     -32000,
     // -32001, //Resource not found
