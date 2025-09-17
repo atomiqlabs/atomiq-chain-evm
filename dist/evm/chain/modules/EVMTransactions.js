@@ -160,17 +160,19 @@ class EVMTransactions extends EVMModule_1.EVMModule {
                 if (currentPendingNonce == null || nextAccountNonce > currentPendingNonce) {
                     this.latestPendingNonces[tx.from] = nextAccountNonce;
                 }
-                if (waitForConfirmation)
-                    promises.push(this.confirmTransaction(tx, abortSignal));
-                txIds.push(tx.hash);
+                promises.push(this.confirmTransaction(tx, abortSignal));
+                if (!waitForConfirmation)
+                    txIds.push(tx.hash);
                 this.logger.debug("sendAndConfirm(): transaction sent (" + (i + 1) + "/" + signedTxs.length + "): " + tx.hash);
                 if (promises.length >= MAX_UNCONFIRMED_TXNS) {
-                    await Promise.all(promises);
+                    if (waitForConfirmation)
+                        txIds.push(...await Promise.all(promises));
                     promises = [];
                 }
             }
-            if (promises.length > 0)
-                txIds = await Promise.all(promises);
+            if (waitForConfirmation && promises.length > 0) {
+                txIds.push(...await Promise.all(promises));
+            }
         }
         else {
             for (let i = 0; i < txs.length; i++) {
