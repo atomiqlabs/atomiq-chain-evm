@@ -90,11 +90,10 @@ function initializeCitrea(options, bitcoinRpc, network) {
     const Fees = options.fees ?? new CitreaFees_1.CitreaFees(provider, 2n * 1000000000n, 1000000n);
     const chainInterface = new EVMChainInterface_1.EVMChainInterface("CITREA", chainId, provider, {
         safeBlockTag: "latest",
-        maxLogsBlockRange: 950,
-        maxLogTopics: 64,
-        maxParallelLogRequests: 5,
-        maxParallelCalls: 5,
-        ...options?.evmConfig
+        maxLogsBlockRange: options?.evmConfig?.maxLogsBlockRange ?? 950,
+        maxLogTopics: options?.evmConfig?.maxLogTopics ?? 64,
+        maxParallelLogRequests: options?.evmConfig?.maxParallelLogRequests ?? 5,
+        maxParallelCalls: options?.evmConfig?.maxParallelCalls ?? 5
     }, options.retryPolicy, Fees);
     chainInterface.Tokens = new CitreaTokens_1.CitreaTokens(chainInterface); //Override with custom token module allowing l1 state diff based fee calculation
     const btcRelay = new CitreaBtcRelay_1.CitreaBtcRelay(chainInterface, bitcoinRpc, network, options.btcRelayContract ?? defaultContractAddresses.btcRelayContract, options.btcRelayDeploymentHeight ?? defaultContractAddresses.btcRelayDeploymentHeight);

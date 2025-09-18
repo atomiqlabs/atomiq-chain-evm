@@ -121,11 +121,10 @@ export function initializeBotanix(
 
     const chainInterface = new EVMChainInterface("BOTANIX", chainId, provider, {
         safeBlockTag: "finalized",
-        maxLogsBlockRange: 950,
-        maxLogTopics: 64,
-        maxParallelLogRequests: 5,
-        maxParallelCalls: 5,
-        ...options?.evmConfig
+        maxLogsBlockRange: options?.evmConfig?.maxLogsBlockRange ?? 950,
+        maxLogTopics: options?.evmConfig?.maxLogTopics ?? 64,
+        maxParallelLogRequests: options?.evmConfig?.maxParallelLogRequests ?? 5,
+        maxParallelCalls: options?.evmConfig?.maxParallelCalls ?? 5
     }, options.retryPolicy, Fees);
 
     const btcRelay = new EVMBtcRelay(
