@@ -32,13 +32,32 @@ class EVMTransactions extends EVMModule_1.EVMModule {
         this.onBeforeTxReplace(txReplaceListener);
         let state = "pending";
         let confirmedTxId = null;
-        while (state === "pending" || state === "not_found") {
+        while (state === "pending") {
             await (0, Utils_1.timeoutPromise)(3000, abortSignal);
+            const latestConfirmedNonce = this.latestConfirmedNonces[tx.from];
+            const snapshot = [...checkTxns]; //Iterate over a snapshot
+            const totalTxnCount = snapshot.length;
+            let notFoundTxns = 0;
             for (let txId of checkTxns) {
-                state = await this.getTxIdStatus(txId);
-                if (state === "reverted" || state === "success") {
+                let _state = await this.getTxIdStatus(txId);
+                if (_state === "not_found")
+                    notFoundTxns++;
+                if (_state === "reverted" || _state === "success") {
                     confirmedTxId = txId;
+                    state = _state;
                     break;
+                }
+            }
+            if (notFoundTxns === totalTxnCount) { //All not found, check the latest account nonce
+                if (latestConfirmedNonce != null && latestConfirmedNonce > tx.nonce) {
+                    //Confirmed nonce is already higher than the TX nonce, meaning the TX got replaced
+                    throw new Error("Transaction failed - replaced!");
+                }
+                this.logger.warn("confirmTransaction(): All transactions not found, fetching the latest account nonce...");
+                const _latestConfirmedNonce = this.latestConfirmedNonces[tx.from];
+                const currentLatestNonce = await this.provider.getTransactionCount(tx.from, this.root.config.safeBlockTag);
+                if (_latestConfirmedNonce == null || _latestConfirmedNonce < currentLatestNonce) {
+                    this.latestConfirmedNonces[tx.from] = currentLatestNonce;
                 }
             }
         }
