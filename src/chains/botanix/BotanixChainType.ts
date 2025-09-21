@@ -10,6 +10,7 @@ import { EVMSpvWithdrawalData } from "../../evm/spv_swap/EVMSpvWithdrawalData";
 import {EVMSwapContract} from "../../evm/swaps/EVMSwapContract";
 import {EVMBtcRelay} from "../../evm/btcrelay/EVMBtcRelay";
 import {EVMSpvVaultContract} from "../../evm/spv_swap/EVMSpvVaultContract";
+import {Signer} from "ethers";
 
 export type BotanixChainType = ChainType<
     "BOTANIX",
@@ -17,6 +18,7 @@ export type BotanixChainType = ChainType<
     EVMPreFetchVerification,
     EVMTx,
     EVMSigner,
+    Signer,
     EVMSwapData,
     EVMSwapContract<"BOTANIX">,
     EVMChainInterface<"BOTANIX">,

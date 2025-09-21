@@ -1,6 +1,7 @@
 import { AbstractSigner } from "@atomiqlabs/base";
 import { Signer, TransactionRequest, TransactionResponse } from "ethers";
 export declare class EVMSigner implements AbstractSigner {
+    type: "AtomiqAbstractSigner";
     account: Signer;
     readonly address: string;
     readonly isManagingNoncesInternally: boolean;

@@ -1,14 +1,24 @@
 import {ChainInterface, TransactionConfirmationOptions} from "@atomiqlabs/base";
 import {getLogger, LoggerType} from "../../utils/Utils";
-import {JsonRpcApiProvider, Transaction, TransactionRequest, Wallet} from "ethers";
+import {
+    BrowserProvider,
+    JsonRpcApiProvider,
+    JsonRpcSigner,
+    Signer,
+    Transaction,
+    TransactionRequest,
+    Wallet
+} from "ethers";
 import {EVMBlocks, EVMBlockTag} from "./modules/EVMBlocks";
 import {EVMEvents} from "./modules/EVMEvents";
 import {EVMFees} from "./modules/EVMFees";
 import {EVMTokens} from "./modules/EVMTokens";
-import { EVMTransactions } from "./modules/EVMTransactions";
+import {EVMTransactions, EVMTx} from "./modules/EVMTransactions";
 import { EVMSignatures } from "./modules/EVMSignatures";
 import {EVMAddresses} from "./modules/EVMAddresses";
 import {EVMSigner} from "../wallet/EVMSigner";
+import {EVMBrowserSigner} from "../wallet/EVMBrowserSigner";
+import {add} from "@noble/hashes/_u64";
 
 export type EVMRetryPolicy = {
     maxRetries?: number,
@@ -24,7 +34,7 @@ export type EVMConfiguration = {
     maxLogTopics: number
 };
 
-export class EVMChainInterface<ChainId extends string = string> implements ChainInterface {
+export class EVMChainInterface<ChainId extends string = string> implements ChainInterface<EVMTx, EVMSigner, ChainId, Signer> {
 
     readonly chainId: ChainId;
 
@@ -154,6 +164,14 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
         const tx = await this.Tokens.Transfer(signer.getAddress(), token, amount, dstAddress, txOptions?.feeRate);
         const [txId] = await this.Transactions.sendAndConfirm(signer, [tx], txOptions?.waitForConfirmation, txOptions?.abortSignal, false);
         return txId;
+    }
+
+    async wrapSigner(signer: Signer): Promise<EVMSigner> {
+        const address = await signer.getAddress();
+        if(signer instanceof JsonRpcSigner || signer.provider instanceof BrowserProvider) {
+            return new EVMBrowserSigner(signer, address);
+        }
+        return new EVMSigner(signer, address);
     }
 
 }

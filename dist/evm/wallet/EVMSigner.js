@@ -4,6 +4,7 @@ exports.EVMSigner = void 0;
 const ethers_1 = require("ethers");
 class EVMSigner {
     constructor(account, address, isManagingNoncesInternally = false) {
+        this.type = "AtomiqAbstractSigner";
         this.account = account;
         this.address = address;
         this.isManagingNoncesInternally = isManagingNoncesInternally;

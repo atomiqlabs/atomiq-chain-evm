@@ -3,6 +3,7 @@ import {Signer, Transaction, TransactionRequest, TransactionResponse} from "ethe
 
 
 export class EVMSigner implements AbstractSigner {
+    type = "AtomiqAbstractSigner" as const;
 
     account: Signer;
     public readonly address: string;

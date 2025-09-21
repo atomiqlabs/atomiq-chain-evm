@@ -1,11 +1,11 @@
 import { ChainInterface, TransactionConfirmationOptions } from "@atomiqlabs/base";
 import { LoggerType } from "../../utils/Utils";
-import { JsonRpcApiProvider, Transaction, TransactionRequest } from "ethers";
+import { JsonRpcApiProvider, Signer, Transaction, TransactionRequest } from "ethers";
 import { EVMBlocks, EVMBlockTag } from "./modules/EVMBlocks";
 import { EVMEvents } from "./modules/EVMEvents";
 import { EVMFees } from "./modules/EVMFees";
 import { EVMTokens } from "./modules/EVMTokens";
-import { EVMTransactions } from "./modules/EVMTransactions";
+import { EVMTransactions, EVMTx } from "./modules/EVMTransactions";
 import { EVMSignatures } from "./modules/EVMSignatures";
 import { EVMSigner } from "../wallet/EVMSigner";
 export type EVMRetryPolicy = {
@@ -20,7 +20,7 @@ export type EVMConfiguration = {
     maxParallelCalls: number;
     maxLogTopics: number;
 };
-export declare class EVMChainInterface<ChainId extends string = string> implements ChainInterface {
+export declare class EVMChainInterface<ChainId extends string = string> implements ChainInterface<EVMTx, EVMSigner, ChainId, Signer> {
     readonly chainId: ChainId;
     readonly provider: JsonRpcApiProvider;
     readonly retryPolicy: EVMRetryPolicy;
@@ -51,4 +51,5 @@ export declare class EVMChainInterface<ChainId extends string = string> implemen
     getTxStatus(tx: string): Promise<"not_found" | "pending" | "success" | "reverted">;
     txsTransfer(signer: string, token: string, amount: bigint, dstAddress: string, feeRate?: string): Promise<TransactionRequest[]>;
     transfer(signer: EVMSigner, token: string, amount: bigint, dstAddress: string, txOptions?: TransactionConfirmationOptions): Promise<string>;
+    wrapSigner(signer: Signer): Promise<EVMSigner>;
 }

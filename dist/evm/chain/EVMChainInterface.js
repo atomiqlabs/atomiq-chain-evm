@@ -11,6 +11,7 @@ const EVMTransactions_1 = require("./modules/EVMTransactions");
 const EVMSignatures_1 = require("./modules/EVMSignatures");
 const EVMAddresses_1 = require("./modules/EVMAddresses");
 const EVMSigner_1 = require("../wallet/EVMSigner");
+const EVMBrowserSigner_1 = require("../wallet/EVMBrowserSigner");
 class EVMChainInterface {
     constructor(chainId, evmChainId, provider, config, retryPolicy, evmFeeEstimator = new EVMFees_1.EVMFees(provider)) {
         var _a;
@@ -84,6 +85,13 @@ class EVMChainInterface {
         const tx = await this.Tokens.Transfer(signer.getAddress(), token, amount, dstAddress, txOptions?.feeRate);
         const [txId] = await this.Transactions.sendAndConfirm(signer, [tx], txOptions?.waitForConfirmation, txOptions?.abortSignal, false);
         return txId;
+    }
+    async wrapSigner(signer) {
+        const address = await signer.getAddress();
+        if (signer instanceof ethers_1.JsonRpcSigner || signer.provider instanceof ethers_1.BrowserProvider) {
+            return new EVMBrowserSigner_1.EVMBrowserSigner(signer, address);
+        }
+        return new EVMSigner_1.EVMSigner(signer, address);
     }
 }
 exports.EVMChainInterface = EVMChainInterface;
