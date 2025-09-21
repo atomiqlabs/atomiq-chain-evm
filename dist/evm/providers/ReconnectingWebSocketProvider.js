@@ -10,7 +10,7 @@ class ReconnectingWebSocketProvider extends SocketProvider_1.SocketProvider {
         this.requestTimeoutSeconds = 10;
         this.reconnectSeconds = 5;
         this.pingIntervalSeconds = 30;
-        this.connectionTimeout = 30;
+        this.connectionTimeout = 10;
         this.wsCtor = typeof (url) === "string" ? () => new WebSocket(url) : url;
         this.connect();
     }

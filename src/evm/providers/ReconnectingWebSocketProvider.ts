@@ -10,7 +10,7 @@ export class ReconnectingWebSocketProvider extends SocketProvider {
     requestTimeoutSeconds: number = 10;
     reconnectSeconds: number = 5;
     pingIntervalSeconds: number = 30;
-    connectionTimeout: number = 30;
+    connectionTimeout: number = 10;
 
     pingInterval: any;
     reconnectTimer: any;
