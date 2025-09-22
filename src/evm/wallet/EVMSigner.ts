@@ -1,5 +1,5 @@
 import {AbstractSigner} from "@atomiqlabs/base";
-import {Signer, Transaction, TransactionRequest, TransactionResponse} from "ethers";
+import {getAddress, Signer, Transaction, TransactionRequest, TransactionResponse} from "ethers";
 
 
 export class EVMSigner implements AbstractSigner {
@@ -16,7 +16,7 @@ export class EVMSigner implements AbstractSigner {
     }
 
     getAddress(): string {
-        return this.address;
+        return getAddress(this.address);
     }
 
     async signTransaction?(transaction: TransactionRequest): Promise<string> {

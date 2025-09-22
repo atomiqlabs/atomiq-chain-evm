@@ -10,7 +10,7 @@ class EVMSigner {
         this.isManagingNoncesInternally = isManagingNoncesInternally;
     }
     getAddress() {
-        return this.address;
+        return (0, ethers_1.getAddress)(this.address);
     }
     async signTransaction(transaction) {
         return this.account.signTransaction(transaction);

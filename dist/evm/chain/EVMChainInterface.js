@@ -42,6 +42,9 @@ class EVMChainInterface {
     isValidAddress(address) {
         return EVMAddresses_1.EVMAddresses.isValidAddress(address);
     }
+    normalizeAddress(address) {
+        return (0, ethers_1.getAddress)(address);
+    }
     ///////////////////////////////////
     //// Callbacks & handlers
     offBeforeTxReplace(callback) {

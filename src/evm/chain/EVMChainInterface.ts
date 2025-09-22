@@ -7,7 +7,8 @@ import {
     Signer,
     Transaction,
     TransactionRequest,
-    Wallet
+    Wallet,
+    getAddress
 } from "ethers";
 import {EVMBlocks, EVMBlockTag} from "./modules/EVMBlocks";
 import {EVMEvents} from "./modules/EVMEvents";
@@ -18,7 +19,6 @@ import { EVMSignatures } from "./modules/EVMSignatures";
 import {EVMAddresses} from "./modules/EVMAddresses";
 import {EVMSigner} from "../wallet/EVMSigner";
 import {EVMBrowserSigner} from "../wallet/EVMBrowserSigner";
-import {add} from "@noble/hashes/_u64";
 
 export type EVMRetryPolicy = {
     maxRetries?: number,
@@ -95,6 +95,10 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
 
     isValidAddress(address: string): boolean {
         return EVMAddresses.isValidAddress(address);
+    }
+
+    normalizeAddress(address: string): string {
+        return getAddress(address);
     }
 
     ///////////////////////////////////
