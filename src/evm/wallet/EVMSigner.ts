@@ -25,7 +25,10 @@ export class EVMSigner implements AbstractSigner {
 
     async sendTransaction(transaction: TransactionRequest, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>): Promise<TransactionResponse> {
         const txResponse = await this.account.sendTransaction(transaction);
-        if(onBeforePublish!=null) await onBeforePublish(txResponse.hash, Transaction.from(txResponse).serialized);
+        if(onBeforePublish!=null) await onBeforePublish(txResponse.hash, Transaction.from({
+            ...txResponse,
+            chainId: transaction.chainId
+        }).serialized);
         return txResponse;
     }
 

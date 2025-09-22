@@ -18,7 +18,10 @@ class EVMSigner {
     async sendTransaction(transaction, onBeforePublish) {
         const txResponse = await this.account.sendTransaction(transaction);
         if (onBeforePublish != null)
-            await onBeforePublish(txResponse.hash, ethers_1.Transaction.from(txResponse).serialized);
+            await onBeforePublish(txResponse.hash, ethers_1.Transaction.from({
+                ...txResponse,
+                chainId: transaction.chainId
+            }).serialized);
         return txResponse;
     }
 }
