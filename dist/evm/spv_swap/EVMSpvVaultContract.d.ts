@@ -40,7 +40,7 @@ export declare class EVMSpvVaultContract<ChainId extends string> extends EVMCont
     protected Claim(signer: string, vault: EVMSpvVaultData, data: EVMSpvWithdrawalData, blockheader: EVMBtcStoredHeader, merkle: Buffer[], position: number, feeRate: string): Promise<TransactionRequest>;
     checkWithdrawalTx(tx: SpvWithdrawalTransactionData): Promise<void>;
     createVaultData(owner: string, vaultId: bigint, utxo: string, confirmations: number, tokenData: SpvVaultTokenData[]): Promise<EVMSpvVaultData>;
-    getFronterAddress(owner: string, vaultId: bigint, withdrawal: EVMSpvWithdrawalData): Promise<string>;
+    getFronterAddress(owner: string, vaultId: bigint, withdrawal: EVMSpvWithdrawalData): Promise<string | null>;
     getFronterAddresses(withdrawals: {
         owner: string;
         vaultId: bigint;
@@ -69,8 +69,11 @@ export declare class EVMSpvVaultContract<ChainId extends string> extends EVMCont
     }>;
     getAllVaults(owner?: string): Promise<EVMSpvVaultData[]>;
     private parseWithdrawalEvent;
-    getWithdrawalState(btcTxId: string): Promise<SpvWithdrawalState>;
-    getWithdrawalStates(btcTxIds: string[]): Promise<{
+    getWithdrawalState(withdrawalTx: EVMSpvWithdrawalData, scStartHeight?: number): Promise<SpvWithdrawalState>;
+    getWithdrawalStates(withdrawalTxs: {
+        withdrawal: EVMSpvWithdrawalData;
+        scStartHeight?: number;
+    }[]): Promise<{
         [btcTxId: string]: SpvWithdrawalState;
     }>;
     getWithdrawalData(btcTx: BtcTx): Promise<EVMSpvWithdrawalData>;

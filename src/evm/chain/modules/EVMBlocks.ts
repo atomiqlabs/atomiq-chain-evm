@@ -1,4 +1,5 @@
 import {EVMModule} from "../EVMModule";
+import {Block} from "ethers";
 
 export type EVMBlockTag = "safe" | "pending" | "latest" | "finalized";
 
@@ -8,7 +9,7 @@ export class EVMBlocks extends EVMModule<any> {
 
     private blockCache: {
         [key: string]: {
-            blockTime: Promise<number>,
+            block: Promise<Block>,
             timestamp: number
         }
     } = {};
@@ -20,23 +21,23 @@ export class EVMBlocks extends EVMModule<any> {
      * @param blockTag
      */
     private fetchAndSaveBlockTime(blockTag: EVMBlockTag | number): {
-        blockTime: Promise<number>,
+        block: Promise<Block>,
         timestamp: number
     } {
         const blockTagStr = blockTag.toString(10);
 
-        const blockTimePromise = this.provider.getBlock(blockTag, false).then(result => result.timestamp);
+        const blockPromise = this.provider.getBlock(blockTag, false);
         const timestamp = Date.now();
         this.blockCache[blockTagStr] = {
-            blockTime: blockTimePromise,
+            block: blockPromise,
             timestamp
         };
-        blockTimePromise.catch(e => {
-            if(this.blockCache[blockTagStr]!=null && this.blockCache[blockTagStr].blockTime===blockTimePromise) delete this.blockCache[blockTagStr];
+        blockPromise.catch(e => {
+            if(this.blockCache[blockTagStr]!=null && this.blockCache[blockTagStr].block===blockPromise) delete this.blockCache[blockTagStr];
             throw e;
         })
         return {
-            blockTime: blockTimePromise,
+            block: blockPromise,
             timestamp
         };
     }
@@ -61,7 +62,7 @@ export class EVMBlocks extends EVMModule<any> {
      *
      * @param blockTag
      */
-    public getBlockTime(blockTag: EVMBlockTag | number): Promise<number> {
+    public getBlock(blockTag: EVMBlockTag | number): Promise<Block> {
         this.cleanupBlocks();
         let cachedBlockData = this.blockCache[blockTag.toString(10)];
 
@@ -69,7 +70,17 @@ export class EVMBlocks extends EVMModule<any> {
             cachedBlockData = this.fetchAndSaveBlockTime(blockTag);
         }
 
-        return cachedBlockData.blockTime;
+        return cachedBlockData.block;
+    }
+
+    /**
+     * Gets the block time for a given blocktag, with caching
+     *
+     * @param blockTag
+     */
+    public async getBlockTime(blockTag: EVMBlockTag | number): Promise<number> {
+        const block = await this.getBlock(blockTag);
+        return block.timestamp;
     }
 
 }

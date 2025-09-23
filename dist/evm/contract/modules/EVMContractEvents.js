@@ -59,9 +59,10 @@ class EVMContractEvents extends EVMEvents_1.EVMEvents {
      * @param keys
      * @param processor called for every event, should return a value if the correct event was found, or null
      *  if the search should continue
+     * @param startHeight
      * @param abortSignal
      */
-    async findInContractEventsForward(events, keys, processor, abortSignal) {
+    async findInContractEventsForward(events, keys, processor, startHeight, abortSignal) {
         return this.findInEventsForward(await this.baseContract.getAddress(), this.toFilter(events, keys), async (events) => {
             const parsedEvents = this.toTypedEvents(events);
             for (let event of parsedEvents) {
@@ -69,7 +70,7 @@ class EVMContractEvents extends EVMEvents_1.EVMEvents {
                 if (result != null)
                     return result;
             }
-        }, abortSignal, this.contract.contractDeploymentHeight);
+        }, abortSignal, Math.max(this.contract.contractDeploymentHeight, startHeight ?? 0));
     }
 }
 exports.EVMContractEvents = EVMContractEvents;

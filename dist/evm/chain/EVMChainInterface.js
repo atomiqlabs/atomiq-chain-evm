@@ -81,6 +81,13 @@ class EVMChainInterface {
     getTxStatus(tx) {
         return this.Transactions.getTxStatus(tx);
     }
+    async getFinalizedBlock() {
+        const block = await this.Blocks.getBlock("finalized");
+        return {
+            height: block.number,
+            blockHash: block.hash
+        };
+    }
     async txsTransfer(signer, token, amount, dstAddress, feeRate) {
         return [await this.Tokens.Transfer(signer, token, amount, dstAddress, feeRate)];
     }

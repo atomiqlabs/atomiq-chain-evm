@@ -16,19 +16,19 @@ class EVMBlocks extends EVMModule_1.EVMModule {
      */
     fetchAndSaveBlockTime(blockTag) {
         const blockTagStr = blockTag.toString(10);
-        const blockTimePromise = this.provider.getBlock(blockTag, false).then(result => result.timestamp);
+        const blockPromise = this.provider.getBlock(blockTag, false);
         const timestamp = Date.now();
         this.blockCache[blockTagStr] = {
-            blockTime: blockTimePromise,
+            block: blockPromise,
             timestamp
         };
-        blockTimePromise.catch(e => {
-            if (this.blockCache[blockTagStr] != null && this.blockCache[blockTagStr].blockTime === blockTimePromise)
+        blockPromise.catch(e => {
+            if (this.blockCache[blockTagStr] != null && this.blockCache[blockTagStr].block === blockPromise)
                 delete this.blockCache[blockTagStr];
             throw e;
         });
         return {
-            blockTime: blockTimePromise,
+            block: blockPromise,
             timestamp
         };
     }
@@ -52,13 +52,22 @@ class EVMBlocks extends EVMModule_1.EVMModule {
      *
      * @param blockTag
      */
-    getBlockTime(blockTag) {
+    getBlock(blockTag) {
         this.cleanupBlocks();
         let cachedBlockData = this.blockCache[blockTag.toString(10)];
         if (cachedBlockData == null || Date.now() - cachedBlockData.timestamp > this.BLOCK_CACHE_TIME) {
             cachedBlockData = this.fetchAndSaveBlockTime(blockTag);
         }
-        return cachedBlockData.blockTime;
+        return cachedBlockData.block;
+    }
+    /**
+     * Gets the block time for a given blocktag, with caching
+     *
+     * @param blockTag
+     */
+    async getBlockTime(blockTag) {
+        const block = await this.getBlock(blockTag);
+        return block.timestamp;
     }
 }
 exports.EVMBlocks = EVMBlocks;

@@ -154,6 +154,14 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
         return this.Transactions.getTxStatus(tx);
     }
 
+    async getFinalizedBlock(): Promise<{ height: number; blockHash: string }> {
+        const block = await this.Blocks.getBlock("finalized");
+        return {
+            height: block.number,
+            blockHash: block.hash
+        };
+    }
+
     async txsTransfer(signer: string, token: string, amount: bigint, dstAddress: string, feeRate?: string): Promise<TransactionRequest[]> {
         return [await this.Tokens.Transfer(signer, token, amount, dstAddress, feeRate)];
     }

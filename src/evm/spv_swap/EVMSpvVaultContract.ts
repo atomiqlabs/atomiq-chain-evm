@@ -11,9 +11,9 @@ import {
     TransactionConfirmationOptions
 } from "@atomiqlabs/base";
 import {Buffer} from "buffer";
-import { EVMTx } from "../chain/modules/EVMTransactions";
-import { EVMContractBase } from "../contract/EVMContractBase";
-import { EVMSigner } from "../wallet/EVMSigner";
+import {EVMTx} from "../chain/modules/EVMTransactions";
+import {EVMContractBase} from "../contract/EVMContractBase";
+import {EVMSigner} from "../wallet/EVMSigner";
 import {SpvVaultContractAbi} from "./SpvVaultContractAbi";
 import {SpvVaultManager, SpvVaultParametersStructOutput} from "./SpvVaultContractTypechain";
 import {EVMBtcRelay} from "../btcrelay/EVMBtcRelay";
@@ -204,7 +204,7 @@ export class EVMSpvVaultContract<ChainId extends string>
     }
 
     //Getters
-    async getFronterAddress(owner: string, vaultId: bigint, withdrawal: EVMSpvWithdrawalData): Promise<string> {
+    async getFronterAddress(owner: string, vaultId: bigint, withdrawal: EVMSpvWithdrawalData): Promise<string | null> {
         const frontingAddress = await this.contract.getFronterById(owner, vaultId, "0x"+withdrawal.getFrontingId());
         if(frontingAddress===ZeroAddress) return null;
         return frontingAddress;
@@ -370,58 +370,114 @@ export class EVMSpvVaultContract<ChainId extends string>
         }
     }
 
-    async getWithdrawalState(btcTxId: string): Promise<SpvWithdrawalState> {
-        const txHash = Buffer.from(btcTxId, "hex").reverse();
-        let result: SpvWithdrawalState = await this.Events.findInContractEvents(
-            ["Fronted", "Claimed", "Closed"],
-            [
-                null,
-                null,
-                hexlify(txHash)
-            ],
-            async (event) => {
-                const result = this.parseWithdrawalEvent(event);
-                if(result!=null) return result;
-            }
-        );
+    async getWithdrawalState(withdrawalTx: EVMSpvWithdrawalData, scStartHeight?: number): Promise<SpvWithdrawalState> {
+        const txHash = Buffer.from(withdrawalTx.getTxId(), "hex").reverse();
+
+        const events: ["Fronted", "Claimed", "Closed"] = ["Fronted", "Claimed", "Closed"];
+        const keys = [null, null, hexlify(txHash)];
+
+        let result: SpvWithdrawalState;
+        if(scStartHeight==null) {
+            result = await this.Events.findInContractEvents(
+                events, keys,
+                async (event) => {
+                    const result = this.parseWithdrawalEvent(event);
+                    if(result!=null) return result;
+                }
+            );
+        } else {
+            result = await this.Events.findInContractEventsForward(
+                events, keys,
+                async (event) => {
+                    const result = this.parseWithdrawalEvent(event);
+                    if(result==null) return;
+                    if(result.type===SpvWithdrawalStateType.FRONTED) {
+                        //Check if still fronted
+                        const fronterAddress = await this.getFronterAddress(result.owner, result.vaultId, withdrawalTx);
+                        //Not fronted now, there should be a claim/close event after the front event, continue
+                        if(fronterAddress==null) return;
+                    }
+                    return result;
+                },
+                scStartHeight
+            );
+        }
         result ??= {
             type: SpvWithdrawalStateType.NOT_FOUND
         };
         return result;
     }
 
-    async getWithdrawalStates(btcTxIds: string[]): Promise<{[btcTxId: string]: SpvWithdrawalState}> {
+    async getWithdrawalStates(withdrawalTxs: {withdrawal: EVMSpvWithdrawalData, scStartHeight?: number}[]): Promise<{[btcTxId: string]: SpvWithdrawalState}> {
         const result: {[btcTxId: string]: SpvWithdrawalState} = {};
 
-        for(let i=0;i<btcTxIds.length;i+=this.Chain.config.maxLogTopics) {
-            const checkBtcTxIds = btcTxIds.slice(i, i+this.Chain.config.maxLogTopics);
-            const checkBtcTxIdsSet = new Set(checkBtcTxIds);
+        const events: ["Fronted", "Claimed", "Closed"] = ["Fronted", "Claimed", "Closed"];
 
-            await this.Events.findInContractEvents(
-                ["Fronted", "Claimed", "Closed"],
-                [
-                    null,
-                    null,
-                    checkBtcTxIds.map(btcTxId => hexlify(Buffer.from(btcTxId, "hex").reverse()))
-                ],
-                async (event) => {
-                    const _event = event as TypedEventLog<SpvVaultManager["filters"]["Fronted" | "Claimed" | "Closed"]>;
-                    const btcTxId = Buffer.from(_event.args.btcTxHash.substring(2), "hex").reverse().toString("hex");
-                    if(!checkBtcTxIdsSet.has(btcTxId)) {
-                        this.logger.warn(`getWithdrawalStates(): findInContractEvents-callback: loaded event for ${btcTxId}, but transaction not found in input params!`)
-                        return null;
-                    }
-                    const eventResult = this.parseWithdrawalEvent(event);
-                    if(eventResult==null) return null;
-                    checkBtcTxIdsSet.delete(btcTxId);
-                    result[btcTxId] = eventResult;
-                    if(checkBtcTxIdsSet.size===0) return true; //All processed
+        for(let i=0;i<withdrawalTxs.length;i+=this.Chain.config.maxLogTopics) {
+            const checkWithdrawalTxs = withdrawalTxs.slice(i, i+this.Chain.config.maxLogTopics);
+            const checkWithdrawalTxsMap = new Map(checkWithdrawalTxs.map(val => [val.withdrawal.getTxId() as string, val.withdrawal]));
+
+            let scStartHeight = null;
+            for(let val of checkWithdrawalTxs) {
+                if(val.scStartHeight==null) {
+                    scStartHeight = null;
+                    break;
                 }
-            );
+                scStartHeight = Math.min(scStartHeight ?? Infinity, val.scStartHeight);
+            }
+
+            const keys = [null, null, checkWithdrawalTxs.map(withdrawal => hexlify(Buffer.from(withdrawal.withdrawal.getTxId(), "hex").reverse()))];
+
+            if(scStartHeight==null) {
+                await this.Events.findInContractEvents(
+                    events, keys,
+                    async (event) => {
+                        const _event = event as TypedEventLog<SpvVaultManager["filters"]["Fronted" | "Claimed" | "Closed"]>;
+                        const btcTxId = Buffer.from(_event.args.btcTxHash.substring(2), "hex").reverse().toString("hex");
+                        if(!checkWithdrawalTxsMap.has(btcTxId)) {
+                            this.logger.warn(`getWithdrawalStates(): findInContractEvents-callback: loaded event for ${btcTxId}, but transaction not found in input params!`)
+                            return null;
+                        }
+                        const eventResult = this.parseWithdrawalEvent(event);
+                        if(eventResult==null) return null;
+                        checkWithdrawalTxsMap.delete(btcTxId);
+                        result[btcTxId] = eventResult;
+                        if(checkWithdrawalTxsMap.size===0) return true; //All processed
+                    }
+                );
+            } else {
+                await this.Events.findInContractEventsForward(
+                    events, keys,
+                    async (event) => {
+                        const _event = event as TypedEventLog<SpvVaultManager["filters"]["Fronted" | "Claimed" | "Closed"]>;
+                        const btcTxId = Buffer.from(_event.args.btcTxHash.substring(2), "hex").reverse().toString("hex");
+                        const withdrawalTx = checkWithdrawalTxsMap.get(btcTxId);
+                        if(withdrawalTx==null) {
+                            this.logger.warn(`getWithdrawalStates(): findInContractEvents-callback: loaded event for ${btcTxId}, but transaction not found in input params!`)
+                            return;
+                        }
+                        const eventResult = this.parseWithdrawalEvent(event);
+                        if(eventResult==null) return;
+
+                        if(eventResult.type===SpvWithdrawalStateType.FRONTED) {
+                            //Check if still fronted
+                            const fronterAddress = await this.getFronterAddress(eventResult.owner, eventResult.vaultId, withdrawalTx);
+                            //Not fronted now, so there should be a claim/close event after the front event, continue
+                            if(fronterAddress==null) return;
+                            //Fronted still, so this should be the latest current state
+                        }
+
+                        checkWithdrawalTxsMap.delete(btcTxId);
+                        result[btcTxId] = eventResult;
+                        if(checkWithdrawalTxsMap.size===0) return true; //All processed
+                    },
+                    scStartHeight
+                );
+            }
         }
 
-        for(let btcTxId of btcTxIds) {
-            result[btcTxId] ??= {
+        for(let val of withdrawalTxs) {
+            result[val.withdrawal.getTxId()] ??= {
                 type: SpvWithdrawalStateType.NOT_FOUND
             };
         }

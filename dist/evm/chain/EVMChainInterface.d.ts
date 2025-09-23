@@ -50,6 +50,10 @@ export declare class EVMChainInterface<ChainId extends string = string> implemen
     deserializeTx(txData: string): Promise<Transaction>;
     getTxIdStatus(txId: string): Promise<"not_found" | "pending" | "success" | "reverted">;
     getTxStatus(tx: string): Promise<"not_found" | "pending" | "success" | "reverted">;
+    getFinalizedBlock(): Promise<{
+        height: number;
+        blockHash: string;
+    }>;
     txsTransfer(signer: string, token: string, amount: bigint, dstAddress: string, feeRate?: string): Promise<TransactionRequest[]>;
     transfer(signer: EVMSigner, token: string, amount: bigint, dstAddress: string, txOptions?: TransactionConfirmationOptions): Promise<string>;
     wrapSigner(signer: Signer): Promise<EVMSigner>;

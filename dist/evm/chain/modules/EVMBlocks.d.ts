@@ -1,4 +1,5 @@
 import { EVMModule } from "../EVMModule";
+import { Block } from "ethers";
 export type EVMBlockTag = "safe" | "pending" | "latest" | "finalized";
 export declare class EVMBlocks extends EVMModule<any> {
     private BLOCK_CACHE_TIME;
@@ -13,6 +14,12 @@ export declare class EVMBlocks extends EVMModule<any> {
     private cleanupBlocks;
     /**
      * Gets the block for a given blocktag, with caching
+     *
+     * @param blockTag
+     */
+    getBlock(blockTag: EVMBlockTag | number): Promise<Block>;
+    /**
+     * Gets the block time for a given blocktag, with caching
      *
      * @param blockTag
      */
