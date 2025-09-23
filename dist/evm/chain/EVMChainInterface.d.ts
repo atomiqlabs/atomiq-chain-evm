@@ -15,6 +15,7 @@ export type EVMRetryPolicy = {
 };
 export type EVMConfiguration = {
     safeBlockTag: EVMBlockTag;
+    finalizedBlockTag: EVMBlockTag;
     maxLogsBlockRange: number;
     maxParallelLogRequests: number;
     maxParallelCalls: number;

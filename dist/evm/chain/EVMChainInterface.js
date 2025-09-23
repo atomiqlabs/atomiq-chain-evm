@@ -14,13 +14,14 @@ const EVMSigner_1 = require("../wallet/EVMSigner");
 const EVMBrowserSigner_1 = require("../wallet/EVMBrowserSigner");
 class EVMChainInterface {
     constructor(chainId, evmChainId, provider, config, retryPolicy, evmFeeEstimator = new EVMFees_1.EVMFees(provider)) {
-        var _a;
+        var _a, _b;
         this.chainId = chainId;
         this.evmChainId = evmChainId;
         this.provider = provider;
         this.retryPolicy = retryPolicy;
         this.config = config;
         (_a = this.config).safeBlockTag ?? (_a.safeBlockTag = "safe");
+        (_b = this.config).finalizedBlockTag ?? (_b.finalizedBlockTag = "finalized");
         this.logger = (0, Utils_1.getLogger)("EVMChainInterface(" + this.evmChainId + "): ");
         this.Fees = evmFeeEstimator;
         this.Tokens = new EVMTokens_1.EVMTokens(this);
@@ -82,7 +83,7 @@ class EVMChainInterface {
         return this.Transactions.getTxStatus(tx);
     }
     async getFinalizedBlock() {
-        const block = await this.Blocks.getBlock("finalized");
+        const block = await this.Blocks.getBlock(this.config.finalizedBlockTag);
         return {
             height: block.number,
             blockHash: block.hash

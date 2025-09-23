@@ -28,6 +28,7 @@ export type EVMRetryPolicy = {
 
 export type EVMConfiguration = {
     safeBlockTag: EVMBlockTag,
+    finalizedBlockTag: EVMBlockTag,
     maxLogsBlockRange: number,
     maxParallelLogRequests: number,
     maxParallelCalls: number,
@@ -68,6 +69,7 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
         this.retryPolicy = retryPolicy;
         this.config = config;
         this.config.safeBlockTag ??= "safe";
+        this.config.finalizedBlockTag ??= "finalized";
 
         this.logger = getLogger("EVMChainInterface("+this.evmChainId+"): ");
 
@@ -155,7 +157,7 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
     }
 
     async getFinalizedBlock(): Promise<{ height: number; blockHash: string }> {
-        const block = await this.Blocks.getBlock("finalized");
+        const block = await this.Blocks.getBlock(this.config.finalizedBlockTag);
         return {
             height: block.number,
             blockHash: block.hash

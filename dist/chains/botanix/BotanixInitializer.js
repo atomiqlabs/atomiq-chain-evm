@@ -84,6 +84,7 @@ function initializeBotanix(options, bitcoinRpc, network) {
     const Fees = options.fees ?? new EVMFees_1.EVMFees(provider, 2n * 1000000000n, 1000000n);
     const chainInterface = new EVMChainInterface_1.EVMChainInterface("BOTANIX", chainId, provider, {
         safeBlockTag: "finalized",
+        finalizedBlockTag: "finalized",
         maxLogsBlockRange: options?.evmConfig?.maxLogsBlockRange ?? 950,
         maxLogTopics: options?.evmConfig?.maxLogTopics ?? 64,
         maxParallelLogRequests: options?.evmConfig?.maxParallelLogRequests ?? 5,

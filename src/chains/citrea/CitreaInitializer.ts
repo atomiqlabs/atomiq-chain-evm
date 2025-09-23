@@ -127,6 +127,7 @@ export function initializeCitrea(
 
     const chainInterface = new EVMChainInterface("CITREA", chainId, provider, {
         safeBlockTag: "latest",
+        finalizedBlockTag: "safe",
         maxLogsBlockRange: options?.evmConfig?.maxLogsBlockRange ?? 950,
         maxLogTopics: options?.evmConfig?.maxLogTopics ?? 64,
         maxParallelLogRequests: options?.evmConfig?.maxParallelLogRequests ?? 5,
