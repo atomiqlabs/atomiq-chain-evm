@@ -36,7 +36,7 @@ class ReconnectingWebSocketProvider extends SocketProvider_1.SocketProvider {
             logger.info("connect(): Websocket connected!");
         };
         this.websocket.onerror = (err) => {
-            logger.error(`connect(): onerror: Websocket connection error: `, err);
+            logger.error(`connect(): onerror: Websocket connection error: `, err.error ?? err);
             this.disconnectedAndScheduleReconnect();
         };
         this.websocket.onmessage = (message) => {
@@ -59,7 +59,7 @@ class ReconnectingWebSocketProvider extends SocketProvider_1.SocketProvider {
             return;
         this.websocket.onclose = null;
         //Register dummy handler, otherwise we get unhandled `error` event which crashes the whole thing
-        this.websocket.onerror = (err) => logger.error("disconnectedAndScheduleReconnect(): Post-close onerror: ", err);
+        this.websocket.onerror = (err) => logger.error("disconnectedAndScheduleReconnect(): Post-close onerror: ", err.error ?? err);
         this.websocket.onmessage = null;
         this.websocket.onopen = null;
         this.websocket = null;
