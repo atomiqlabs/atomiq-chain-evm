@@ -408,7 +408,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         return result;
     }
 
-    async getWithdrawalStates(withdrawalTxs: {withdrawal: EVMSpvWithdrawalData, scStartHeight?: number}[]): Promise<{[btcTxId: string]: SpvWithdrawalState}> {
+    async getWithdrawalStates(withdrawalTxs: {withdrawal: EVMSpvWithdrawalData, scStartBlockheight?: number}[]): Promise<{[btcTxId: string]: SpvWithdrawalState}> {
         const result: {[btcTxId: string]: SpvWithdrawalState} = {};
 
         const events: ["Fronted", "Claimed", "Closed"] = ["Fronted", "Claimed", "Closed"];
@@ -419,11 +419,11 @@ export class EVMSpvVaultContract<ChainId extends string>
 
             let scStartHeight = null;
             for(let val of checkWithdrawalTxs) {
-                if(val.scStartHeight==null) {
+                if(val.scStartBlockheight==null) {
                     scStartHeight = null;
                     break;
                 }
-                scStartHeight = Math.min(scStartHeight ?? Infinity, val.scStartHeight);
+                scStartHeight = Math.min(scStartHeight ?? Infinity, val.scStartBlockheight);
             }
 
             const keys = [null, null, checkWithdrawalTxs.map(withdrawal => hexlify(Buffer.from(withdrawal.withdrawal.getTxId(), "hex").reverse()))];

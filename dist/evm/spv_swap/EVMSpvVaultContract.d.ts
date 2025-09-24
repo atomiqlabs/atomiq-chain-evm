@@ -72,7 +72,7 @@ export declare class EVMSpvVaultContract<ChainId extends string> extends EVMCont
     getWithdrawalState(withdrawalTx: EVMSpvWithdrawalData, scStartHeight?: number): Promise<SpvWithdrawalState>;
     getWithdrawalStates(withdrawalTxs: {
         withdrawal: EVMSpvWithdrawalData;
-        scStartHeight?: number;
+        scStartBlockheight?: number;
     }[]): Promise<{
         [btcTxId: string]: SpvWithdrawalState;
     }>;

@@ -303,11 +303,11 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
             const checkWithdrawalTxsMap = new Map(checkWithdrawalTxs.map(val => [val.withdrawal.getTxId(), val.withdrawal]));
             let scStartHeight = null;
             for (let val of checkWithdrawalTxs) {
-                if (val.scStartHeight == null) {
+                if (val.scStartBlockheight == null) {
                     scStartHeight = null;
                     break;
                 }
-                scStartHeight = Math.min(scStartHeight ?? Infinity, val.scStartHeight);
+                scStartHeight = Math.min(scStartHeight ?? Infinity, val.scStartBlockheight);
             }
             const keys = [null, null, checkWithdrawalTxs.map(withdrawal => (0, ethers_1.hexlify)(buffer_1.Buffer.from(withdrawal.withdrawal.getTxId(), "hex").reverse()))];
             if (scStartHeight == null) {
