@@ -24,6 +24,7 @@ export class EVMEvents extends EVMModule<any> {
             });
         } catch (e) {
             if(
+                (e.error?.code===-32602 && e.error?.message?.startsWith("query exceeds max results")) || //Query exceeds max results
                 e.error?.code===-32008 || //Response is too big
                 e.error?.code===-32005 //Limit exceeded
             ) {

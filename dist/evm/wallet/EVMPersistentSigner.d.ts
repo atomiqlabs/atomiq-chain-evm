@@ -22,6 +22,7 @@ export declare class EVMPersistentSigner extends EVMSigner {
     private save;
     private checkPastTransactions;
     private startFeeBumper;
+    private syncNonceFromChain;
     init(): Promise<void>;
     stop(): Promise<void>;
     private readonly sendTransactionQueue;

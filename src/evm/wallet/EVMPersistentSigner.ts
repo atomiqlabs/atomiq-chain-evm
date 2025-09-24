@@ -131,11 +131,11 @@ export class EVMPersistentSigner extends EVMSigner {
         for(let [nonce, data] of this.pendingTxs) {
             if(!data.sending && data.lastBumped<Date.now()-this.waitBeforeBump) {
                 _safeBlockTxCount = await this.chainInterface.provider.getTransactionCount(this.address, this.safeBlockTag);
-                this.confirmedNonce = _safeBlockTxCount;
-                if(_safeBlockTxCount > nonce) {
+                this.confirmedNonce = _safeBlockTxCount - 1;
+                if(this.confirmedNonce >= nonce) {
                     this.pendingTxs.delete(nonce);
                     data.txs.forEach(tx => this.chainInterface.Transactions._knownTxSet.delete(tx.hash));
-                    this.logger.info("checkPastTransactions(): Tx confirmed, required fee bumps: ", data.txs.length);
+                    this.logger.info(`checkPastTransactions(): Tx confirmed, nonce: ${nonce}, required fee bumps: `, data.txs.length);
                     this.save();
                     continue;
                 }
@@ -228,6 +228,22 @@ export class EVMPersistentSigner extends EVMSigner {
         func();
     }
 
+    private async syncNonceFromChain() {
+        const txCount = await this.chainInterface.provider.getTransactionCount(this.address, this.safeBlockTag);
+        this.confirmedNonce = txCount-1;
+        if(this.pendingNonce < this.confirmedNonce) {
+            this.pendingNonce = this.confirmedNonce;
+            for(let [nonce, data] of this.pendingTxs) {
+                if(nonce <= this.pendingNonce) {
+                    this.pendingTxs.delete(nonce);
+                    data.txs.forEach(tx => this.chainInterface.Transactions._knownTxSet.delete(tx.hash));
+                }
+                this.logger.info(`syncNonceFromChain(): Tx confirmed, nonce: ${nonce}, required fee bumps: `, data.txs.length);
+            }
+            this.save();
+        }
+    }
+
     async init(): Promise<void> {
         try {
             await fs.mkdir(this.directory)
@@ -291,10 +307,16 @@ export class EVMPersistentSigner extends EVMSigner {
             this.chainInterface.Transactions._knownTxSet.add(signedTx.hash);
 
             try {
+                //TODO: This can fail due to not receiving a response from the server, however the transaction
+                // might already be broadcasted!
                 const result = await this.chainInterface.provider.broadcastTransaction(signedRawTx);
                 pendingTxObject.sending = false;
                 return result;
             } catch (e) {
+                if(e.code==="NONCE_EXPIRED") {
+                    //Re-check nonce from on-chain
+                    await this.syncNonceFromChain();
+                }
                 this.chainInterface.Transactions._knownTxSet.delete(signedTx.hash);
                 this.pendingTxs.delete(transaction.nonce);
                 this.pendingNonce--;
