@@ -23,7 +23,7 @@ export type CitreaOptions = {
         };
     };
     fees?: CitreaFees;
-    evmConfig?: Omit<EVMConfiguration, "safeBlockTag">;
+    evmConfig?: Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag">;
 };
 export declare function initializeCitrea(options: CitreaOptions, bitcoinRpc: BitcoinRpc<any>, network: BitcoinNetwork): ChainData<CitreaChainType>;
 export type CitreaInitializerType = ChainInitializer<CitreaOptions, CitreaChainType, CitreaAssetsType>;

@@ -23,7 +23,7 @@ export type BotanixOptions = {
         };
     };
     fees?: EVMFees;
-    evmConfig?: Omit<EVMConfiguration, "safeBlockTag">;
+    evmConfig?: Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag">;
 };
 export declare function initializeBotanix(options: BotanixOptions, bitcoinRpc: BitcoinRpc<any>, network: BitcoinNetwork): ChainData<BotanixChainType>;
 export type BotanixInitializerType = ChainInitializer<BotanixOptions, BotanixChainType, BotanixAssetsType>;

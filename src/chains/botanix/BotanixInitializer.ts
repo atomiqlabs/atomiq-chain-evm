@@ -87,7 +87,7 @@ export type BotanixOptions = {
 
     fees?: EVMFees,
 
-    evmConfig?: Omit<EVMConfiguration, "safeBlockTag">
+    evmConfig?: Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag">
 }
 
 export function initializeBotanix(

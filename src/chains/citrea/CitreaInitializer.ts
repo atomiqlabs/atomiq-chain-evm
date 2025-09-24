@@ -93,7 +93,7 @@ export type CitreaOptions = {
 
     fees?: CitreaFees,
 
-    evmConfig?: Omit<EVMConfiguration, "safeBlockTag">
+    evmConfig?: Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag">
 }
 
 export function initializeCitrea(
