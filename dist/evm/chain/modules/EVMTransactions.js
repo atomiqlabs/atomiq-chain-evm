@@ -4,6 +4,7 @@ exports.EVMTransactions = void 0;
 const EVMModule_1 = require("../EVMModule");
 const ethers_1 = require("ethers");
 const Utils_1 = require("../../../utils/Utils");
+const base_1 = require("@atomiqlabs/base");
 const MAX_UNCONFIRMED_TXNS = 10;
 class EVMTransactions extends EVMModule_1.EVMModule {
     constructor() {
@@ -68,7 +69,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
             this.latestConfirmedNonces[tx.from] = nextAccountNonce;
         }
         if (state === "reverted")
-            throw new Error("Transaction reverted!");
+            throw new base_1.TransactionRevertedError("Transaction reverted!");
         return confirmedTxId;
     }
     /**

@@ -2,6 +2,7 @@ import {EVMModule} from "../EVMModule";
 import {Transaction, TransactionRequest, TransactionResponse} from "ethers";
 import {timeoutPromise} from "../../../utils/Utils";
 import {EVMSigner} from "../../wallet/EVMSigner";
+import {TransactionRevertedError} from "@atomiqlabs/base";
 
 export type EVMTx = TransactionRequest;
 
@@ -87,7 +88,7 @@ export class EVMTransactions extends EVMModule<any> {
         if(currentConfirmedNonce==null || nextAccountNonce > currentConfirmedNonce) {
             this.latestConfirmedNonces[tx.from] = nextAccountNonce;
         }
-        if(state==="reverted") throw new Error("Transaction reverted!");
+        if(state==="reverted") throw new TransactionRevertedError("Transaction reverted!");
 
         return confirmedTxId;
     }
