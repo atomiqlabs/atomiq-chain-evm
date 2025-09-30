@@ -238,15 +238,15 @@ class EVMPersistentSigner extends EVMSigner_1.EVMSigner {
                 return result;
             }
             catch (e) {
+                this.chainInterface.Transactions._knownTxSet.delete(signedTx.hash);
+                this.pendingTxs.delete(transaction.nonce);
+                this.pendingNonce--;
+                this.logger.debug("sendTransaction(): Error when broadcasting transaction, reverting pending nonce to: ", this.pendingNonce);
                 if (e.code === "NONCE_EXPIRED") {
                     //Re-check nonce from on-chain
                     this.logger.info("sendTransaction(): Got NONCE_EXPIRED back from backend, re-checking latest nonce from chain!");
                     await this.syncNonceFromChain();
                 }
-                this.chainInterface.Transactions._knownTxSet.delete(signedTx.hash);
-                this.pendingTxs.delete(transaction.nonce);
-                this.pendingNonce--;
-                this.logger.debug("sendTransaction(): Error when broadcasting transaction, reverting pending nonce to: ", this.pendingNonce);
                 throw e;
             }
         });
