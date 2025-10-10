@@ -30,11 +30,13 @@ export declare class EVMTransactions extends EVMModule<any> {
      * @private
      */
     private confirmTransaction;
+    private applyAccessList;
     /**
      * Prepares starknet transactions, checks if the account is deployed, assigns nonces if needed & calls beforeTxSigned callback
      *
      * @param signer
      * @param txs
+     * @param useAccessList Whether to use access lists for sending txns
      * @private
      */
     private prepareTransactions;
@@ -58,8 +60,9 @@ export declare class EVMTransactions extends EVMModule<any> {
      * @param parallel whether the send all the transaction at once in parallel or sequentially (such that transactions
      *  are executed in order)
      * @param onBeforePublish a callback called before every transaction is published, NOTE: callback is not called when using browser-based wallet!
+     * @param useAccessLists
      */
-    sendAndConfirm(signer: EVMSigner, txs: TransactionRequest[], waitForConfirmation?: boolean, abortSignal?: AbortSignal, parallel?: boolean, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>): Promise<string[]>;
+    sendAndConfirm(signer: EVMSigner, txs: TransactionRequest[], waitForConfirmation?: boolean, abortSignal?: AbortSignal, parallel?: boolean, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>, useAccessLists?: boolean): Promise<string[]>;
     /**
      * Serializes the signed EVM transaction
      *

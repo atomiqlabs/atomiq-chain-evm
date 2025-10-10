@@ -72,14 +72,41 @@ class EVMTransactions extends EVMModule_1.EVMModule {
             throw new base_1.TransactionRevertedError("Transaction reverted!");
         return confirmedTxId;
     }
+    async applyAccessList(tx) {
+        let accessListResponse;
+        try {
+            accessListResponse = await this.provider.send("eth_createAccessList", [{
+                    from: tx.from,
+                    to: tx.to,
+                    value: (0, ethers_1.toBeHex)(tx.value ?? 0n),
+                    input: tx.data,
+                    data: tx.data
+                }, "pending"]);
+        }
+        catch (e) {
+            if (e.code !== "UNKNOWN_ERROR" || e.error?.code !== 3)
+                throw e;
+            //Re-attempt with default pre-populated access list
+            accessListResponse = await this.provider.send("eth_createAccessList", [{
+                    from: tx.from,
+                    to: tx.to,
+                    value: (0, ethers_1.toBeHex)(tx.value ?? 0n),
+                    input: tx.data,
+                    data: tx.data,
+                    accessList: this.root.config.defaultAccessListAddresses.map(val => ({ address: val, storageKeys: [] }))
+                }, "pending"]);
+        }
+        tx.accessList = accessListResponse.accessList;
+    }
     /**
      * Prepares starknet transactions, checks if the account is deployed, assigns nonces if needed & calls beforeTxSigned callback
      *
      * @param signer
      * @param txs
+     * @param useAccessList Whether to use access lists for sending txns
      * @private
      */
-    async prepareTransactions(signer, txs) {
+    async prepareTransactions(signer, txs, useAccessList) {
         for (let tx of txs) {
             tx.chainId = this.root.evmChainId;
             tx.from = signer.getAddress();
@@ -104,6 +131,8 @@ class EVMTransactions extends EVMModule_1.EVMModule {
             }
         }
         for (let tx of txs) {
+            if (useAccessList)
+                await this.applyAccessList(tx);
             for (let callback of this.cbksBeforeTxSigned) {
                 await callback(tx);
             }
@@ -143,9 +172,10 @@ class EVMTransactions extends EVMModule_1.EVMModule {
      * @param parallel whether the send all the transaction at once in parallel or sequentially (such that transactions
      *  are executed in order)
      * @param onBeforePublish a callback called before every transaction is published, NOTE: callback is not called when using browser-based wallet!
+     * @param useAccessLists
      */
-    async sendAndConfirm(signer, txs, waitForConfirmation, abortSignal, parallel, onBeforePublish) {
-        await this.prepareTransactions(signer, txs);
+    async sendAndConfirm(signer, txs, waitForConfirmation, abortSignal, parallel, onBeforePublish, useAccessLists) {
+        await this.prepareTransactions(signer, txs, useAccessLists ?? this.root.config.useAccessLists);
         const signedTxs = [];
         //Don't separate the signing process from the sending when using browser-based wallet
         if (signer.signTransaction != null)

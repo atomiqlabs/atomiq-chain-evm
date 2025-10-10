@@ -80,6 +80,7 @@ exports.allowedEthersErrorCodes = new Set([
     "CALL_EXCEPTION", "NONCE_EXPIRED", "REPLACEMENT_UNDERPRICED", "TRANSACTION_REPLACED", "UNCONFIGURED_NAME", "OFFCHAIN_FAULT", "ACTION_REJECTED"
 ]);
 exports.allowedEthersErrorNumbers = new Set([
+    3,
     -32700,
     -32600,
     -32601,

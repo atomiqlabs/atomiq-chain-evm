@@ -67,8 +67,8 @@ class EVMChainInterface {
     }
     ////////////////////////////////////////////
     //// Transactions
-    sendAndConfirm(signer, txs, waitForConfirmation, abortSignal, parallel, onBeforePublish) {
-        return this.Transactions.sendAndConfirm(signer, txs, waitForConfirmation, abortSignal, parallel, onBeforePublish);
+    sendAndConfirm(signer, txs, waitForConfirmation, abortSignal, parallel, onBeforePublish, useAccessLists) {
+        return this.Transactions.sendAndConfirm(signer, txs, waitForConfirmation, abortSignal, parallel, onBeforePublish, useAccessLists);
     }
     serializeTx(tx) {
         return this.Transactions.serializeTx(tx);

@@ -92,6 +92,7 @@ export const allowedEthersErrorCodes: Set<string> = new Set([
 ]);
 
 export const allowedEthersErrorNumbers: Set<number> = new Set([
+    3, //Revertion during eth_getAccessList call
     -32700, //Invalid JSON
     -32600, //Invalid request
     -32601, //Method not found

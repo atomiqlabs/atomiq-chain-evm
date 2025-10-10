@@ -125,7 +125,9 @@ export function initializeBotanix(
         maxLogsBlockRange: options?.evmConfig?.maxLogsBlockRange ?? 950,
         maxLogTopics: options?.evmConfig?.maxLogTopics ?? 64,
         maxParallelLogRequests: options?.evmConfig?.maxParallelLogRequests ?? 5,
-        maxParallelCalls: options?.evmConfig?.maxParallelCalls ?? 5
+        maxParallelCalls: options?.evmConfig?.maxParallelCalls ?? 5,
+        useAccessLists: options?.evmConfig?.useAccessLists,
+        defaultAccessListAddresses: options?.evmConfig?.defaultAccessListAddresses
     }, options.retryPolicy, Fees);
 
     const btcRelay = new EVMBtcRelay(

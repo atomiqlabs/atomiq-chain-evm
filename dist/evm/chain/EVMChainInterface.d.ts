@@ -20,6 +20,8 @@ export type EVMConfiguration = {
     maxParallelLogRequests: number;
     maxParallelCalls: number;
     maxLogTopics: number;
+    useAccessLists?: boolean;
+    defaultAccessListAddresses?: string[];
 };
 export declare class EVMChainInterface<ChainId extends string = string> implements ChainInterface<EVMTx, EVMSigner, ChainId, Signer> {
     readonly chainId: ChainId;
@@ -46,7 +48,7 @@ export declare class EVMChainInterface<ChainId extends string = string> implemen
     offBeforeTxSigned(callback: (tx: TransactionRequest) => Promise<void>): boolean;
     randomAddress(): string;
     randomSigner(): EVMSigner;
-    sendAndConfirm(signer: EVMSigner, txs: TransactionRequest[], waitForConfirmation?: boolean, abortSignal?: AbortSignal, parallel?: boolean, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>): Promise<string[]>;
+    sendAndConfirm(signer: EVMSigner, txs: TransactionRequest[], waitForConfirmation?: boolean, abortSignal?: AbortSignal, parallel?: boolean, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>, useAccessLists?: boolean): Promise<string[]>;
     serializeTx(tx: Transaction): Promise<string>;
     deserializeTx(txData: string): Promise<Transaction>;
     getTxIdStatus(txId: string): Promise<"not_found" | "pending" | "success" | "reverted">;

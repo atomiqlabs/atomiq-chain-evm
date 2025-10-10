@@ -32,7 +32,10 @@ export type EVMConfiguration = {
     maxLogsBlockRange: number,
     maxParallelLogRequests: number,
     maxParallelCalls: number,
-    maxLogTopics: number
+    maxLogTopics: number,
+
+    useAccessLists?: boolean,
+    defaultAccessListAddresses?: string[]
 };
 
 export class EVMChainInterface<ChainId extends string = string> implements ChainInterface<EVMTx, EVMSigner, ChainId, Signer> {
@@ -135,9 +138,10 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
         waitForConfirmation?: boolean,
         abortSignal?: AbortSignal,
         parallel?: boolean,
-        onBeforePublish?: (txId: string, rawTx: string) => Promise<void>
+        onBeforePublish?: (txId: string, rawTx: string) => Promise<void>,
+        useAccessLists?: boolean
     ): Promise<string[]> {
-        return this.Transactions.sendAndConfirm(signer, txs, waitForConfirmation, abortSignal, parallel, onBeforePublish);
+        return this.Transactions.sendAndConfirm(signer, txs, waitForConfirmation, abortSignal, parallel, onBeforePublish, useAccessLists);
     }
 
     serializeTx(tx: Transaction): Promise<string> {

@@ -131,7 +131,9 @@ export function initializeCitrea(
         maxLogsBlockRange: options?.evmConfig?.maxLogsBlockRange ?? 950,
         maxLogTopics: options?.evmConfig?.maxLogTopics ?? 64,
         maxParallelLogRequests: options?.evmConfig?.maxParallelLogRequests ?? 5,
-        maxParallelCalls: options?.evmConfig?.maxParallelCalls ?? 5
+        maxParallelCalls: options?.evmConfig?.maxParallelCalls ?? 5,
+        useAccessLists: options?.evmConfig?.useAccessLists,
+        defaultAccessListAddresses: options?.evmConfig?.defaultAccessListAddresses
     }, options.retryPolicy, Fees);
     chainInterface.Tokens = new CitreaTokens(chainInterface); //Override with custom token module allowing l1 state diff based fee calculation
 
