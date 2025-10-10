@@ -18,31 +18,31 @@ const BotanixChainIds = {
 };
 const BotanixContractAddresses = {
     MAINNET: {
-        executionContract: "0x5bb0C725939cB825d1322A99a3FeB570097628c3",
-        swapContract: "0x8A44f1995a54fD976c904Cccf9EbaB49c3182eb3",
-        btcRelayContract: "0x6a373b6Adad83964727bA0fa15E22Be05173fc12",
-        btcRelayDeploymentHeight: 1791247,
-        spvVaultContract: "0xc98Ef084d3911C8447DBbE4dDa18bC2c9bB0584e",
-        spvVaultDeploymentHeight: 1791249,
+        executionContract: "",
+        swapContract: "",
+        btcRelayContract: "",
+        btcRelayDeploymentHeight: 0,
+        spvVaultContract: "",
+        spvVaultDeploymentHeight: 0,
         handlerContracts: {
             refund: {
-                timelock: "0x3887B02217726bB36958Dd595e57293fB63D5082"
+                timelock: ""
             },
             claim: {
-                [base_1.ChainSwapType.HTLC]: "0x59A54378B6bA9C21ba66487C6A701D702baDEabE",
-                [base_1.ChainSwapType.CHAIN_TXID]: "0x32EB4DbDdC31e19ba908fecc7cae03F0d04F01Fa",
-                [base_1.ChainSwapType.CHAIN]: "0xaB2D14745362B26a732dD8B7F95daAE3D2914bBF",
-                [base_1.ChainSwapType.CHAIN_NONCED]: "0x2920EE496693A5027249a027A6FD3F643E743745"
+                [base_1.ChainSwapType.HTLC]: "",
+                [base_1.ChainSwapType.CHAIN_TXID]: "",
+                [base_1.ChainSwapType.CHAIN]: "",
+                [base_1.ChainSwapType.CHAIN_NONCED]: ""
             }
         }
     },
     TESTNET: {
-        executionContract: "0xBbf7755b674dD107d59F0650D1A3fA9C60bf6Fe6",
-        swapContract: "0xf61D1da542111216337FeEA5586022130D468842",
+        executionContract: "0xe510D5781C6C849284Fb25Dc20b1684cEC445C8B",
+        swapContract: "0xfFA842529977a40A3fdb988cdDC9CB5c39bAcF26",
         btcRelayContract: "0xba7E78011909e3501027FBc226a04DCC837a555D",
         btcRelayDeploymentHeight: 3462466,
-        spvVaultContract: "0x1120e1Eb3049148AeBEe497331774BfE1f6c174D",
-        spvVaultDeploymentHeight: 3425257,
+        spvVaultContract: "0x9a027B5Bf43382Cc4A5134d9EFD389f61ece27B9",
+        spvVaultDeploymentHeight: 4173451,
         handlerContracts: {
             refund: {
                 timelock: "0xEf227Caf24681FcEDa5fC26777B81964D404e239"
