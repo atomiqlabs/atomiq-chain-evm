@@ -10,7 +10,7 @@ export class CitreaSwapContract extends EVMSwapContract<"CITREA"> {
         LP_VAULT_UPDATE_DIFF_SIZE: 25,
         ERC_20_TRANSFER_DIFF_SIZE: 50,
         NATIVE_SELF_TRANSFER_DIFF_SIZE: 20,
-        NATIVE_TRANSFER_DIFF_SIZE: 30
+        NATIVE_TRANSFER_DIFF_SIZE: 55
     };
 
     private calculateStateDiff(signer: string, tokenStateChanges: Set<string>): number {

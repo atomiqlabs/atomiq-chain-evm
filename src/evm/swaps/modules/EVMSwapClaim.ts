@@ -15,7 +15,7 @@ export class EVMSwapClaim extends EVMSwapModule {
     private static readonly GasCosts = {
         BASE: 30_000 + 21_000,
         ERC20_TRANSFER: 40_000,
-        NATIVE_TRANSFER: 35_500,
+        NATIVE_TRANSFER: 85_000,
         LP_VAULT_TRANSFER: 10_000,
         REPUTATION: 25_000
     };

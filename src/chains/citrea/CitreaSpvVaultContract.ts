@@ -12,7 +12,7 @@ export class CitreaSpvVaultContract extends EVMSpvVaultContract<"CITREA"> {
         BASE_DIFF_SIZE: 50,
         ERC_20_TRANSFER_DIFF_SIZE: 50,
         NATIVE_SELF_TRANSFER_DIFF_SIZE: 20,
-        NATIVE_TRANSFER_DIFF_SIZE: 30,
+        NATIVE_TRANSFER_DIFF_SIZE: 55,
         EXECUTION_SCHEDULE_DIFF_SIZE: 40
     };
 
