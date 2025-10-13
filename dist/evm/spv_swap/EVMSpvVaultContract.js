@@ -555,7 +555,7 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
     getClaimGas(signer, vault, data) {
         let totalGas = EVMSpvVaultContract.GasCosts.CLAIM_BASE;
         if (data == null || (data.rawAmounts[0] != null && data.rawAmounts[0] > 0n)) {
-            const transferFee = vault.token0.token.toLowerCase() === this.Chain.getNativeCurrencyAddress() ?
+            const transferFee = vault == null || vault.token0.token.toLowerCase() === this.Chain.getNativeCurrencyAddress() ?
                 EVMSpvVaultContract.GasCosts.CLAIM_NATIVE_TRANSFER : EVMSpvVaultContract.GasCosts.CLAIM_ERC20_TRANSFER;
             totalGas += transferFee;
             if (data == null || data.frontingFeeRate > 0n)
@@ -564,7 +564,7 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
                 totalGas += transferFee; //Also needs to pay out to caller
         }
         if (data == null || (data.rawAmounts[1] != null && data.rawAmounts[1] > 0n)) {
-            const transferFee = vault.token1.token.toLowerCase() === this.Chain.getNativeCurrencyAddress() ?
+            const transferFee = vault == null || vault.token1.token.toLowerCase() === this.Chain.getNativeCurrencyAddress() ?
                 EVMSpvVaultContract.GasCosts.CLAIM_NATIVE_TRANSFER : EVMSpvVaultContract.GasCosts.CLAIM_ERC20_TRANSFER;
             totalGas += transferFee;
             if (data == null || data.frontingFeeRate > 0n)
@@ -579,11 +579,11 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
     getFrontGas(signer, vault, data) {
         let totalGas = EVMSpvVaultContract.GasCosts.FRONT_BASE;
         if (data == null || (data.rawAmounts[0] != null && data.rawAmounts[0] > 0n)) {
-            totalGas += vault.token0.token.toLowerCase() === this.Chain.getNativeCurrencyAddress() ?
+            totalGas += vault == null || vault.token0.token.toLowerCase() === this.Chain.getNativeCurrencyAddress() ?
                 EVMSpvVaultContract.GasCosts.FRONT_NATIVE_TRANSFER : EVMSpvVaultContract.GasCosts.FRONT_ERC20_TRANSFER;
         }
         if (data == null || (data.rawAmounts[1] != null && data.rawAmounts[1] > 0n)) {
-            totalGas += vault.token1.token.toLowerCase() === this.Chain.getNativeCurrencyAddress() ?
+            totalGas += vault == null || vault.token1.token.toLowerCase() === this.Chain.getNativeCurrencyAddress() ?
                 EVMSpvVaultContract.GasCosts.FRONT_NATIVE_TRANSFER : EVMSpvVaultContract.GasCosts.FRONT_ERC20_TRANSFER;
         }
         if (data == null || (data.executionHash != null && data.executionHash !== ethers_1.ZeroHash))

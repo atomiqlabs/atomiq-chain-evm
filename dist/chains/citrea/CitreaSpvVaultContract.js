@@ -27,18 +27,20 @@ class CitreaSpvVaultContract extends EVMSpvVaultContract_1.EVMSpvVaultContract {
         let diffSize = CitreaSpvVaultContract.StateDiffSize.BASE_DIFF_SIZE;
         const recipient = data != null ? data.recipient : EVMAddresses_1.EVMAddresses.randomAddress();
         if (data == null || (data.rawAmounts[0] != null && data.rawAmounts[0] > 0n)) {
-            tokenStateChanges.add(recipient.toLowerCase() + ":" + vault.token0.token.toLowerCase());
+            const token0Address = vault == null ? EVMAddresses_1.EVMAddresses.randomAddress().toLowerCase() : vault.token0.token.toLowerCase();
+            tokenStateChanges.add(recipient.toLowerCase() + ":" + token0Address);
             if (data == null || data.frontingFeeRate > 0n)
-                tokenStateChanges.add(ethers_1.ZeroAddress + ":" + vault.token0.token.toLowerCase()); //Also needs to pay out to fronter
+                tokenStateChanges.add(ethers_1.ZeroAddress + ":" + token0Address); //Also needs to pay out to fronter
             if (data == null || data.callerFeeRate > 0n)
-                tokenStateChanges.add(signer + ":" + vault.token0.token.toLowerCase()); //Also needs to pay out to caller
+                tokenStateChanges.add(signer + ":" + token0Address); //Also needs to pay out to caller
         }
         if (data == null || (data.rawAmounts[1] != null && data.rawAmounts[1] > 0n)) {
-            tokenStateChanges.add(recipient.toLowerCase() + ":" + vault.token1.token.toLowerCase());
+            const token1Address = vault == null ? this.Chain.getNativeCurrencyAddress().toLowerCase() : vault.token1.token.toLowerCase();
+            tokenStateChanges.add(recipient.toLowerCase() + ":" + token1Address);
             if (data == null || data.frontingFeeRate > 0n)
-                tokenStateChanges.add(ethers_1.ZeroAddress + ":" + vault.token1.token.toLowerCase()); //Also needs to pay out to fronter
+                tokenStateChanges.add(ethers_1.ZeroAddress + ":" + token1Address); //Also needs to pay out to fronter
             if (data == null || data.callerFeeRate > 0n)
-                tokenStateChanges.add(signer + ":" + vault.token1.token.toLowerCase()); //Also needs to pay out to caller
+                tokenStateChanges.add(signer + ":" + token1Address); //Also needs to pay out to caller
         }
         diffSize += this.calculateStateDiff(signer, tokenStateChanges);
         if (data == null || (data.executionHash != null && data.executionHash !== ethers_1.ZeroHash))
