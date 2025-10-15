@@ -55,6 +55,8 @@ __exportStar(require("./chains/citrea/CitreaChainType"), exports);
 __exportStar(require("./chains/citrea/CitreaFees"), exports);
 __exportStar(require("./chains/botanix/BotanixInitializer"), exports);
 __exportStar(require("./chains/botanix/BotanixChainType"), exports);
+__exportStar(require("./chains/alpen/AlpenInitializer"), exports);
+__exportStar(require("./chains/alpen/AlpenChainType"), exports);
 __exportStar(require("./evm/providers/JsonRpcProviderWithRetries"), exports);
 __exportStar(require("./evm/providers/WebSocketProviderWithRetries"), exports);
 __exportStar(require("./evm/providers/ReconnectingWebSocketProvider"), exports);

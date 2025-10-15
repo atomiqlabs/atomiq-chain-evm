@@ -39,6 +39,8 @@ export * from "./chains/citrea/CitreaChainType";
 export * from "./chains/citrea/CitreaFees";
 export * from "./chains/botanix/BotanixInitializer";
 export * from "./chains/botanix/BotanixChainType";
+export * from "./chains/alpen/AlpenInitializer";
+export * from "./chains/alpen/AlpenChainType";
 export * from "./evm/providers/JsonRpcProviderWithRetries";
 export * from "./evm/providers/WebSocketProviderWithRetries";
 export * from "./evm/providers/ReconnectingWebSocketProvider";
