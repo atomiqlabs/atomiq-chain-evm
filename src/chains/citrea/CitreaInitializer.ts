@@ -123,7 +123,7 @@ export function initializeCitrea(
         ):
         options.rpcUrl;
 
-    const Fees = options.fees ?? new CitreaFees(provider, 2n * 1_000_000_000n, 1_000_000n);
+    const Fees = options.fees ?? new CitreaFees(provider, 2n * 1_000_000_000n, 100_000n);
 
     const chainInterface = new EVMChainInterface("CITREA", chainId, provider, {
         safeBlockTag: "latest",

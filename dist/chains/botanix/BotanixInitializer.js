@@ -81,7 +81,7 @@ function initializeBotanix(options, bitcoinRpc, network) {
             ? new ethers_1.WebSocketProvider(options.rpcUrl, { name: "Botanix", chainId })
             : new ethers_1.JsonRpcProvider(options.rpcUrl, { name: "Botanix", chainId })) :
         options.rpcUrl;
-    const Fees = options.fees ?? new EVMFees_1.EVMFees(provider, 2n * 1000000000n, 1000000n);
+    const Fees = options.fees ?? new EVMFees_1.EVMFees(provider, 2n * 1000000000n, 100000n);
     const chainInterface = new EVMChainInterface_1.EVMChainInterface("BOTANIX", chainId, provider, {
         safeBlockTag: "finalized",
         finalizedBlockTag: "finalized",
