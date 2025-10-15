@@ -38,6 +38,10 @@ export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
     protected readonly spvVaultContractLogFilter: EventFilter;
     protected readonly swapContractLogFilter: EventFilter;
     protected unconfirmedEventQueue: AtomiqTypedEvent[];
+    protected confirmedEventQueue: {
+        event: AtomiqTypedEvent;
+        block: Block;
+    }[];
     constructor(chainInterface: EVMChainInterface, evmSwapContract: EVMSwapContract, evmSpvVaultContract: EVMSpvVaultContract<any>, pollIntervalSeconds?: number);
     private addProcessedEvent;
     private isEventProcessed;
@@ -92,7 +96,11 @@ export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
     protected spvVaultContractListener: (log: Log) => void;
     protected swapContractListener: (log: Log) => void;
     protected blockListener: (blockNumber: number) => Promise<void>;
+    protected finalityCheckTimer: any;
     protected wsStarted: boolean;
+    protected checkUnconfirmedEventsFinality(): Promise<void>;
+    protected addOrRemoveBlockListener(): Promise<void>;
+    protected startFinalityCheckTimer(): Promise<void>;
     protected setupWebsocket(): Promise<void>;
     init(): Promise<void>;
     stop(): Promise<void>;

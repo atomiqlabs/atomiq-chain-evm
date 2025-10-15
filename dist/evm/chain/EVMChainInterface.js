@@ -14,7 +14,7 @@ const EVMSigner_1 = require("../wallet/EVMSigner");
 const EVMBrowserSigner_1 = require("../wallet/EVMBrowserSigner");
 class EVMChainInterface {
     constructor(chainId, evmChainId, provider, config, retryPolicy, evmFeeEstimator = new EVMFees_1.EVMFees(provider)) {
-        var _a, _b;
+        var _a, _b, _c, _d;
         this.chainId = chainId;
         this.evmChainId = evmChainId;
         this.provider = provider;
@@ -22,6 +22,8 @@ class EVMChainInterface {
         this.config = config;
         (_a = this.config).safeBlockTag ?? (_a.safeBlockTag = "safe");
         (_b = this.config).finalizedBlockTag ?? (_b.finalizedBlockTag = "finalized");
+        (_c = this.config).finalityCheckStrategy ?? (_c.finalityCheckStrategy = { type: "timer" });
+        (_d = this.config.finalityCheckStrategy).delayMs ?? (_d.delayMs = 1000);
         this.logger = (0, Utils_1.getLogger)("EVMChainInterface(" + this.evmChainId + "): ");
         this.Fees = evmFeeEstimator;
         this.Tokens = new EVMTokens_1.EVMTokens(this);

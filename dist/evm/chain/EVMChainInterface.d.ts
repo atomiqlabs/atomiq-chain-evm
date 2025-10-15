@@ -22,6 +22,10 @@ export type EVMConfiguration = {
     maxLogTopics: number;
     useAccessLists?: boolean;
     defaultAccessListAddresses?: string[];
+    finalityCheckStrategy?: {
+        type: "timer" | "blocks";
+        delayMs?: number;
+    };
 };
 export declare class EVMChainInterface<ChainId extends string = string> implements ChainInterface<EVMTx, EVMSigner, ChainId, Signer> {
     readonly chainId: ChainId;

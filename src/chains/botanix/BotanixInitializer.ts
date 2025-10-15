@@ -127,7 +127,11 @@ export function initializeBotanix(
         maxParallelLogRequests: options?.evmConfig?.maxParallelLogRequests ?? 5,
         maxParallelCalls: options?.evmConfig?.maxParallelCalls ?? 5,
         useAccessLists: options?.evmConfig?.useAccessLists,
-        defaultAccessListAddresses: options?.evmConfig?.defaultAccessListAddresses
+        defaultAccessListAddresses: options?.evmConfig?.defaultAccessListAddresses,
+        finalityCheckStrategy: {
+            type: "timer",
+            delayMs: 1000
+        }
     }, options.retryPolicy, Fees);
 
     const btcRelay = new EVMBtcRelay(

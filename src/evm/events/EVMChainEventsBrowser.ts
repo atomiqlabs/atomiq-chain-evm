@@ -60,6 +60,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
     protected readonly swapContractLogFilter: EventFilter;
 
     protected unconfirmedEventQueue: AtomiqTypedEvent[] = [];
+    protected confirmedEventQueue: {event: AtomiqTypedEvent, block: Block}[] = [];
 
     constructor(
         chainInterface: EVMChainInterface,
@@ -304,8 +305,9 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
                     txId: event.transactionHash,
                     timestamp //Maybe deprecated
                 } as any;
+                const eventsArr = [parsedEvent];
                 for(let listener of this.listeners) {
-                    await listener([parsedEvent]);
+                    await listener(eventsArr);
                 }
                 this.addProcessedEvent(event);
             })();
@@ -439,16 +441,92 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
             return this.processEvents(events);
         }
         this.unconfirmedEventQueue.push(...events);
+        return this.addOrRemoveBlockListener();
     }
 
     protected spvVaultContractListener: (log: Log) => void;
     protected swapContractListener: (log: Log) => void;
     protected blockListener: (blockNumber: number) => Promise<void>;
-
+    protected finalityCheckTimer: any;
     protected wsStarted: boolean = false;
+
+    protected async checkUnconfirmedEventsFinality() {
+        if(this.unconfirmedEventQueue.length>0) {
+            const latestSafeBlock = await this.provider.getBlock(this.chainInterface.config.safeBlockTag);
+
+            const events = this.unconfirmedEventQueue.filter(event => {
+                return event.blockNumber <= latestSafeBlock.number;
+            });
+
+            const blocks: {[blockNumber: number]: Block} = {};
+            for(let event of events) {
+                const block = blocks[event.blockNumber] ?? (blocks[event.blockNumber] = await this.provider.getBlock(event.blockNumber));
+                if(block.hash===event.blockHash) {
+                    //Valid event
+                    const index = this.unconfirmedEventQueue.indexOf(event);
+                    if(index!==-1) this.unconfirmedEventQueue.splice(index, 1);
+                    this.confirmedEventQueue.push({event, block});
+                } else {
+                    //Block hash doesn't match
+                }
+            }
+        }
+
+        for(let confirmedEvent of this.confirmedEventQueue) {
+            await this.processEvents([confirmedEvent.event], confirmedEvent.block);
+            const index = this.confirmedEventQueue.indexOf(confirmedEvent);
+            if(index!==-1) this.confirmedEventQueue.splice(index, 1);
+        }
+    }
+
+    protected async addOrRemoveBlockListener() {
+        if(this.chainInterface.config.finalityCheckStrategy.type!=="blocks") return;
+        if(this.unconfirmedEventQueue.length>0 || this.confirmedEventQueue.length>0) {
+            this.logger.debug(`addOrRemoveBlockListener(): Adding block listener, unconfirmed/confirmed event count: ${this.unconfirmedEventQueue.length + this.confirmedEventQueue.length}`);
+            await this.provider.on("block", this.blockListener);
+        } else {
+            this.logger.debug(`addOrRemoveBlockListener(): Removing block listener, unconfirmed/confirmed event count: ${this.unconfirmedEventQueue.length + this.confirmedEventQueue.length}`);
+            await this.provider.off("block", this.blockListener);
+        }
+    }
+
+    protected async startFinalityCheckTimer() {
+        let check: () => Promise<void>;
+        check = async () => {
+            if(!this.wsStarted) return;
+            if(this.unconfirmedEventQueue.length>0 || this.confirmedEventQueue.length>0) {
+                try {
+                    await this.checkUnconfirmedEventsFinality();
+                } catch (e) {
+                    this.logger.error(`startFinalityCheckTimer(): Error when checking past events: `, e);
+                }
+            }
+            if(!this.wsStarted) return;
+            this.finalityCheckTimer = setTimeout(check, this.chainInterface.config.finalityCheckStrategy.delayMs);
+        };
+        await check();
+    }
 
     protected async setupWebsocket() {
         this.wsStarted = true;
+
+        let processing = false;
+        this.blockListener = async (blockNumber: number) => {
+            if(processing) return;
+            if(this.unconfirmedEventQueue.length===0 && this.confirmedEventQueue.length===0) return;
+            processing = true;
+            try {
+                await this.checkUnconfirmedEventsFinality();
+            } catch (e) {
+                this.logger.error(`on('block'): Error when processing new block ${blockNumber}:`, e);
+            }
+            processing = false;
+            await this.addOrRemoveBlockListener();
+        }
+
+        if(this.chainInterface.config.safeBlockTag==="safe" || this.chainInterface.config.safeBlockTag==="finalized") {
+            if(this.chainInterface.config.finalityCheckStrategy.type==="timer") this.startFinalityCheckTimer();
+        }
 
         await this.provider.on(this.spvVaultContractLogFilter, this.spvVaultContractListener = (log) => {
             let events = this.evmSpvVaultContract.Events.toTypedEvents([log]);
@@ -460,40 +538,6 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
             let events = this.evmSwapContract.Events.toTypedEvents([log]);
             events = events.filter(val => !val.removed && (val.eventName==="Initialize" || val.eventName==="Refund" || val.eventName==="Claim"));
             this.handleWsEvents(events);
-        });
-
-        const safeBlockTag = this.chainInterface.config.safeBlockTag;
-        let processing = false;
-        if(safeBlockTag!=="latest" && safeBlockTag!=="pending") await this.provider.on("block", this.blockListener = async (blockNumber: number) => {
-            if(processing) return;
-            if(this.unconfirmedEventQueue.length===0) return;
-            processing = true;
-            try {
-                const latestSafeBlock = await this.provider.getBlock(this.chainInterface.config.safeBlockTag);
-
-                const events = [];
-                this.unconfirmedEventQueue = this.unconfirmedEventQueue.filter(event => {
-                    if(event.blockNumber <= latestSafeBlock.number) {
-                        events.push(event);
-                        return false;
-                    }
-                    return true;
-                });
-
-                const blocks: {[blockNumber: number]: Block} = {};
-                for(let event of events) {
-                    const block = blocks[event.blockNumber] ?? (blocks[event.blockNumber] = await this.provider.getBlock(event.blockNumber));
-                    if(block.hash===event.blockHash) {
-                        //Valid event
-                        await this.processEvents([event], block);
-                    } else {
-                        //Block hash doesn't match
-                    }
-                }
-            } catch (e) {
-                this.logger.error(`on('block'): Error when processing new block ${blockNumber}:`, e);
-            }
-            processing = false;
         });
     }
 
@@ -515,6 +559,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
             await this.provider.off(this.swapContractLogFilter, this.swapContractListener);
             await this.provider.off("block", this.blockListener);
             this.wsStarted = false;
+            clearTimeout(this.finalityCheckTimer);
         }
     }
 

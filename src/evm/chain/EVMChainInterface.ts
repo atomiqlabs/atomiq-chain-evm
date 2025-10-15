@@ -35,7 +35,12 @@ export type EVMConfiguration = {
     maxLogTopics: number,
 
     useAccessLists?: boolean,
-    defaultAccessListAddresses?: string[]
+    defaultAccessListAddresses?: string[],
+
+    finalityCheckStrategy?: {
+        type: "timer" | "blocks"
+        delayMs?: number
+    }
 };
 
 export class EVMChainInterface<ChainId extends string = string> implements ChainInterface<EVMTx, EVMSigner, ChainId, Signer> {
@@ -73,6 +78,8 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
         this.config = config;
         this.config.safeBlockTag ??= "safe";
         this.config.finalizedBlockTag ??= "finalized";
+        this.config.finalityCheckStrategy ??= {type: "timer"};
+        this.config.finalityCheckStrategy.delayMs ??= 1000;
 
         this.logger = getLogger("EVMChainInterface("+this.evmChainId+"): ");
 
