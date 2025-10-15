@@ -18,21 +18,21 @@ const BotanixChainIds = {
 };
 const BotanixContractAddresses = {
     MAINNET: {
-        executionContract: "",
-        swapContract: "",
-        btcRelayContract: "",
-        btcRelayDeploymentHeight: 0,
-        spvVaultContract: "",
-        spvVaultDeploymentHeight: 0,
+        executionContract: "0x71Bc44F3F7203fC1279107D924e418F02b0d4029",
+        swapContract: "0x9a027B5Bf43382Cc4A5134d9EFD389f61ece27B9",
+        btcRelayContract: "0xe8be24CF21341c9567664009a8a82C9Dc1eE90D6",
+        btcRelayDeploymentHeight: 2320400,
+        spvVaultContract: "0xe510D5781C6C849284Fb25Dc20b1684cEC445C8B",
+        spvVaultDeploymentHeight: 2320402,
         handlerContracts: {
             refund: {
-                timelock: ""
+                timelock: "0x44aC0f0677C88e2c0B2FEc986b70E3b9A224f553"
             },
             claim: {
-                [base_1.ChainSwapType.HTLC]: "",
-                [base_1.ChainSwapType.CHAIN_TXID]: "",
-                [base_1.ChainSwapType.CHAIN]: "",
-                [base_1.ChainSwapType.CHAIN_NONCED]: ""
+                [base_1.ChainSwapType.HTLC]: "0xfFA842529977a40A3fdb988cdDC9CB5c39bAcF26",
+                [base_1.ChainSwapType.CHAIN_TXID]: "0xa2698D2fBE3f7c74cCca428a5fd968411644C641",
+                [base_1.ChainSwapType.CHAIN]: "0x62a718348081F9CF9a8E3dF4B4EA6d6349991ad9",
+                [base_1.ChainSwapType.CHAIN_NONCED]: "0xb0226bAC3BD30179fb66A43cEA212AbBC988e004"
             }
         }
     },
