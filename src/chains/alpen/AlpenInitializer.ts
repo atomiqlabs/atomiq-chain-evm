@@ -57,9 +57,9 @@ const AlpenContractAddresses = {
     }
 };
 
-export type AlpenAssetsType = BaseTokenType<"ABTC">;
+export type AlpenAssetsType = BaseTokenType<"BTC">;
 export const AlpenAssets: AlpenAssetsType = {
-    ABTC: {
+    BTC: {
         address: "0x0000000000000000000000000000000000000000",
         decimals: 18,
         displayDecimals: 8

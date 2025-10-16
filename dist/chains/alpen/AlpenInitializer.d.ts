@@ -3,7 +3,7 @@ import { JsonRpcApiProvider } from "ethers";
 import { EVMConfiguration, EVMRetryPolicy } from "../../evm/chain/EVMChainInterface";
 import { EVMFees } from "../../evm/chain/modules/EVMFees";
 import { AlpenChainType } from "./AlpenChainType";
-export type AlpenAssetsType = BaseTokenType<"ABTC">;
+export type AlpenAssetsType = BaseTokenType<"BTC">;
 export declare const AlpenAssets: AlpenAssetsType;
 export type AlpenOptions = {
     rpcUrl: string | JsonRpcApiProvider;

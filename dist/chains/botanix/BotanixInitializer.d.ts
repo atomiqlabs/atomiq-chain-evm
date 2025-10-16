@@ -3,7 +3,7 @@ import { JsonRpcApiProvider } from "ethers";
 import { EVMConfiguration, EVMRetryPolicy } from "../../evm/chain/EVMChainInterface";
 import { EVMFees } from "../../evm/chain/modules/EVMFees";
 import { BotanixChainType } from "./BotanixChainType";
-export type BotanixAssetsType = BaseTokenType<"BBTC">;
+export type BotanixAssetsType = BaseTokenType<"BTC">;
 export declare const BotanixAssets: BotanixAssetsType;
 export type BotanixOptions = {
     rpcUrl: string | JsonRpcApiProvider;

@@ -57,7 +57,7 @@ const BotanixContractAddresses = {
     }
 };
 exports.BotanixAssets = {
-    BBTC: {
+    BTC: {
         address: "0x0000000000000000000000000000000000000000",
         decimals: 18,
         displayDecimals: 8

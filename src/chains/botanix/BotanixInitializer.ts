@@ -57,9 +57,9 @@ const BotanixContractAddresses = {
     }
 };
 
-export type BotanixAssetsType = BaseTokenType<"BBTC">;
+export type BotanixAssetsType = BaseTokenType<"BTC">;
 export const BotanixAssets: BotanixAssetsType = {
-    BBTC: {
+    BTC: {
         address: "0x0000000000000000000000000000000000000000",
         decimals: 18,
         displayDecimals: 8
