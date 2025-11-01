@@ -16,7 +16,11 @@ class EVMBlocks extends EVMModule_1.EVMModule {
      */
     fetchAndSaveBlockTime(blockTag) {
         const blockTagStr = blockTag.toString(10);
-        const blockPromise = this.provider.getBlock(blockTag, false);
+        const blockPromise = this.provider.getBlock(blockTag, false).then((block) => {
+            if (block == null)
+                throw new Error(`Failed to fetch '${blockTag}' block!`);
+            return block;
+        });
         const timestamp = Date.now();
         this.blockCache[blockTagStr] = {
             block: blockPromise,

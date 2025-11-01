@@ -193,7 +193,7 @@ export class SocketProvider extends JsonRpcApiProvider {
     // registering, queue them
     #pending: Map<number | string, Array<any>>;
 
-    #connected: boolean;
+    #connected: boolean = false;
 
     /**
      *  Creates a new **SocketProvider** connected to %%network%%.

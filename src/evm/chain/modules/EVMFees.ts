@@ -17,10 +17,10 @@ export class EVMFees {
 
     protected readonly feeMultiplierPPM: bigint;
 
-    private blockFeeCache: {
+    private blockFeeCache?: {
         timestamp: number,
         feeRate: Promise<bigint>
-    } = null;
+    };
 
     constructor(
         provider: JsonRpcApiProvider,
@@ -42,6 +42,8 @@ export class EVMFees {
      */
     private async _getFeeRate(): Promise<bigint> {
         const block = await this.provider.getBlock("latest");
+        if(block==null) throw new Error("Latest block not found!");
+        if(block.baseFeePerGas==null) throw new Error("Fee estimation is only possible for post-eip1559 blocks!");
 
         const baseFee = block.baseFeePerGas * this.feeMultiplierPPM / 1_000_000n;
         this.logger.debug("_getFeeRate(): Base fee rate: "+baseFee.toString(10));
@@ -56,15 +58,17 @@ export class EVMFees {
      */
     public async getFeeRate(): Promise<string> {
         if(this.blockFeeCache==null || Date.now() - this.blockFeeCache.timestamp > this.MAX_FEE_AGE) {
-            let obj = {
-                timestamp: Date.now(),
-                feeRate: null
+            let obj: {
+                timestamp: number,
+                feeRate: Promise<bigint>
             };
-            obj.feeRate = this._getFeeRate().catch(e => {
-                if(this.blockFeeCache===obj) this.blockFeeCache=null;
-                throw e;
-            });
-            this.blockFeeCache = obj;
+            this.blockFeeCache = obj = {
+                timestamp: Date.now(),
+                feeRate: this._getFeeRate().catch(e => {
+                    if(this.blockFeeCache===obj) delete this.blockFeeCache;
+                    throw e;
+                })
+            };
         }
 
         let baseFee = await this.blockFeeCache.feeRate;
@@ -91,8 +95,8 @@ export class EVMFees {
         return BigInt(gas) * (BigInt(baseFee) + BigInt(priorityFee));
     }
 
-    public static applyFeeRate(tx: TransactionRequest, gas: number, feeRate: string) {
-        if(feeRate==null) return null;
+    public static applyFeeRate(tx: TransactionRequest, gas: number | null, feeRate: string): void {
+        if(feeRate==null) return;
 
         const [baseFee, priorityFee] = feeRate.split(",");
 

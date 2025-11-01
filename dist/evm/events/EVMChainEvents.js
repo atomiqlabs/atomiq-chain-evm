@@ -31,6 +31,8 @@ class EVMChainEvents extends EVMChainEventsBrowser_1.EVMChainEventsBrowser {
                     };
                 }
                 else if (stateResult.length >= 1) {
+                    if (stateResult[0] === "null")
+                        return null;
                     return {
                         lastBlockNumber: parseInt(stateResult[0])
                     };
@@ -51,6 +53,8 @@ class EVMChainEvents extends EVMChainEventsBrowser_1.EVMChainEventsBrowser {
      */
     saveLastEventData(newState) {
         return fs.writeFile(this.directory + this.BLOCKHEIGHT_FILENAME, newState.map(val => {
+            if (val == null)
+                return "null";
             if (val.lastEvent == null) {
                 return val.lastBlockNumber.toString(10);
             }

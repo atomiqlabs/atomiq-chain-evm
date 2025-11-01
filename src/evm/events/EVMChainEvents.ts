@@ -28,7 +28,7 @@ export class EVMChainEvents extends EVMChainEventsBrowser {
      *
      * @private
      */
-    private async getLastEventData(): Promise<EVMEventListenerState[]> {
+    private async getLastEventData(): Promise<EVMEventListenerState[] | null> {
         try {
             const txt: string = (await fs.readFile(this.directory+this.BLOCKHEIGHT_FILENAME)).toString();
             const arr = txt.split(";");
@@ -43,6 +43,7 @@ export class EVMChainEvents extends EVMChainEventsBrowser {
                         }
                     };
                 } else if(stateResult.length>=1) {
+                    if(stateResult[0]==="null") return null;
                     return {
                         lastBlockNumber: parseInt(stateResult[0])
                     }
@@ -62,6 +63,7 @@ export class EVMChainEvents extends EVMChainEventsBrowser {
      */
     private saveLastEventData(newState: EVMEventListenerState[]): Promise<void> {
         return fs.writeFile(this.directory+this.BLOCKHEIGHT_FILENAME, newState.map(val => {
+            if(val==null) return "null";
             if(val.lastEvent==null) {
                 return val.lastBlockNumber.toString(10);
             } else {
