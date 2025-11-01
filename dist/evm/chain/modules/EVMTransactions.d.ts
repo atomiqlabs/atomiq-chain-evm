@@ -20,7 +20,7 @@ export declare class EVMTransactions extends EVMModule<any> {
     private readonly latestSignedNonces;
     readonly _cbksBeforeTxReplace: ((oldTx: string, oldTxId: string, newTx: string, newTxId: string) => Promise<void>)[];
     private readonly cbksBeforeTxSigned;
-    private cbkSendTransaction;
+    private cbkSendTransaction?;
     readonly _knownTxSet: Set<string>;
     /**
      * Waits for transaction confirmation using HTTP polling

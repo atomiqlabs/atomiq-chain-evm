@@ -12,6 +12,7 @@ import type {
     TransactionRequest,
     LogDescription,
 } from "ethers";
+import type {ContractEventArgs} from "ethers";
 
 export interface TypedDeferredTopicFilter<_TCEvent extends TypedContractEvent>
     extends DeferredTopicFilter {}
@@ -21,7 +22,7 @@ export interface TypedContractEvent<
     OutputTuple extends Array<any> = any,
     OutputObject = any
 > {
-    (...args: Partial<InputTuple>): TypedDeferredTopicFilter<
+    (...args: ContractEventArgs<InputTuple>): TypedDeferredTopicFilter<
         TypedContractEvent<InputTuple, OutputTuple, OutputObject>
     >;
     name: string;

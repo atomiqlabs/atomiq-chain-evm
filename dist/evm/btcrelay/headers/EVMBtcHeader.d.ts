@@ -13,7 +13,7 @@ export type EVMBtcHeaderType = {
 };
 export declare class EVMBtcHeader implements BtcHeader {
     version: number;
-    previousBlockhash: Buffer;
+    previousBlockhash?: Buffer;
     merkleRoot: Buffer;
     timestamp: number;
     nbits: number;

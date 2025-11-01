@@ -48,7 +48,7 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
     readonly chainId: ChainId;
 
     readonly provider: JsonRpcApiProvider;
-    readonly retryPolicy: EVMRetryPolicy;
+    readonly retryPolicy?: EVMRetryPolicy;
 
     public readonly evmChainId: number;
 
@@ -171,7 +171,7 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
         const block = await this.Blocks.getBlock(this.config.finalizedBlockTag);
         return {
             height: block.number,
-            blockHash: block.hash
+            blockHash: block.hash!
         };
     }
 

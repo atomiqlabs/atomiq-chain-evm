@@ -21,6 +21,7 @@ export class CitreaBtcRelay<B extends BtcBlock> extends EVMBtcRelay<B> {
     public async estimateSynchronizeFee(requiredBlockheight: number, feeRate?: string): Promise<bigint> {
         feeRate ??= await this.Chain.Fees.getFeeRate();
         const tipData = await this.getTipData();
+        if(tipData==null) throw new Error("Cannot get relay tip data, relay not initialized?");
         const currBlockheight = tipData.blockheight;
 
         const blockheightDelta = requiredBlockheight-currBlockheight;

@@ -1,8 +1,9 @@
 import type { FunctionFragment, Typed, EventFragment, ContractTransaction, ContractTransactionResponse, DeferredTopicFilter, EventLog, TransactionRequest, LogDescription } from "ethers";
+import type { ContractEventArgs } from "ethers";
 export interface TypedDeferredTopicFilter<_TCEvent extends TypedContractEvent> extends DeferredTopicFilter {
 }
 export interface TypedContractEvent<InputTuple extends Array<any> = any, OutputTuple extends Array<any> = any, OutputObject = any> {
-    (...args: Partial<InputTuple>): TypedDeferredTopicFilter<TypedContractEvent<InputTuple, OutputTuple, OutputObject>>;
+    (...args: ContractEventArgs<InputTuple>): TypedDeferredTopicFilter<TypedContractEvent<InputTuple, OutputTuple, OutputObject>>;
     name: string;
     fragment: EventFragment;
     getFragment(...args: Partial<InputTuple>): EventFragment;

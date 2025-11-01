@@ -20,6 +20,12 @@ class EVMSpvVaultData extends base_1.SpvVaultData {
     constructor(ownerOrObj, vaultId, state, params, initialUtxo) {
         super();
         if (typeof (ownerOrObj) === "string") {
+            if (vaultId == null)
+                throw new Error("vaultId is null");
+            if (state == null)
+                throw new Error("state is null");
+            if (params == null)
+                throw new Error("params is null");
             this.owner = ownerOrObj;
             this.vaultId = vaultId;
             this.relayContract = params.btcRelayContract;

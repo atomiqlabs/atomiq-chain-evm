@@ -16,8 +16,8 @@ export type BitcoinCommitmentData = {
 export type BitcoinWitnessData = {
     tx: { blockhash: string, confirmations: number, txid: string, hex: string, height: number },
     requiredConfirmations: number,
+    btcRelay: EVMBtcRelay<any>,
     commitedHeader?: EVMBtcStoredHeader,
-    btcRelay?: EVMBtcRelay<any>,
     synchronizer?: RelaySynchronizer<EVMBtcStoredHeader, EVMTx, any>
 };
 
@@ -69,6 +69,7 @@ export abstract class IBitcoinClaimHandler<C, W extends BitcoinWitnessData> impl
         if(!swapData.isClaimData(commitmentHash)) throw new Error("Invalid commit data");
 
         const merkleProof = await btcRelay.bitcoinRpc.getMerkleProof(tx.txid, tx.blockhash);
+        if(merkleProof==null) throw new Error(`Failed to generate merkle proof for tx: ${tx.txid}!`);
         logger.debug("getWitness(): merkle proof computed: ", merkleProof);
 
         const txs: EVMTx[] = [];

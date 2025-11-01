@@ -24,9 +24,37 @@ class EVMSwapData extends base_1.SwapData {
     }
     constructor(offererOrData, claimer, token, refundHandler, claimHandler, payOut, payIn, reputation, sequence, claimData, refundData, amount, depositToken, securityDeposit, claimerBounty, kind, extraData, successActionCommitment) {
         super();
-        if (claimer != null || token != null || refundHandler != null || claimHandler != null ||
-            payOut != null || payIn != null || reputation != null || sequence != null || claimData != null || refundData != null ||
-            amount != null || depositToken != null || securityDeposit != null || claimerBounty != null) {
+        if (typeof (offererOrData) === "string") {
+            if (claimer == null)
+                throw new Error("sequence is null!");
+            if (token == null)
+                throw new Error("amount is null!");
+            if (refundHandler == null)
+                throw new Error("securityDeposit is null!");
+            if (claimHandler == null)
+                throw new Error("claimerBounty is null!");
+            if (payOut == null)
+                throw new Error("sequence is null!");
+            if (payIn == null)
+                throw new Error("amount is null!");
+            if (reputation == null)
+                throw new Error("securityDeposit is null!");
+            if (sequence == null)
+                throw new Error("claimerBounty is null!");
+            if (claimData == null)
+                throw new Error("sequence is null!");
+            if (refundData == null)
+                throw new Error("amount is null!");
+            if (amount == null)
+                throw new Error("securityDeposit is null!");
+            if (depositToken == null)
+                throw new Error("claimerBounty is null!");
+            if (securityDeposit == null)
+                throw new Error("sequence is null!");
+            if (claimerBounty == null)
+                throw new Error("amount is null!");
+            if (kind == null)
+                throw new Error("securityDeposit is null!");
             this.offerer = offererOrData;
             this.claimer = claimer;
             this.token = token;
@@ -47,6 +75,14 @@ class EVMSwapData extends base_1.SwapData {
             this.successActionCommitment = successActionCommitment ?? ethers_1.ZeroHash;
         }
         else {
+            if (offererOrData.sequence == null)
+                throw new Error("sequence is null!");
+            if (offererOrData.amount == null)
+                throw new Error("amount is null!");
+            if (offererOrData.securityDeposit == null)
+                throw new Error("securityDeposit is null!");
+            if (offererOrData.claimerBounty == null)
+                throw new Error("claimerBounty is null!");
             this.offerer = offererOrData.offerer;
             this.claimer = offererOrData.claimer;
             this.token = offererOrData.token;
@@ -55,13 +91,13 @@ class EVMSwapData extends base_1.SwapData {
             this.payOut = offererOrData.payOut;
             this.payIn = offererOrData.payIn;
             this.reputation = offererOrData.reputation;
-            this.sequence = offererOrData.sequence == null ? null : BigInt(offererOrData.sequence);
+            this.sequence = BigInt(offererOrData.sequence);
             this.claimData = offererOrData.claimData;
             this.refundData = offererOrData.refundData;
-            this.amount = offererOrData.amount == null ? null : BigInt(offererOrData.amount);
+            this.amount = BigInt(offererOrData.amount);
             this.depositToken = offererOrData.depositToken;
-            this.securityDeposit = offererOrData.securityDeposit == null ? null : BigInt(offererOrData.securityDeposit);
-            this.claimerBounty = offererOrData.claimerBounty == null ? null : BigInt(offererOrData.claimerBounty);
+            this.securityDeposit = BigInt(offererOrData.securityDeposit);
+            this.claimerBounty = BigInt(offererOrData.claimerBounty);
             this.kind = offererOrData.kind;
             this.extraData = offererOrData.extraData;
             this.successActionCommitment = offererOrData.successActionCommitment ?? ethers_1.ZeroHash;
@@ -167,7 +203,7 @@ class EVMSwapData extends base_1.SwapData {
         return this.extraData.slice(0, 64);
     }
     getExtraData() {
-        return this.extraData;
+        return this.extraData ?? null;
     }
     setExtraData(extraData) {
         this.extraData = extraData;
@@ -253,7 +289,7 @@ class EVMSwapData extends base_1.SwapData {
     }
     static deserializeFromStruct(struct, claimHandlerImpl) {
         const { payOut, payIn, reputation, sequence } = EVMSwapData.toFlags(BigInt(struct.flags));
-        return new EVMSwapData(struct.offerer, struct.claimer, struct.token, struct.refundHandler, struct.claimHandler, payOut, payIn, reputation, sequence, (0, ethers_1.hexlify)(struct.claimData), (0, ethers_1.hexlify)(struct.refundData), BigInt(struct.amount), struct.depositToken, BigInt(struct.securityDeposit), BigInt(struct.claimerBounty), claimHandlerImpl.getType(), null, struct.successActionCommitment);
+        return new EVMSwapData(struct.offerer, struct.claimer, struct.token, struct.refundHandler, struct.claimHandler, payOut, payIn, reputation, sequence, (0, ethers_1.hexlify)(struct.claimData), (0, ethers_1.hexlify)(struct.refundData), BigInt(struct.amount), struct.depositToken, BigInt(struct.securityDeposit), BigInt(struct.claimerBounty), claimHandlerImpl.getType(), undefined, struct.successActionCommitment);
     }
 }
 exports.EVMSwapData = EVMSwapData;

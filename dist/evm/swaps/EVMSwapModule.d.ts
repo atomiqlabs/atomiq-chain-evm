@@ -2,8 +2,7 @@ import { EscrowManager } from "./EscrowManagerTypechain";
 import { EVMContractModule } from "../contract/EVMContractModule";
 import { EVMSwapContract } from "./EVMSwapContract";
 import { EVMChainInterface } from "../chain/EVMChainInterface";
-export declare class EVMSwapModule extends EVMContractModule<EscrowManager> {
-    readonly contract: EVMSwapContract;
+export declare class EVMSwapModule extends EVMContractModule<EscrowManager, EVMSwapContract> {
     readonly swapContract: EscrowManager;
     constructor(chainInterface: EVMChainInterface, contract: EVMSwapContract);
 }

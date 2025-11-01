@@ -91,6 +91,7 @@ class EVMTokens extends EVMModule_1.EVMModule {
     //// Approval
     /**
      * Creates transactions for approving spending of tokens
+     * Returns null for native token approval
      *
      * @param signer
      * @param token token to send

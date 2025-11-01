@@ -80,13 +80,12 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
      * @param signer
      * @param headers headers to sync to the btc relay
      * @param storedHeader current latest stored block header for a given fork
-     * @param tipWork work of the current tip in a given fork
      * @param forkId forkId to submit to, forkId=0 means main chain, forkId=-1 means short fork
      * @param feeRate feeRate for the transaction
      * @param totalForkHeaders Total number of headers in a fork
      * @private
      */
-    async _saveHeaders(signer, headers, storedHeader, tipWork, forkId, feeRate, totalForkHeaders) {
+    async _saveHeaders(signer, headers, storedHeader, forkId, feeRate, totalForkHeaders) {
         const blockHeaderObj = headers.map(serializeBlockHeader);
         let tx;
         switch (forkId) {
@@ -102,10 +101,6 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         }
         const computedCommitedHeaders = this.computeCommitedHeaders(storedHeader, blockHeaderObj);
         const lastStoredHeader = computedCommitedHeaders[computedCommitedHeaders.length - 1];
-        if (forkId !== 0 && base_1.StatePredictorUtils.gtBuffer(lastStoredHeader.getChainWork(), tipWork)) {
-            //Fork's work is higher than main chain's work, this fork will become a main chain
-            forkId = 0;
-        }
         return {
             forkId: forkId,
             lastStoredHeader,
@@ -115,7 +110,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
     }
     async findStoredBlockheaderInTraces(txTrace, commitHash) {
         if (txTrace.to.toLowerCase() === (await this.contract.getAddress()).toLowerCase()) {
-            let dataBuffer;
+            let dataBuffer = null;
             if (txTrace.type === "CREATE") {
                 dataBuffer = Buffer.from(txTrace.input.substring(txTrace.input.length - 384, txTrace.input.length - 64), "hex");
             }
@@ -156,7 +151,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
     getBlock(commitHash, blockHash) {
         const blockHashString = blockHash == null ? null : "0x" + Buffer.from([...blockHash]).reverse().toString("hex");
         const generator = () => this.Events.findInContractEvents(["StoreHeader", "StoreForkHeader"], [
-            commitHash,
+            commitHash ?? null,
             blockHashString
         ], async (event) => {
             const txTrace = await this.Chain.Transactions.traceTransaction(event.transactionHash);
@@ -171,7 +166,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
             return this.commitHashCache.getOrComputeAsync(commitHash, generator);
         if (blockHashString != null)
             return this.blockHashCache.getOrComputeAsync(blockHashString, generator);
-        return null;
+        return Promise.resolve(null);
     }
     async getBlockHeight() {
         return Number(await this.contract.getBlockheight());
@@ -207,7 +202,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         if (requiredBlockheight != null && blockHeight < requiredBlockheight) {
             return null;
         }
-        const result = await this.getBlock(null, Buffer.from(blockData.blockhash, "hex"));
+        const result = await this.getBlock(undefined, Buffer.from(blockData.blockhash, "hex"));
         if (result == null)
             return null;
         const [storedBlockHeader, commitHash] = result;
@@ -249,6 +244,8 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
             if (!isInBtcMainChain)
                 return null;
             const blockHeader = await this.bitcoinRpc.getBlockHeader(blockHashHex);
+            if (blockHeader == null)
+                return null;
             if (commitHash !== await this.contract.getCommitHash(blockHeader.getHeight()))
                 return null;
             const txTrace = await this.Chain.Transactions.traceTransaction(event.transactionHash);
@@ -278,7 +275,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
     async saveMainHeaders(signer, mainHeaders, storedHeader, feeRate) {
         feeRate ?? (feeRate = await this.Chain.Fees.getFeeRate());
         logger.debug("saveMainHeaders(): submitting main blockheaders, count: " + mainHeaders.length);
-        return this._saveHeaders(signer, mainHeaders, storedHeader, null, 0, feeRate, 0);
+        return this._saveHeaders(signer, mainHeaders, storedHeader, 0, feeRate, 0);
     }
     /**
      * Creates a new long fork and submits the headers to it
@@ -294,7 +291,12 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         feeRate ?? (feeRate = await this.Chain.Fees.getFeeRate());
         logger.debug("saveNewForkHeaders(): submitting new fork & blockheaders," +
             " count: " + forkHeaders.length + " forkId: 0x" + forkId.toString(16));
-        return await this._saveHeaders(signer, forkHeaders, storedHeader, tipWork, forkId, feeRate, forkHeaders.length);
+        const result = await this._saveHeaders(signer, forkHeaders, storedHeader, forkId, feeRate, 100);
+        if (result.forkId !== 0 && base_1.StatePredictorUtils.gtBuffer(result.lastStoredHeader.getChainWork(), tipWork)) {
+            //Fork's work is higher than main chain's work, this fork will become a main chain
+            result.forkId = 0;
+        }
+        return result;
     }
     /**
      * Continues submitting blockheaders to a given fork
@@ -310,7 +312,12 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         feeRate ?? (feeRate = await this.Chain.Fees.getFeeRate());
         logger.debug("saveForkHeaders(): submitting blockheaders to existing fork," +
             " count: " + forkHeaders.length + " forkId: 0x" + forkId.toString(16));
-        return this._saveHeaders(signer, forkHeaders, storedHeader, tipWork, forkId, feeRate, 100);
+        const result = await this._saveHeaders(signer, forkHeaders, storedHeader, forkId, feeRate, 100);
+        if (result.forkId !== 0 && base_1.StatePredictorUtils.gtBuffer(result.lastStoredHeader.getChainWork(), tipWork)) {
+            //Fork's work is higher than main chain's work, this fork will become a main chain
+            result.forkId = 0;
+        }
+        return result;
     }
     /**
      * Submits short fork with given blockheaders
@@ -325,7 +332,12 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         feeRate ?? (feeRate = await this.Chain.Fees.getFeeRate());
         logger.debug("saveShortForkHeaders(): submitting short fork blockheaders," +
             " count: " + forkHeaders.length);
-        return this._saveHeaders(signer, forkHeaders, storedHeader, tipWork, -1, feeRate, 0);
+        const result = await this._saveHeaders(signer, forkHeaders, storedHeader, -1, feeRate, 0);
+        if (result.forkId !== 0 && base_1.StatePredictorUtils.gtBuffer(result.lastStoredHeader.getChainWork(), tipWork)) {
+            //Fork's work is higher than main chain's work, this fork will become a main chain
+            result.forkId = 0;
+        }
+        return result;
     }
     /**
      * Estimate required synchronization fee (worst case) to synchronize btc relay to the required blockheight
@@ -336,6 +348,8 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
     async estimateSynchronizeFee(requiredBlockheight, feeRate) {
         feeRate ?? (feeRate = await this.Chain.Fees.getFeeRate());
         const tipData = await this.getTipData();
+        if (tipData == null)
+            throw new Error("Cannot get relay tip data, relay not initialized?");
         const currBlockheight = tipData.blockheight;
         const blockheightDelta = requiredBlockheight - currBlockheight;
         if (blockheightDelta <= 0)

@@ -8,7 +8,7 @@ import {EVMTx} from "../../chain/modules/EVMTransactions";
 import {tryWithRetries} from "../../../utils/Utils";
 
 export type EVMPreFetchVerification = {
-    safeBlockTime?: number
+    safeBlockTime: number
 };
 
 const Initialize = [
@@ -218,7 +218,7 @@ export class EVMSwapInit extends EVMSwapModule {
         if(preFetchData==null || preFetchData.safeBlockTime==null) {
             preFetchData = await this.preFetchForInitSignatureVerification();
         }
-        return preFetchData.safeBlockTime > parseInt(timeout);
+        return preFetchData!.safeBlockTime > parseInt(timeout);
     }
 
     /**

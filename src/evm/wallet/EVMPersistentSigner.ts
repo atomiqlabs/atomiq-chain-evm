@@ -26,8 +26,8 @@ export class EVMPersistentSigner extends EVMSigner {
         sending?: boolean //Not saved
     }> = new Map();
 
-    private confirmedNonce: number;
-    private pendingNonce: number;
+    private confirmedNonce: number = 0;
+    private pendingNonce: number = 0;
 
     private feeBumper: any;
     private stopped: boolean = false;
@@ -52,7 +52,7 @@ export class EVMPersistentSigner extends EVMSigner {
         waitBeforeBumpMillis?: number
     ) {
         super(account, address, true);
-        this.signTransaction = null;
+        delete this.signTransaction;
         this.chainInterface = chainInterface;
         this.directory = directory;
         this.minFeeIncreaseAbsolute = minFeeIncreaseAbsolute ?? MIN_FEE_INCREASE_ABSOLUTE;
@@ -89,13 +89,13 @@ export class EVMPersistentSigner extends EVMSigner {
                     lastBumped: nonceData.lastBumped
                 })
                 for(let tx of parsedPendingTxns) {
-                    this.chainInterface.Transactions._knownTxSet.add(tx.hash);
+                    this.chainInterface.Transactions._knownTxSet.add(tx.hash!);
                 }
             }
         }
     }
 
-    private priorSavePromise: Promise<void>;
+    private priorSavePromise?: Promise<void>;
     private saveCount: number = 0;
 
     private async save() {
@@ -125,8 +125,8 @@ export class EVMPersistentSigner extends EVMSigner {
         let _gasPrice: {
             baseFee: bigint,
             priorityFee: bigint
-        } = null;
-        let _safeBlockTxCount: number = null;
+        } | null = null;
+        let _safeBlockTxCount: number | null = null;
 
         for(let [nonce, data] of this.pendingTxs) {
             if(!data.sending && data.lastBumped<Date.now()-this.waitBeforeBump) {
@@ -136,7 +136,7 @@ export class EVMPersistentSigner extends EVMSigner {
                 }
                 if(this.confirmedNonce >= nonce) {
                     this.pendingTxs.delete(nonce);
-                    data.txs.forEach(tx => this.chainInterface.Transactions._knownTxSet.delete(tx.hash));
+                    data.txs.forEach(tx => this.chainInterface.Transactions._knownTxSet.delete(tx.hash!));
                     this.logger.info(`checkPastTransactions(): Tx confirmed, nonce: ${nonce}, required fee bumps: `, data.txs.length);
                     this.save();
                     continue;
@@ -152,8 +152,8 @@ export class EVMPersistentSigner extends EVMSigner {
                     };
                 }
 
-                let priorityFee = lastTx.maxPriorityFeePerGas;
-                let baseFee = lastTx.maxFeePerGas - lastTx.maxPriorityFeePerGas;
+                let priorityFee = lastTx.maxPriorityFeePerGas!;
+                let baseFee = lastTx.maxFeePerGas! - lastTx.maxPriorityFeePerGas!;
 
                 baseFee = bigIntMax(_gasPrice.baseFee, this.minFeeIncreaseAbsolute + (baseFee * (1_000_000n + this.minFeeIncreasePpm) / 1_000_000n));
                 priorityFee = bigIntMax(_gasPrice.priorityFee, this.minFeeIncreaseAbsolute + (priorityFee * (1_000_000n + this.minFeeIncreasePpm) / 1_000_000n));
@@ -193,7 +193,7 @@ export class EVMPersistentSigner extends EVMSigner {
 
                 for(let callback of this.chainInterface.Transactions._cbksBeforeTxReplace) {
                     try {
-                        await callback(lastTx.serialized, lastTx.hash, signedRawTx, newTx.hash)
+                        await callback(lastTx.serialized, lastTx.hash!, signedRawTx, newTx.hash!)
                     } catch (e) {
                         this.logger.error("checkPastTransactions(): beforeTxReplace callback error: ", e);
                     }
@@ -203,7 +203,7 @@ export class EVMPersistentSigner extends EVMSigner {
                 data.lastBumped = Date.now();
                 this.save();
 
-                this.chainInterface.Transactions._knownTxSet.add(newTx.hash);
+                this.chainInterface.Transactions._knownTxSet.add(newTx.hash!);
 
                 //TODO: Better error handling when sending tx
                 await this.chainInterface.provider.broadcastTransaction(signedRawTx).catch(e => {
@@ -239,7 +239,7 @@ export class EVMPersistentSigner extends EVMSigner {
             for(let [nonce, data] of this.pendingTxs) {
                 if(nonce <= this.pendingNonce) {
                     this.pendingTxs.delete(nonce);
-                    data.txs.forEach(tx => this.chainInterface.Transactions._knownTxSet.delete(tx.hash));
+                    data.txs.forEach(tx => this.chainInterface.Transactions._knownTxSet.delete(tx.hash!));
                     this.logger.info(`syncNonceFromChain(): Tx confirmed, nonce: ${nonce}, required fee bumps: `, data.txs.length);
                 }
             }
@@ -282,7 +282,8 @@ export class EVMPersistentSigner extends EVMSigner {
             }
 
             const tx: TransactionRequest = {};
-            for(let key in transaction) {
+            for(let k in transaction) {
+                const key = k as keyof TransactionRequest;
                 if(transaction[key] instanceof Promise) {
                     tx[key] = await transaction[key];
                 } else {
@@ -295,7 +296,7 @@ export class EVMPersistentSigner extends EVMSigner {
 
             if(onBeforePublish!=null) {
                 try {
-                    await onBeforePublish(signedTx.hash, signedRawTx);
+                    await onBeforePublish(signedTx.hash!, signedRawTx);
                 } catch (e) {
                     this.logger.error("sendTransaction(): Error when calling onBeforePublish function: ", e);
                 }
@@ -307,7 +308,7 @@ export class EVMPersistentSigner extends EVMSigner {
             this.pendingTxs.set(transaction.nonce, pendingTxObject);
             this.save();
 
-            this.chainInterface.Transactions._knownTxSet.add(signedTx.hash);
+            this.chainInterface.Transactions._knownTxSet.add(signedTx.hash!);
 
             try {
                 //TODO: This can fail due to not receiving a response from the server, however the transaction
@@ -315,8 +316,8 @@ export class EVMPersistentSigner extends EVMSigner {
                 const result = await this.chainInterface.provider.broadcastTransaction(signedRawTx);
                 pendingTxObject.sending = false;
                 return result;
-            } catch (e) {
-                this.chainInterface.Transactions._knownTxSet.delete(signedTx.hash);
+            } catch (e: any) {
+                this.chainInterface.Transactions._knownTxSet.delete(signedTx.hash!);
                 this.pendingTxs.delete(transaction.nonce);
                 this.pendingNonce--;
                 this.logger.debug("sendTransaction(): Error when broadcasting transaction, reverting pending nonce to: ", this.pendingNonce);

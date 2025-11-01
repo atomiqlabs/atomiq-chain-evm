@@ -14,7 +14,7 @@ import { EVMSpvWithdrawalData } from "./EVMSpvWithdrawalData";
 import { EVMBtcStoredHeader } from "../btcrelay/headers/EVMBtcStoredHeader";
 export declare function packOwnerAndVaultId(owner: string, vaultId: bigint): string;
 export declare function unpackOwnerAndVaultId(data: string): [string, bigint];
-export declare class EVMSpvVaultContract<ChainId extends string> extends EVMContractBase<SpvVaultManager> implements SpvVaultContract<EVMTx, EVMSigner, ChainId, EVMSpvVaultData, EVMSpvWithdrawalData> {
+export declare class EVMSpvVaultContract<ChainId extends string> extends EVMContractBase<SpvVaultManager> implements SpvVaultContract<EVMTx, EVMSigner, ChainId, EVMSpvWithdrawalData, EVMSpvVaultData> {
     static readonly GasCosts: {
         DEPOSIT_BASE: number;
         DEPOSIT_ERC20: number;
@@ -49,13 +49,13 @@ export declare class EVMSpvVaultContract<ChainId extends string> extends EVMCont
         [btcTxId: string]: string | null;
     }>;
     private vaultParamsCache;
-    getVaultData(owner: string, vaultId: bigint): Promise<EVMSpvVaultData>;
+    getVaultData(owner: string, vaultId: bigint): Promise<EVMSpvVaultData | null>;
     getMultipleVaultData(vaults: {
         owner: string;
         vaultId: bigint;
     }[]): Promise<{
         [owner: string]: {
-            [vaultId: string]: EVMSpvVaultData;
+            [vaultId: string]: EVMSpvVaultData | null;
         };
     }>;
     getVaultLatestUtxo(owner: string, vaultId: bigint): Promise<string | null>;
@@ -80,12 +80,12 @@ export declare class EVMSpvVaultContract<ChainId extends string> extends EVMCont
     fromOpReturnData(data: Buffer): {
         recipient: string;
         rawAmounts: bigint[];
-        executionHash: string;
+        executionHash?: string;
     };
     static fromOpReturnData(data: Buffer): {
         recipient: string;
         rawAmounts: bigint[];
-        executionHash: string;
+        executionHash?: string;
     };
     toOpReturnData(recipient: string, rawAmounts: bigint[], executionHash?: string): Buffer;
     static toOpReturnData(recipient: string, rawAmounts: bigint[], executionHash?: string): Buffer;
@@ -103,8 +103,8 @@ export declare class EVMSpvVaultContract<ChainId extends string> extends EVMCont
     txsDeposit(signer: string, vault: EVMSpvVaultData, rawAmounts: bigint[], feeRate?: string): Promise<EVMTx[]>;
     txsFrontLiquidity(signer: string, vault: EVMSpvVaultData, realWithdrawalTx: EVMSpvWithdrawalData, withdrawSequence: number, feeRate?: string): Promise<EVMTx[]>;
     txsOpen(signer: string, vault: EVMSpvVaultData, feeRate?: string): Promise<EVMTx[]>;
-    getClaimGas(signer: string, vault: EVMSpvVaultData, data?: EVMSpvWithdrawalData): number;
+    getClaimGas(signer: string, vault?: EVMSpvVaultData, data?: EVMSpvWithdrawalData): number;
     getFrontGas(signer: string, vault: EVMSpvVaultData, data?: EVMSpvWithdrawalData): number;
-    getClaimFee(signer: string, vault: EVMSpvVaultData, withdrawalData: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint>;
+    getClaimFee(signer: string, vault?: EVMSpvVaultData, withdrawalData?: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint>;
     getFrontFee(signer: string, vault?: EVMSpvVaultData, withdrawalData?: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint>;
 }

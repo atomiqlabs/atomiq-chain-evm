@@ -29,9 +29,11 @@ class EVMContractEvents extends EVMEvents_1.EVMEvents {
      * @param startBlockHeight
      * @param endBlockHeight
      */
-    async getContractBlockEvents(events, keys, startBlockHeight, endBlockHeight = startBlockHeight) {
+    async getContractBlockEvents(events, keys, startBlockHeight, endBlockHeight) {
+        endBlockHeight ?? (endBlockHeight = startBlockHeight);
         const blockEvents = await super.getBlockEvents(await this.baseContract.getAddress(), this.toFilter(events, keys), startBlockHeight, endBlockHeight);
-        return this.toTypedEvents(blockEvents);
+        return this.toTypedEvents(blockEvents)
+            .filter(val => val != null);
     }
     /**
      * Runs a search backwards in time, processing the events for a specific topic public key
@@ -46,10 +48,13 @@ class EVMContractEvents extends EVMEvents_1.EVMEvents {
         return this.findInEvents(await this.baseContract.getAddress(), this.toFilter(events, keys), async (events) => {
             const parsedEvents = this.toTypedEvents(events);
             for (let event of parsedEvents) {
+                if (event == null)
+                    continue;
                 const result = await processor(event);
                 if (result != null)
                     return result;
             }
+            return null;
         }, abortSignal, this.contract.contractDeploymentHeight);
     }
     /**
@@ -66,11 +71,14 @@ class EVMContractEvents extends EVMEvents_1.EVMEvents {
         return this.findInEventsForward(await this.baseContract.getAddress(), this.toFilter(events, keys), async (events) => {
             const parsedEvents = this.toTypedEvents(events);
             for (let event of parsedEvents) {
+                if (event == null)
+                    continue;
                 const result = await processor(event);
                 if (result != null)
                     return result;
             }
-        }, abortSignal, Math.max(this.contract.contractDeploymentHeight, startHeight ?? 0));
+            return null;
+        }, abortSignal, Math.max(this.contract.contractDeploymentHeight ?? 0, startHeight ?? 0));
     }
 }
 exports.EVMContractEvents = EVMContractEvents;

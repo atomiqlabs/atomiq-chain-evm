@@ -4,11 +4,11 @@ import {EVMChainInterface} from "../chain/EVMChainInterface";
 import {EVMContractBase} from "./EVMContractBase";
 
 
-export class EVMContractModule<T extends BaseContract> extends EVMModule<any> {
+export class EVMContractModule<T extends BaseContract, C extends EVMContractBase<T> = EVMContractBase<T>> extends EVMModule<any> {
 
-    readonly contract: EVMContractBase<T>;
+    readonly contract: C;
 
-    constructor(chainInterface: EVMChainInterface<any>, contract: EVMContractBase<T>) {
+    constructor(chainInterface: EVMChainInterface<any>, contract: C) {
         super(chainInterface)
         this.contract = contract;
     }

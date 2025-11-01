@@ -3,7 +3,7 @@ import { EVMSwapData } from "../EVMSwapData";
 import { EVMSigner } from "../../wallet/EVMSigner";
 import { EVMTx } from "../../chain/modules/EVMTransactions";
 export type EVMPreFetchVerification = {
-    safeBlockTime?: number;
+    safeBlockTime: number;
 };
 export declare class EVMSwapInit extends EVMSwapModule {
     private static readonly GasCosts;

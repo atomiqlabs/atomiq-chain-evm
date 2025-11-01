@@ -51,27 +51,11 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
     start(): Promise<void>;
     preFetchForInitSignatureVerification(): Promise<EVMPreFetchVerification>;
     getInitSignature(signer: EVMSigner, swapData: EVMSwapData, authorizationTimeout: number, preFetchedBlockData?: never, feeRate?: string): Promise<SignatureData>;
-    isValidInitAuthorization(sender: string, swapData: EVMSwapData, { timeout, prefix, signature }: {
-        timeout: any;
-        prefix: any;
-        signature: any;
-    }, feeRate?: string, preFetchedData?: EVMPreFetchVerification): Promise<Buffer>;
-    getInitAuthorizationExpiry(swapData: EVMSwapData, { timeout, prefix, signature }: {
-        timeout: any;
-        prefix: any;
-        signature: any;
-    }, preFetchedData?: EVMPreFetchVerification): Promise<number>;
-    isInitAuthorizationExpired(swapData: EVMSwapData, { timeout, prefix, signature }: {
-        timeout: any;
-        prefix: any;
-        signature: any;
-    }): Promise<boolean>;
+    isValidInitAuthorization(sender: string, swapData: EVMSwapData, signature: SignatureData, feeRate?: string, preFetchedData?: EVMPreFetchVerification): Promise<Buffer | null>;
+    getInitAuthorizationExpiry(swapData: EVMSwapData, signature: SignatureData, preFetchedData?: EVMPreFetchVerification): Promise<number>;
+    isInitAuthorizationExpired(swapData: EVMSwapData, signature: SignatureData): Promise<boolean>;
     getRefundSignature(signer: EVMSigner, swapData: EVMSwapData, authorizationTimeout: number): Promise<SignatureData>;
-    isValidRefundAuthorization(swapData: EVMSwapData, { timeout, prefix, signature }: {
-        timeout: any;
-        prefix: any;
-        signature: any;
-    }): Promise<Buffer>;
+    isValidRefundAuthorization(swapData: EVMSwapData, signature: SignatureData): Promise<Buffer | null>;
     getDataSignature(signer: EVMSigner, data: Buffer): Promise<string>;
     isValidDataSignature(data: Buffer, signature: string, publicKey: string): Promise<boolean>;
     /**
@@ -134,13 +118,6 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
     }[]): Promise<{
         [p: string]: SwapCommitState;
     }>;
-    /**
-     * Returns the data committed for a specific payment hash, or null if no data is currently commited for
-     *  the specific swap
-     *
-     * @param paymentHashHex
-     */
-    getCommitedData(paymentHashHex: string): Promise<EVMSwapData>;
     createSwapData(type: ChainSwapType, offerer: string, claimer: string, token: string, amount: bigint, paymentHash: string, sequence: bigint, expiry: bigint, payIn: boolean, payOut: boolean, securityDeposit: bigint, claimerBounty: bigint, depositToken?: string): Promise<EVMSwapData>;
     getBalance(signer: string, tokenAddress: string, inContract?: boolean): Promise<bigint>;
     getIntermediaryData(address: string, token: string): Promise<{
@@ -158,16 +135,8 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
         height: number;
     }, requiredConfirmations: number, vout: number, commitedHeader?: EVMBtcStoredHeader, synchronizer?: RelaySynchronizer<EVMBtcStoredHeader, EVMTx, any>, initAta?: boolean, feeRate?: string): Promise<EVMTx[]>;
     txsRefund(signer: string, swapData: EVMSwapData, check?: boolean, initAta?: boolean, feeRate?: string): Promise<EVMTx[]>;
-    txsRefundWithAuthorization(signer: string, swapData: EVMSwapData, { timeout, prefix, signature }: {
-        timeout: any;
-        prefix: any;
-        signature: any;
-    }, check?: boolean, initAta?: boolean, feeRate?: string): Promise<EVMTx[]>;
-    txsInit(signer: string, swapData: EVMSwapData, { timeout, prefix, signature }: {
-        timeout: any;
-        prefix: any;
-        signature: any;
-    }, skipChecks?: boolean, feeRate?: string): Promise<EVMTx[]>;
+    txsRefundWithAuthorization(signer: string, swapData: EVMSwapData, signature: SignatureData, check?: boolean, initAta?: boolean, feeRate?: string): Promise<EVMTx[]>;
+    txsInit(signer: string, swapData: EVMSwapData, signature: SignatureData, skipChecks?: boolean, feeRate?: string): Promise<EVMTx[]>;
     txsWithdraw(signer: string, token: string, amount: bigint, feeRate?: string): Promise<EVMTx[]>;
     txsDeposit(signer: string, token: string, amount: bigint, feeRate?: string): Promise<EVMTx[]>;
     claimWithSecret(signer: EVMSigner, swapData: EVMSwapData, secret: string, checkExpiry?: boolean, initAta?: boolean, txOptions?: TransactionConfirmationOptions): Promise<string>;

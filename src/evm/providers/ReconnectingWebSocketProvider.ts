@@ -17,7 +17,7 @@ export class ReconnectingWebSocketProvider extends SocketProvider {
     connectTimer: any;
 
     wsCtor: () => WebSocketLike;
-    websocket: null | WebSocketLike & {onclose?: (...args: any[]) => void, ping?: () => void};
+    websocket: null | WebSocketLike & {onclose?: (...args: any[]) => void, ping?: () => void} = null;
 
     constructor(url: string | (() => WebSocketLike), network?: Networkish, options?: JsonRpcApiProviderOptions) {
         super(network, options);
@@ -66,7 +66,7 @@ export class ReconnectingWebSocketProvider extends SocketProvider {
 
         this.connectTimer = setTimeout(() => {
             logger.warn("connect(): Websocket connection taking too long, (above "+this.connectionTimeout+" seconds!), closing and re-attempting connection");
-            this.websocket.close();
+            this.websocket!.close();
             this.disconnectedAndScheduleReconnect();
         }, this.connectionTimeout * 1000);
     }
@@ -74,7 +74,7 @@ export class ReconnectingWebSocketProvider extends SocketProvider {
     private disconnectedAndScheduleReconnect() {
         if(this.destroyed) return;
         if(this.websocket==null) return;
-        this.websocket.onclose = null;
+        this.websocket.onclose = undefined;
         //Register dummy handler, otherwise we get unhandled `error` event which crashes the whole thing
         this.websocket.onerror = (err) => logger.error("disconnectedAndScheduleReconnect(): Post-close onerror: ", err.error ?? err);
         this.websocket.onmessage = null;
@@ -90,6 +90,7 @@ export class ReconnectingWebSocketProvider extends SocketProvider {
     }
 
     async _write(message: string): Promise<void> {
+        if(this.websocket==null) throw new Error("Websocket not connected!");
         this.websocket.send(message);
     }
 

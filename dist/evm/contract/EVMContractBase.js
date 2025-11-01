@@ -15,7 +15,7 @@ class EVMContractBase {
         this.contractDeploymentHeight = contractDeploymentHeight;
     }
     toTypedEvent(log) {
-        let foundFragment;
+        let foundFragment = null;
         try {
             foundFragment = this.contract.interface.getEvent(log.topics[0]);
         }
@@ -26,6 +26,7 @@ class EVMContractBase {
             return new ethers_1.EventLog(log, this.contract.interface, foundFragment);
         }
         catch (error) { }
+        return null;
     }
     parseCalldata(calldata) {
         return this.contract.interface.parseTransaction({ data: calldata });

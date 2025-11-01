@@ -7,7 +7,6 @@ class CitreaFees extends EVMFees_1.EVMFees {
     constructor() {
         super(...arguments);
         this.logger = (0, Utils_1.getLogger)("CitreaFees: ");
-        this._blockFeeCache = null;
     }
     /**
      * Gets evm fee rate
@@ -29,16 +28,15 @@ class CitreaFees extends EVMFees_1.EVMFees {
      */
     async getFeeRate() {
         if (this._blockFeeCache == null || Date.now() - this._blockFeeCache.timestamp > this.MAX_FEE_AGE) {
-            let obj = {
+            let obj;
+            this._blockFeeCache = obj = {
                 timestamp: Date.now(),
-                feeRate: null
+                feeRate: this.__getFeeRate().catch(e => {
+                    if (this._blockFeeCache === obj)
+                        delete this._blockFeeCache;
+                    throw e;
+                })
             };
-            obj.feeRate = this.__getFeeRate().catch(e => {
-                if (this._blockFeeCache === obj)
-                    this._blockFeeCache = null;
-                throw e;
-            });
-            this._blockFeeCache = obj;
         }
         let { baseFee, l1Fee } = await this._blockFeeCache.feeRate;
         if (baseFee > this.maxFeeRatePerGas)

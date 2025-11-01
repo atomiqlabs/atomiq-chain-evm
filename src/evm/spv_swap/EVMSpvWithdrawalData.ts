@@ -11,7 +11,7 @@ export class EVMSpvWithdrawalData extends SpvWithdrawalTransactionData {
         return this.executionHash==null ? ZeroHash : (this.executionHash.startsWith("0x") ? this.executionHash : "0x"+this.executionHash)
     }
 
-    protected fromOpReturnData(data: Buffer): { recipient: string; rawAmounts: bigint[]; executionHash: string } {
+    protected fromOpReturnData(data: Buffer): { recipient: string; rawAmounts: bigint[]; executionHash?: string } {
         return EVMSpvVaultContract.fromOpReturnData(data);
     }
 

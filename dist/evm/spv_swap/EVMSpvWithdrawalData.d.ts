@@ -8,7 +8,7 @@ export declare class EVMSpvWithdrawalData extends SpvWithdrawalTransactionData {
     protected fromOpReturnData(data: Buffer): {
         recipient: string;
         rawAmounts: bigint[];
-        executionHash: string;
+        executionHash?: string;
     };
     isRecipient(address: string): boolean;
     getFrontingId(): string;

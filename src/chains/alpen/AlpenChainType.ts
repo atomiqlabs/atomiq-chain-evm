@@ -24,7 +24,7 @@ export type AlpenChainType = ChainType<
     EVMChainInterface<"ALPEN">,
     EVMChainEventsBrowser,
     EVMBtcRelay<any>,
-    EVMSpvVaultData,
     EVMSpvWithdrawalData,
+    EVMSpvVaultData,
     EVMSpvVaultContract<"ALPEN">
 >;

@@ -4,7 +4,7 @@ export declare class CitreaFees extends EVMFees {
         APPROVE_DIFF_SIZE: number;
     };
     protected readonly logger: import("../../utils/Utils").LoggerType;
-    private _blockFeeCache;
+    private _blockFeeCache?;
     /**
      * Gets evm fee rate
      *

@@ -44,7 +44,7 @@ export class EVMSpvVaultData extends SpvVaultData<EVMSpvWithdrawalData> {
         multiplier: bigint,
         rawAmount: bigint
     };
-    readonly initialUtxo: string;
+    readonly initialUtxo?: string;
     utxo: string;
     readonly confirmations: number;
     withdrawCount: number;
@@ -55,6 +55,10 @@ export class EVMSpvVaultData extends SpvVaultData<EVMSpvWithdrawalData> {
     constructor(ownerOrObj: string | any, vaultId?: bigint, state?: SpvVaultStateStruct, params?: SpvVaultParametersStruct, initialUtxo?: string) {
         super();
         if(typeof(ownerOrObj) === "string") {
+            if(vaultId==null) throw new Error("vaultId is null");
+            if(state==null) throw new Error("state is null");
+            if(params==null) throw new Error("params is null");
+
             this.owner = ownerOrObj;
             this.vaultId = vaultId;
             this.relayContract = params.btcRelayContract as string;
@@ -115,7 +119,7 @@ export class EVMSpvVaultData extends SpvVaultData<EVMSpvWithdrawalData> {
     }
 
     getUtxo(): string {
-        return this.isOpened() ? this.utxo : this.initialUtxo;
+        return this.isOpened() ? this.utxo : this.initialUtxo!;
     }
 
     getVaultId(): bigint {

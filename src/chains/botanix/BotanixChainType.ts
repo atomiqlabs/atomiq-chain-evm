@@ -24,7 +24,7 @@ export type BotanixChainType = ChainType<
     EVMChainInterface<"BOTANIX">,
     EVMChainEventsBrowser,
     EVMBtcRelay<any>,
-    EVMSpvVaultData,
     EVMSpvWithdrawalData,
+    EVMSpvVaultData,
     EVMSpvVaultContract<"BOTANIX">
 >;

@@ -36,6 +36,7 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         this.claimTimeout = 180;
         this.logger = (0, Utils_1.getLogger)("EVMSpvVaultContract: ");
         this.vaultParamsCache = new promise_cache_ts_1.PromiseLruCache(5000);
+        this.chainId = chainInterface.chainId;
         this.btcRelay = btcRelay;
         this.bitcoinRpc = bitcoinRpc;
     }
@@ -143,6 +144,8 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
     }
     async getVaultData(owner, vaultId) {
         const vaultState = await this.contract.getVault(owner, vaultId);
+        if (vaultState.spvVaultParametersCommitment === ethers_1.ZeroHash)
+            return null;
         const vaultParams = await this.vaultParamsCache.getOrComputeAsync(vaultState.spvVaultParametersCommitment, async () => {
             const blockheight = Number(vaultState.openBlockheight);
             const events = await this.Events.getContractBlockEvents(["Opened"], [
@@ -212,7 +215,7 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
             else {
                 openedVaults.delete(vaultIdentifier);
             }
-            return null;
+            return Promise.resolve(null);
         });
         const vaults = [];
         for (let [identifier, vaultParams] of openedVaults.entries()) {
@@ -269,22 +272,20 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         let result;
         if (scStartHeight == null) {
             result = await this.Events.findInContractEvents(events, keys, async (event) => {
-                const result = this.parseWithdrawalEvent(event);
-                if (result != null)
-                    return result;
+                return this.parseWithdrawalEvent(event);
             });
         }
         else {
             result = await this.Events.findInContractEventsForward(events, keys, async (event) => {
                 const result = this.parseWithdrawalEvent(event);
                 if (result == null)
-                    return;
+                    return null;
                 if (result.type === base_1.SpvWithdrawalStateType.FRONTED) {
                     //Check if still fronted
                     const fronterAddress = await this.getFronterAddress(result.owner, result.vaultId, withdrawalTx);
                     //Not fronted now, there should be a claim/close event after the front event, continue
                     if (fronterAddress == null)
-                        return;
+                        return null;
                 }
                 return result;
             }, scStartHeight);
@@ -371,7 +372,7 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
     static fromOpReturnData(data) {
         let rawAmount0 = 0n;
         let rawAmount1 = 0n;
-        let executionHash = null;
+        let executionHash;
         if (data.length === 28) {
             rawAmount0 = data.readBigInt64BE(20).valueOf();
         }
@@ -455,7 +456,11 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         feeRate ?? (feeRate = await this.Chain.Fees.getFeeRate());
         const txsWithMerkleProofs = [];
         for (let tx of txs) {
+            if (tx.tx.btcTx.blockhash == null)
+                throw new Error(`Transaction ${tx.tx.btcTx.txid} doesn't have any blockhash, unconfirmed?`);
             const merkleProof = await this.bitcoinRpc.getMerkleProof(tx.tx.btcTx.txid, tx.tx.btcTx.blockhash);
+            if (merkleProof == null)
+                throw new Error(`Failed to get merkle proof for tx: ${tx.tx.btcTx.txid}!`);
             this.logger.debug("txsClaim(): merkle proof computed: ", merkleProof);
             txsWithMerkleProofs.push({
                 ...merkleProof,

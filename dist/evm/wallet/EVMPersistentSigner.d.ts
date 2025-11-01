@@ -17,7 +17,7 @@ export declare class EVMPersistentSigner extends EVMSigner {
     private readonly logger;
     constructor(account: Signer, address: string, chainInterface: EVMChainInterface, directory: string, minFeeIncreaseAbsolute?: bigint, minFeeIncreasePpm?: bigint, waitBeforeBumpMillis?: number);
     private load;
-    private priorSavePromise;
+    private priorSavePromise?;
     private saveCount;
     private save;
     private checkPastTransactions;

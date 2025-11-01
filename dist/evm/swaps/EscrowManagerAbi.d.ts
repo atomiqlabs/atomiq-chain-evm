@@ -48,7 +48,7 @@ export declare const EscrowManagerAbi: ({
         type: string;
     })[];
     name: string;
-    outputs: any[];
+    outputs: never[];
     stateMutability: string;
     type: string;
     anonymous?: undefined;
