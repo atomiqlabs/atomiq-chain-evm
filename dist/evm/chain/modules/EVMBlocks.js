@@ -22,10 +22,9 @@ class EVMBlocks extends EVMModule_1.EVMModule {
             block: blockPromise,
             timestamp
         };
-        blockPromise.catch(e => {
+        blockPromise.catch(() => {
             if (this.blockCache[blockTagStr] != null && this.blockCache[blockTagStr].block === blockPromise)
                 delete this.blockCache[blockTagStr];
-            throw e;
         });
         return {
             block: blockPromise,
