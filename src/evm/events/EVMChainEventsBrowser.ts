@@ -335,7 +335,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         lastBlockNumber ??= currentBlock.number;
         if(currentBlock.number < lastBlockNumber) {
             this.logger.warn(`checkEventsEscrowManager(): Sanity check triggered - not processing events, currentBlock: ${currentBlock.number}, lastBlock: ${lastBlockNumber}`);
-            return null;
+            return {lastEvent, lastBlockNumber};
         }
         // this.logger.debug(`checkEvents(EscrowManager): Requesting logs: ${lastBlockNumber}...${currentBlock.number}`);
         let events = await this.evmSwapContract.Events.getContractBlockEvents(
@@ -376,7 +376,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         lastBlockNumber ??= currentBlock.number;
         if(currentBlock.number < lastBlockNumber) {
             this.logger.warn(`checkEventsSpvVaults(): Sanity check triggered - not processing events, currentBlock: ${currentBlock.number}, lastBlock: ${lastBlockNumber}`);
-            return null;
+            return {lastEvent, lastBlockNumber};
         }
         // this.logger.debug(`checkEvents(SpvVaults): Requesting logs: ${lastBlockNumber}...${currentBlock.number}`);
         let events = await this.evmSpvVaultContract.Events.getContractBlockEvents(
@@ -409,7 +409,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         return {lastEvent, lastBlockNumber};
     }
 
-    protected async checkEvents(lastState?: EVMEventListenerState[] | null): Promise<EVMEventListenerState[]> {
+    protected async checkEvents(lastState?: EVMEventListenerState[]): Promise<EVMEventListenerState[]> {
         lastState ??= [];
 
         const currentBlock = await this.provider.getBlock(this.chainInterface.config.safeBlockTag, false);
@@ -432,7 +432,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
      * @protected
      */
     protected async setupPoll(
-        lastState?: EVMEventListenerState[] | null,
+        lastState?: EVMEventListenerState[],
         saveLatestProcessedBlockNumber?: (newState: EVMEventListenerState[]) => Promise<void>
     ) {
         this.stopped = false;

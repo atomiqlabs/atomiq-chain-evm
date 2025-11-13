@@ -233,7 +233,7 @@ class EVMChainEventsBrowser {
         lastBlockNumber ?? (lastBlockNumber = currentBlock.number);
         if (currentBlock.number < lastBlockNumber) {
             this.logger.warn(`checkEventsEscrowManager(): Sanity check triggered - not processing events, currentBlock: ${currentBlock.number}, lastBlock: ${lastBlockNumber}`);
-            return null;
+            return { lastEvent, lastBlockNumber };
         }
         // this.logger.debug(`checkEvents(EscrowManager): Requesting logs: ${lastBlockNumber}...${currentBlock.number}`);
         let events = await this.evmSwapContract.Events.getContractBlockEvents(["Initialize", "Claim", "Refund"], [], lastBlockNumber, currentBlock.number);
@@ -264,7 +264,7 @@ class EVMChainEventsBrowser {
         lastBlockNumber ?? (lastBlockNumber = currentBlock.number);
         if (currentBlock.number < lastBlockNumber) {
             this.logger.warn(`checkEventsSpvVaults(): Sanity check triggered - not processing events, currentBlock: ${currentBlock.number}, lastBlock: ${lastBlockNumber}`);
-            return null;
+            return { lastEvent, lastBlockNumber };
         }
         // this.logger.debug(`checkEvents(SpvVaults): Requesting logs: ${lastBlockNumber}...${currentBlock.number}`);
         let events = await this.evmSpvVaultContract.Events.getContractBlockEvents(["Opened", "Deposited", "Closed", "Fronted", "Claimed"], [], lastBlockNumber, currentBlock.number);
