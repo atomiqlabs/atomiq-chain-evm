@@ -15,7 +15,7 @@ export type EVMEventListenerState = {
         blockHash: string;
         logIndex: number;
     };
-} | null;
+};
 type AtomiqTypedEvent = (TypedEventLog<EscrowManager["filters"]["Initialize" | "Refund" | "Claim"]> | TypedEventLog<SpvVaultManager["filters"]["Opened" | "Deposited" | "Fronted" | "Claimed" | "Closed"]>);
 /**
  * EVM on-chain event handler for front-end systems without access to fs, uses WS or long-polling to subscribe, might lose
