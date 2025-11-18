@@ -5,7 +5,7 @@ import { EVMBlocks, EVMBlockTag } from "./modules/EVMBlocks";
 import { EVMEvents } from "./modules/EVMEvents";
 import { EVMFees } from "./modules/EVMFees";
 import { EVMTokens } from "./modules/EVMTokens";
-import { EVMTransactions, EVMTx } from "./modules/EVMTransactions";
+import { EVMTransactions, EVMTx, SignedEVMTx } from "./modules/EVMTransactions";
 import { EVMSignatures } from "./modules/EVMSignatures";
 import { EVMSigner } from "../wallet/EVMSigner";
 export type EVMRetryPolicy = {
@@ -27,7 +27,7 @@ export type EVMConfiguration = {
         delayMs?: number;
     };
 };
-export declare class EVMChainInterface<ChainId extends string = string> implements ChainInterface<EVMTx, EVMSigner, ChainId, Signer> {
+export declare class EVMChainInterface<ChainId extends string = string> implements ChainInterface<EVMTx, SignedEVMTx, EVMSigner, ChainId, Signer> {
     readonly chainId: ChainId;
     readonly provider: JsonRpcApiProvider;
     readonly retryPolicy?: EVMRetryPolicy;
@@ -53,6 +53,7 @@ export declare class EVMChainInterface<ChainId extends string = string> implemen
     randomAddress(): string;
     randomSigner(): EVMSigner;
     sendAndConfirm(signer: EVMSigner, txs: TransactionRequest[], waitForConfirmation?: boolean, abortSignal?: AbortSignal, parallel?: boolean, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>, useAccessLists?: boolean): Promise<string[]>;
+    sendSignedAndConfirm(signedTxs: Transaction[], waitForConfirmation?: boolean, abortSignal?: AbortSignal, parallel?: boolean, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>): Promise<string[]>;
     serializeTx(tx: Transaction): Promise<string>;
     deserializeTx(txData: string): Promise<Transaction>;
     getTxIdStatus(txId: string): Promise<"not_found" | "pending" | "success" | "reverted">;

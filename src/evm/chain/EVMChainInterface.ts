@@ -14,7 +14,7 @@ import {EVMBlocks, EVMBlockTag} from "./modules/EVMBlocks";
 import {EVMEvents} from "./modules/EVMEvents";
 import {EVMFees} from "./modules/EVMFees";
 import {EVMTokens} from "./modules/EVMTokens";
-import {EVMTransactions, EVMTx} from "./modules/EVMTransactions";
+import {EVMTransactions, EVMTx, SignedEVMTx} from "./modules/EVMTransactions";
 import { EVMSignatures } from "./modules/EVMSignatures";
 import {EVMAddresses} from "./modules/EVMAddresses";
 import {EVMSigner} from "../wallet/EVMSigner";
@@ -43,7 +43,7 @@ export type EVMConfiguration = {
     }
 };
 
-export class EVMChainInterface<ChainId extends string = string> implements ChainInterface<EVMTx, EVMSigner, ChainId, Signer> {
+export class EVMChainInterface<ChainId extends string = string> implements ChainInterface<EVMTx, SignedEVMTx, EVMSigner, ChainId, Signer> {
 
     readonly chainId: ChainId;
 
@@ -149,6 +149,16 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
         useAccessLists?: boolean
     ): Promise<string[]> {
         return this.Transactions.sendAndConfirm(signer, txs, waitForConfirmation, abortSignal, parallel, onBeforePublish, useAccessLists);
+    }
+
+    sendSignedAndConfirm(
+        signedTxs: Transaction[],
+        waitForConfirmation?: boolean,
+        abortSignal?: AbortSignal,
+        parallel?: boolean,
+        onBeforePublish?: (txId: string, rawTx: string) => Promise<void>
+    ): Promise<string[]> {
+        return this.Transactions.sendSignedAndConfirm(signedTxs, waitForConfirmation, abortSignal, parallel, onBeforePublish);
     }
 
     serializeTx(tx: Transaction): Promise<string> {

@@ -255,6 +255,57 @@ class EVMTransactions extends EVMModule_1.EVMModule {
             " waitForConfirmation: " + waitForConfirmation + " parallel: " + parallel);
         return txIds;
     }
+    //TODO: Maybe consolidate this with sendAndConfirm() fn
+    async sendSignedAndConfirm(signedTxs, waitForConfirmation, abortSignal, parallel, onBeforePublish) {
+        this.logger.debug("sendSignedAndConfirm(): sending transactions, count: " + signedTxs.length +
+            " waitForConfirmation: " + waitForConfirmation + " parallel: " + parallel);
+        let txIds = [];
+        if (parallel) {
+            let promises = [];
+            for (let i = 0; i < signedTxs.length; i++) {
+                const signedTx = signedTxs[i];
+                await this.sendSignedTransaction(signedTx, onBeforePublish);
+                const nextAccountNonce = signedTx.nonce + 1;
+                const currentPendingNonce = this.latestPendingNonces[signedTx.from];
+                if (currentPendingNonce == null || nextAccountNonce > currentPendingNonce) {
+                    this.latestPendingNonces[signedTx.from] = nextAccountNonce;
+                }
+                promises.push(this.confirmTransaction(signedTx, abortSignal));
+                if (!waitForConfirmation)
+                    txIds.push(signedTx.hash);
+                this.logger.debug("sendAndConfirm(): transaction sent (" + (i + 1) + "/" + signedTxs.length + "): " + signedTx.hash);
+                if (promises.length >= MAX_UNCONFIRMED_TXNS) {
+                    if (waitForConfirmation)
+                        txIds.push(...await Promise.all(promises));
+                    promises = [];
+                }
+            }
+            if (waitForConfirmation && promises.length > 0) {
+                txIds.push(...await Promise.all(promises));
+            }
+        }
+        else {
+            for (let i = 0; i < signedTxs.length; i++) {
+                const signedTx = signedTxs[i];
+                await this.sendSignedTransaction(signedTx, onBeforePublish);
+                const nextAccountNonce = signedTx.nonce + 1;
+                const currentPendingNonce = this.latestPendingNonces[signedTx.from];
+                if (currentPendingNonce == null || nextAccountNonce > currentPendingNonce) {
+                    this.latestPendingNonces[signedTx.from] = nextAccountNonce;
+                }
+                const confirmPromise = this.confirmTransaction(signedTx, abortSignal);
+                this.logger.debug("sendAndConfirm(): transaction sent (" + (i + 1) + "/" + signedTxs.length + "): " + signedTx.hash);
+                //Don't await the last promise when !waitForConfirmation
+                let txHash = signedTx.hash;
+                if (i < signedTxs.length - 1 || waitForConfirmation)
+                    txHash = await confirmPromise;
+                txIds.push(txHash);
+            }
+        }
+        this.logger.info("sendSignedAndConfirm(): sent transactions, count: " + signedTxs.length +
+            " waitForConfirmation: " + waitForConfirmation + " parallel: " + parallel);
+        return txIds;
+    }
     /**
      * Serializes the signed EVM transaction
      *
