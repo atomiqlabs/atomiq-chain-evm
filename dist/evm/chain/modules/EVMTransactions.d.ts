@@ -2,6 +2,7 @@ import { EVMModule } from "../EVMModule";
 import { Transaction, TransactionRequest } from "ethers";
 import { EVMSigner } from "../../wallet/EVMSigner";
 export type EVMTx = TransactionRequest;
+export type SignedEVMTx = Transaction;
 export type EVMTxTrace = {
     from: string;
     gas: string;
@@ -63,6 +64,7 @@ export declare class EVMTransactions extends EVMModule<any> {
      * @param useAccessLists
      */
     sendAndConfirm(signer: EVMSigner, txs: TransactionRequest[], waitForConfirmation?: boolean, abortSignal?: AbortSignal, parallel?: boolean, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>, useAccessLists?: boolean): Promise<string[]>;
+    sendSignedAndConfirm(signedTxs: Transaction[], waitForConfirmation?: boolean, abortSignal?: AbortSignal, parallel?: boolean, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>): Promise<string[]>;
     /**
      * Serializes the signed EVM transaction
      *
