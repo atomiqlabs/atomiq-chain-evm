@@ -161,12 +161,20 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
         return this.Transactions.sendSignedAndConfirm(signedTxs, waitForConfirmation, abortSignal, parallel, onBeforePublish);
     }
 
-    serializeTx(tx: Transaction): Promise<string> {
-        return this.Transactions.serializeTx(tx);
+    serializeTx(tx: TransactionRequest): Promise<string> {
+        return this.Transactions.serializeUnsignedTx(tx);
     }
 
-    deserializeTx(txData: string): Promise<Transaction> {
-        return this.Transactions.deserializeTx(txData);
+    deserializeTx(txData: string): Promise<TransactionRequest> {
+        return Promise.resolve(this.Transactions.deserializeUnsignedTx(txData));
+    }
+
+    serializeSignedTx(tx: Transaction): Promise<string> {
+        return Promise.resolve(this.Transactions.serializeSignedTx(tx));
+    }
+
+    deserializeSignedTx(txData: string): Promise<Transaction> {
+        return Promise.resolve(this.Transactions.deserializeSignedTx(txData));
     }
 
     getTxIdStatus(txId: string): Promise<"not_found" | "pending" | "success" | "reverted"> {

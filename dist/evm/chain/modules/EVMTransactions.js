@@ -149,7 +149,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
      */
     async sendSignedTransaction(tx, onBeforePublish) {
         if (onBeforePublish != null)
-            await onBeforePublish(tx.hash, await this.serializeTx(tx));
+            await onBeforePublish(tx.hash, this.serializeSignedTx(tx));
         this.logger.debug("sendSignedTransaction(): sending transaction: ", tx.hash);
         const serializedTx = tx.serialized;
         let result = null;
@@ -307,20 +307,47 @@ class EVMTransactions extends EVMModule_1.EVMModule {
         return txIds;
     }
     /**
+     * Serializes the unsigned EVM transaction
+     *
+     * @param unsignedTx
+     */
+    async serializeUnsignedTx(unsignedTx) {
+        const tx = ethers_1.Transaction.from({
+            ...unsignedTx,
+            to: unsignedTx.to == null ? null : await (0, ethers_1.resolveAddress)(unsignedTx.to),
+            from: unsignedTx.from == null ? null : await (0, ethers_1.resolveAddress)(unsignedTx.from),
+            authorizationList: unsignedTx.authorizationList == null ? null : unsignedTx.authorizationList.map(val => ({
+                ...val,
+                nonce: BigInt(val.nonce),
+                chainId: BigInt(val.chainId),
+                signature: ethers_1.Signature.from(val.signature)
+            }))
+        });
+        return this.serializeSignedTx(tx);
+    }
+    /**
      * Serializes the signed EVM transaction
      *
      * @param tx
      */
-    serializeTx(tx) {
-        return Promise.resolve(tx.serialized);
+    serializeSignedTx(tx) {
+        return tx.serialized;
+    }
+    /**
+     * Deserializes an unsigned EVM transaction
+     *
+     * @param unsignedTxData
+     */
+    deserializeUnsignedTx(unsignedTxData) {
+        return this.deserializeSignedTx(unsignedTxData);
     }
     /**
      * Deserializes signed EVM transaction
      *
-     * @param txData
+     * @param signedTxData
      */
-    deserializeTx(txData) {
-        return Promise.resolve(ethers_1.Transaction.from(txData));
+    deserializeSignedTx(signedTxData) {
+        return ethers_1.Transaction.from(signedTxData);
     }
     /**
      * Gets the status of the raw starknet transaction
@@ -328,7 +355,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
      * @param tx
      */
     async getTxStatus(tx) {
-        const parsedTx = await this.deserializeTx(tx);
+        const parsedTx = this.deserializeSignedTx(tx);
         return await this.getTxIdStatus(parsedTx.hash);
     }
     /**

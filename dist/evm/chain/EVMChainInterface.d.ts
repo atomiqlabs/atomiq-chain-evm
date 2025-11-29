@@ -54,8 +54,10 @@ export declare class EVMChainInterface<ChainId extends string = string> implemen
     randomSigner(): EVMSigner;
     sendAndConfirm(signer: EVMSigner, txs: TransactionRequest[], waitForConfirmation?: boolean, abortSignal?: AbortSignal, parallel?: boolean, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>, useAccessLists?: boolean): Promise<string[]>;
     sendSignedAndConfirm(signedTxs: Transaction[], waitForConfirmation?: boolean, abortSignal?: AbortSignal, parallel?: boolean, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>): Promise<string[]>;
-    serializeTx(tx: Transaction): Promise<string>;
-    deserializeTx(txData: string): Promise<Transaction>;
+    serializeTx(tx: TransactionRequest): Promise<string>;
+    deserializeTx(txData: string): Promise<TransactionRequest>;
+    serializeSignedTx(tx: Transaction): Promise<string>;
+    deserializeSignedTx(txData: string): Promise<Transaction>;
     getTxIdStatus(txId: string): Promise<"not_found" | "pending" | "success" | "reverted">;
     getTxStatus(tx: string): Promise<"not_found" | "pending" | "success" | "reverted">;
     getFinalizedBlock(): Promise<{

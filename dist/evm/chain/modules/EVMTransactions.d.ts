@@ -66,17 +66,29 @@ export declare class EVMTransactions extends EVMModule<any> {
     sendAndConfirm(signer: EVMSigner, txs: TransactionRequest[], waitForConfirmation?: boolean, abortSignal?: AbortSignal, parallel?: boolean, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>, useAccessLists?: boolean): Promise<string[]>;
     sendSignedAndConfirm(signedTxs: Transaction[], waitForConfirmation?: boolean, abortSignal?: AbortSignal, parallel?: boolean, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>): Promise<string[]>;
     /**
+     * Serializes the unsigned EVM transaction
+     *
+     * @param unsignedTx
+     */
+    serializeUnsignedTx(unsignedTx: TransactionRequest): Promise<string>;
+    /**
      * Serializes the signed EVM transaction
      *
      * @param tx
      */
-    serializeTx(tx: Transaction): Promise<string>;
+    serializeSignedTx(tx: Transaction): string;
+    /**
+     * Deserializes an unsigned EVM transaction
+     *
+     * @param unsignedTxData
+     */
+    deserializeUnsignedTx(unsignedTxData: string): TransactionRequest;
     /**
      * Deserializes signed EVM transaction
      *
-     * @param txData
+     * @param signedTxData
      */
-    deserializeTx(txData: string): Promise<Transaction>;
+    deserializeSignedTx(signedTxData: string): Transaction;
     /**
      * Gets the status of the raw starknet transaction
      *
