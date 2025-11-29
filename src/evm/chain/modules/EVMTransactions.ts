@@ -1,5 +1,13 @@
 import {EVMModule} from "../EVMModule";
-import {JsonRpcResult, makeError, Transaction, TransactionRequest, TransactionResponse, toBeHex} from "ethers";
+import {
+    JsonRpcResult,
+    makeError,
+    Transaction,
+    TransactionRequest,
+    TransactionResponse,
+    toBeHex,
+    Signature, resolveAddress
+} from "ethers";
 import {timeoutPromise} from "../../../utils/Utils";
 import {EVMSigner} from "../../wallet/EVMSigner";
 import {TransactionRevertedError} from "@atomiqlabs/base";
@@ -176,7 +184,7 @@ export class EVMTransactions extends EVMModule<any> {
         tx: Transaction,
         onBeforePublish?: (txId: string, rawTx: string) => Promise<void>,
     ): Promise<string> {
-        if(onBeforePublish!=null) await onBeforePublish(tx.hash, await this.serializeTx(tx));
+        if(onBeforePublish!=null) await onBeforePublish(tx.hash, this.serializeSignedTx(tx));
         this.logger.debug("sendSignedTransaction(): sending transaction: ", tx.hash);
 
         const serializedTx = tx.serialized;
@@ -352,21 +360,50 @@ export class EVMTransactions extends EVMModule<any> {
     }
 
     /**
+     * Serializes the unsigned EVM transaction
+     *
+     * @param unsignedTx
+     */
+    public async serializeUnsignedTx(unsignedTx: TransactionRequest): Promise<string> {
+        const tx = Transaction.from({
+            ...unsignedTx,
+            to: unsignedTx.to==null ? null : await resolveAddress(unsignedTx.to),
+            from: unsignedTx.from==null ? null : await resolveAddress(unsignedTx.from),
+            authorizationList: unsignedTx.authorizationList.map(val => ({
+                ...val,
+                nonce: BigInt(val.nonce),
+                chainId: BigInt(val.chainId),
+                signature: Signature.from(val.signature)
+            }))
+        });
+        return this.serializeSignedTx(tx);
+    }
+
+    /**
      * Serializes the signed EVM transaction
      *
      * @param tx
      */
-    public serializeTx(tx: Transaction): Promise<string> {
-        return Promise.resolve(tx.serialized);
+    public serializeSignedTx(tx: Transaction): string {
+        return tx.serialized;
+    }
+
+    /**
+     * Deserializes an unsigned EVM transaction
+     *
+     * @param unsignedTxData
+     */
+    public deserializeUnsignedTx(unsignedTxData: string): TransactionRequest {
+        return this.deserializeSignedTx(unsignedTxData);
     }
 
     /**
      * Deserializes signed EVM transaction
      *
-     * @param txData
+     * @param signedTxData
      */
-    public deserializeTx(txData: string): Promise<Transaction> {
-        return Promise.resolve(Transaction.from(txData));
+    public deserializeSignedTx(signedTxData: string): Transaction {
+        return Transaction.from(signedTxData);
     }
 
     /**
@@ -375,7 +412,7 @@ export class EVMTransactions extends EVMModule<any> {
      * @param tx
      */
     public async getTxStatus(tx: string): Promise<"pending" | "success" | "not_found" | "reverted"> {
-        const parsedTx: Transaction = await this.deserializeTx(tx);
+        const parsedTx: Transaction = this.deserializeSignedTx(tx);
         return await this.getTxIdStatus(parsedTx.hash);
     }
 
