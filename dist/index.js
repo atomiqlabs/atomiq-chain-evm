@@ -57,6 +57,8 @@ __exportStar(require("./chains/botanix/BotanixInitializer"), exports);
 __exportStar(require("./chains/botanix/BotanixChainType"), exports);
 __exportStar(require("./chains/alpen/AlpenInitializer"), exports);
 __exportStar(require("./chains/alpen/AlpenChainType"), exports);
+__exportStar(require("./chains/goat/GoatInitializer"), exports);
+__exportStar(require("./chains/goat/GoatChainType"), exports);
 __exportStar(require("./evm/providers/JsonRpcProviderWithRetries"), exports);
 __exportStar(require("./evm/providers/WebSocketProviderWithRetries"), exports);
 __exportStar(require("./evm/providers/ReconnectingWebSocketProvider"), exports);

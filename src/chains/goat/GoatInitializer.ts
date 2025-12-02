@@ -9,14 +9,14 @@ import {EVMChainEventsBrowser} from "../../evm/events/EVMChainEventsBrowser";
 import {EVMSwapData} from "../../evm/swaps/EVMSwapData";
 import {EVMSpvVaultData} from "../../evm/spv_swap/EVMSpvVaultData";
 import {EVMSpvWithdrawalData} from "../../evm/spv_swap/EVMSpvWithdrawalData";
-import {AlpenChainType} from "./AlpenChainType";
+import {GoatChainType} from "./GoatChainType";
 
-const AlpenChainIds = {
-    MAINNET: -1,
-    TESTNET: 2892
+const GoatChainIds = {
+    MAINNET: 2345,
+    TESTNET: 48816
 };
 
-const AlpenContractAddresses = {
+const GoatContractAddresses = {
     MAINNET: {
         executionContract: "",
         swapContract: "",
@@ -37,28 +37,28 @@ const AlpenContractAddresses = {
         }
     },
     TESTNET: {
-        executionContract: "0xc98Ef084d3911C8447DBbE4dDa18bC2c9bB0584e",
-        swapContract: "0x59A54378B6bA9C21ba66487C6A701D702baDEabE",
-        btcRelayContract: "0x5bb0C725939cB825d1322A99a3FeB570097628c3",
-        btcRelayDeploymentHeight: 1424534,
-        spvVaultContract: "0x8A44f1995a54fD976c904Cccf9EbaB49c3182eb3",
-        spvVaultDeploymentHeight: 1424536,
+        executionContract: "0xe8be24CF21341c9567664009a8a82C9Dc1eE90D6",
+        swapContract: "0xe510D5781C6C849284Fb25Dc20b1684cEC445C8B",
+        btcRelayContract: "0x3887B02217726bB36958Dd595e57293fB63D5082",
+        btcRelayDeploymentHeight: 9368975,
+        spvVaultContract: "0x71Bc44F3F7203fC1279107D924e418F02b0d4029",
+        spvVaultDeploymentHeight: 9368977,
         handlerContracts: {
             refund: {
-                timelock: "0xe8be24CF21341c9567664009a8a82C9Dc1eE90D6"
+                timelock: "0xb0226bAC3BD30179fb66A43cEA212AbBC988e004"
             },
             claim: {
-                [ChainSwapType.HTLC]: "0x32EB4DbDdC31e19ba908fecc7cae03F0d04F01Fa",
-                [ChainSwapType.CHAIN_TXID]: "0xaB2D14745362B26a732dD8B7F95daAE3D2914bBF",
-                [ChainSwapType.CHAIN]: "0x2920EE496693A5027249a027A6FD3F643E743745",
-                [ChainSwapType.CHAIN_NONCED]: "0x3887B02217726bB36958Dd595e57293fB63D5082"
+                [ChainSwapType.HTLC]: "0x9a027B5Bf43382Cc4A5134d9EFD389f61ece27B9",
+                [ChainSwapType.CHAIN_TXID]: "0xfFA842529977a40A3fdb988cdDC9CB5c39bAcF26",
+                [ChainSwapType.CHAIN]: "0xa2698D2fBE3f7c74cCca428a5fd968411644C641",
+                [ChainSwapType.CHAIN_NONCED]: "0x62a718348081F9CF9a8E3dF4B4EA6d6349991ad9"
             }
         }
     }
 };
 
-export type AlpenAssetsType = BaseTokenType<"BTC">;
-export const AlpenAssets: AlpenAssetsType = {
+export type GoatAssetsType = BaseTokenType<"BTC">;
+export const GoatAssets: GoatAssetsType = {
     BTC: {
         address: "0x0000000000000000000000000000000000000000",
         decimals: 18,
@@ -66,7 +66,7 @@ export const AlpenAssets: AlpenAssetsType = {
     }
 } as const;
 
-export type AlpenOptions = {
+export type GoatOptions = {
     rpcUrl: string | JsonRpcApiProvider,
     retryPolicy?: EVMRetryPolicy,
     chainType?: "MAINNET" | "TESTNET",
@@ -90,11 +90,11 @@ export type AlpenOptions = {
     evmConfig?: Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag">
 }
 
-export function initializeAlpen(
-    options: AlpenOptions,
+export function initializeGoat(
+    options: GoatOptions,
     bitcoinRpc: BitcoinRpc<any>,
     network: BitcoinNetwork
-): ChainData<AlpenChainType> {
+): ChainData<GoatChainType> {
     if(options.chainType==null) {
         switch (network) {
             case BitcoinNetwork.MAINNET:
@@ -106,20 +106,20 @@ export function initializeAlpen(
         }
     }
 
-    const defaultContractAddresses = AlpenContractAddresses[options.chainType];
-    const chainId = AlpenChainIds[options.chainType];
+    const defaultContractAddresses = GoatContractAddresses[options.chainType];
+    const chainId = GoatChainIds[options.chainType];
 
     const provider = typeof(options.rpcUrl)==="string" ?
         (
             options.rpcUrl.startsWith("ws")
-                ? new WebSocketProvider(options.rpcUrl, {name: "Alpen", chainId})
-                : new JsonRpcProvider(options.rpcUrl, {name: "Alpen", chainId})
+                ? new WebSocketProvider(options.rpcUrl, {name: "GOAT Network", chainId})
+                : new JsonRpcProvider(options.rpcUrl, {name: "GOAT Network", chainId})
         ):
         options.rpcUrl;
 
     const Fees = options.fees ?? new EVMFees(provider, 2n * 1_000_000_000n, 100_000n);
 
-    const chainInterface = new EVMChainInterface("ALPEN", chainId, provider, {
+    const chainInterface = new EVMChainInterface("GOAT", chainId, provider, {
         safeBlockTag: "latest",
         finalizedBlockTag: "latest",
         maxLogsBlockRange: options?.evmConfig?.maxLogsBlockRange ?? 950,
@@ -156,7 +156,7 @@ export function initializeAlpen(
     const chainEvents = new EVMChainEventsBrowser(chainInterface, swapContract, spvVaultContract);
 
     return {
-        chainId: "ALPEN",
+        chainId: "GOAT",
         btcRelay,
         chainInterface,
         swapContract,
@@ -168,11 +168,11 @@ export function initializeAlpen(
     }
 };
 
-export type AlpenInitializerType = ChainInitializer<AlpenOptions, AlpenChainType, AlpenAssetsType>;
-export const AlpenInitializer: AlpenInitializerType = {
-    chainId: "ALPEN",
-    chainType: null as AlpenChainType,
-    initializer: initializeAlpen,
-    tokens: AlpenAssets,
-    options: null as AlpenOptions
+export type GoatInitializerType = ChainInitializer<GoatOptions, GoatChainType, GoatAssetsType>;
+export const GoatInitializer: GoatInitializerType = {
+    chainId: "GOAT",
+    chainType: null as GoatChainType,
+    initializer: initializeGoat,
+    tokens: GoatAssets,
+    options: null as GoatOptions
 } as const;

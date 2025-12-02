@@ -41,6 +41,8 @@ export * from "./chains/botanix/BotanixInitializer";
 export * from "./chains/botanix/BotanixChainType";
 export * from "./chains/alpen/AlpenInitializer";
 export * from "./chains/alpen/AlpenChainType";
+export * from "./chains/goat/GoatInitializer";
+export * from "./chains/goat/GoatChainType";
 export * from "./evm/providers/JsonRpcProviderWithRetries";
 export * from "./evm/providers/WebSocketProviderWithRetries";
 export * from "./evm/providers/ReconnectingWebSocketProvider";
