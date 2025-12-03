@@ -81,7 +81,7 @@ function initializeGoat(options, bitcoinRpc, network) {
             ? new ethers_1.WebSocketProvider(options.rpcUrl, { name: "GOAT Network", chainId })
             : new ethers_1.JsonRpcProvider(options.rpcUrl, { name: "GOAT Network", chainId })) :
         options.rpcUrl;
-    const Fees = options.fees ?? new EVMFees_1.EVMFees(provider, 2n * 1000000000n, 100000n);
+    const Fees = options.fees ?? new EVMFees_1.EVMFees(provider, 2n * 1000000000n, 5000000n);
     const chainInterface = new EVMChainInterface_1.EVMChainInterface("GOAT", chainId, provider, {
         safeBlockTag: "latest",
         finalizedBlockTag: "latest",

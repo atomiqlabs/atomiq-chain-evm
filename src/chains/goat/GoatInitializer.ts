@@ -117,7 +117,7 @@ export function initializeGoat(
         ):
         options.rpcUrl;
 
-    const Fees = options.fees ?? new EVMFees(provider, 2n * 1_000_000_000n, 100_000n);
+    const Fees = options.fees ?? new EVMFees(provider, 2n * 1_000_000_000n, 5_000_000n);
 
     const chainInterface = new EVMChainInterface("GOAT", chainId, provider, {
         safeBlockTag: "latest",
