@@ -22,19 +22,26 @@ class EVMChainEvents extends EVMChainEventsBrowser_1.EVMChainEventsBrowser {
             return arr.map(val => {
                 const stateResult = val.split(",");
                 if (stateResult.length >= 3) {
+                    const lastBlockNumber = parseInt(stateResult[0]);
+                    const logIndex = parseInt(stateResult[2]);
+                    if (isNaN(lastBlockNumber) || isNaN(logIndex))
+                        throw new Error("");
                     return {
-                        lastBlockNumber: parseInt(stateResult[0]),
+                        lastBlockNumber,
                         lastEvent: {
                             blockHash: stateResult[1],
-                            logIndex: parseInt(stateResult[2])
+                            logIndex
                         }
                     };
                 }
                 else if (stateResult.length >= 1) {
                     if (stateResult[0] === "null")
                         return null;
+                    const lastBlockNumber = parseInt(stateResult[0]);
+                    if (isNaN(lastBlockNumber))
+                        throw new Error("");
                     return {
-                        lastBlockNumber: parseInt(stateResult[0])
+                        lastBlockNumber
                     };
                 }
                 else {
@@ -43,7 +50,7 @@ class EVMChainEvents extends EVMChainEventsBrowser_1.EVMChainEventsBrowser {
             });
         }
         catch (e) {
-            return null;
+            return undefined;
         }
     }
     /**

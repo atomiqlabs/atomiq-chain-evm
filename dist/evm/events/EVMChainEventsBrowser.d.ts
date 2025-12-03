@@ -15,7 +15,7 @@ export type EVMEventListenerState = {
         blockHash: string;
         logIndex: number;
     };
-};
+} | null;
 type AtomiqTypedEvent = (TypedEventLog<EscrowManager["filters"]["Initialize" | "Refund" | "Claim"]> | TypedEventLog<SpvVaultManager["filters"]["Opened" | "Deposited" | "Fronted" | "Claimed" | "Closed"]>);
 /**
  * EVM on-chain event handler for front-end systems without access to fs, uses WS or long-polling to subscribe, might lose
@@ -79,13 +79,13 @@ export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         blockHash: string;
         logIndex: number;
     }, lastBlockNumber?: number): Promise<EVMEventListenerState>;
-    protected checkEvents(lastState?: EVMEventListenerState[] | null): Promise<EVMEventListenerState[]>;
+    protected checkEvents(lastState?: EVMEventListenerState[]): Promise<EVMEventListenerState[]>;
     /**
      * Sets up event handlers listening for swap events over websocket
      *
      * @protected
      */
-    protected setupPoll(lastState?: EVMEventListenerState[] | null, saveLatestProcessedBlockNumber?: (newState: EVMEventListenerState[]) => Promise<void>): Promise<void>;
+    protected setupPoll(lastState?: EVMEventListenerState[], saveLatestProcessedBlockNumber?: (newState: EVMEventListenerState[]) => Promise<void>): Promise<void>;
     protected handleWsEvent(event: AtomiqTypedEvent): Promise<void>;
     protected spvVaultContractListener?: (log: Log) => void;
     protected swapContractListener?: (log: Log) => void;

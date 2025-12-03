@@ -57,6 +57,11 @@ const GoatContractAddresses = {
     }
 };
 
+const chainTypeMapping: {[key in BitcoinNetwork]?: "MAINNET" | "TESTNET"} = {
+    [BitcoinNetwork.MAINNET]: "MAINNET",
+    [BitcoinNetwork.TESTNET]: "TESTNET",
+};
+
 export type GoatAssetsType = BaseTokenType<"BTC" | "PBTC">;
 export const GoatAssets: GoatAssetsType = {
     BTC: {
@@ -100,16 +105,8 @@ export function initializeGoat(
     bitcoinRpc: BitcoinRpc<any>,
     network: BitcoinNetwork
 ): ChainData<GoatChainType> {
-    if(options.chainType==null) {
-        switch (network) {
-            case BitcoinNetwork.MAINNET:
-                options.chainType = "MAINNET";
-                break;
-            case BitcoinNetwork.TESTNET:
-                options.chainType = "TESTNET";
-                break;
-        }
-    }
+    options.chainType ??= chainTypeMapping[network];
+    if(options.chainType==null) throw new Error("Please specify chainType in options!");
 
     const defaultContractAddresses = GoatContractAddresses[options.chainType];
     const chainId = GoatChainIds[options.chainType];
@@ -176,8 +173,8 @@ export function initializeGoat(
 export type GoatInitializerType = ChainInitializer<GoatOptions, GoatChainType, GoatAssetsType>;
 export const GoatInitializer: GoatInitializerType = {
     chainId: "GOAT",
-    chainType: null as GoatChainType,
+    chainType: null as unknown as GoatChainType,
     initializer: initializeGoat,
     tokens: GoatAssets,
-    options: null as GoatOptions
+    options: null as unknown  as GoatOptions
 } as const;

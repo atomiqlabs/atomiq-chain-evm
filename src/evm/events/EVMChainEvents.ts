@@ -28,31 +28,36 @@ export class EVMChainEvents extends EVMChainEventsBrowser {
      *
      * @private
      */
-    private async getLastEventData(): Promise<EVMEventListenerState[] | null> {
+    private async getLastEventData(): Promise<EVMEventListenerState[] | undefined> {
         try {
             const txt: string = (await fs.readFile(this.directory+this.BLOCKHEIGHT_FILENAME)).toString();
             const arr = txt.split(";");
             return arr.map(val => {
                 const stateResult = val.split(",");
                 if(stateResult.length>=3) {
+                    const lastBlockNumber = parseInt(stateResult[0]);
+                    const logIndex = parseInt(stateResult[2]);
+                    if(isNaN(lastBlockNumber) || isNaN(logIndex)) throw new Error("");
                     return {
-                        lastBlockNumber: parseInt(stateResult[0]),
+                        lastBlockNumber,
                         lastEvent: {
                             blockHash: stateResult[1],
-                            logIndex: parseInt(stateResult[2])
+                            logIndex
                         }
                     };
                 } else if(stateResult.length>=1) {
                     if(stateResult[0]==="null") return null;
+                    const lastBlockNumber = parseInt(stateResult[0]);
+                    if(isNaN(lastBlockNumber)) throw new Error("");
                     return {
-                        lastBlockNumber: parseInt(stateResult[0])
-                    }
+                        lastBlockNumber
+                    };
                 } else {
                     return null;
                 }
             });
         } catch (e) {
-            return null;
+            return undefined;
         }
     }
 
