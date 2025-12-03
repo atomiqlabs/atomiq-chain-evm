@@ -24,7 +24,7 @@ export type GoatChainType = ChainType<
     EVMChainInterface<"GOAT">,
     EVMChainEventsBrowser,
     EVMBtcRelay<any>,
-    EVMSpvVaultData,
     EVMSpvWithdrawalData,
+    EVMSpvVaultData,
     EVMSpvVaultContract<"GOAT">
 >;
