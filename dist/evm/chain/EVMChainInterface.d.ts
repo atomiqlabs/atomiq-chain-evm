@@ -30,7 +30,7 @@ export type EVMConfiguration = {
 export declare class EVMChainInterface<ChainId extends string = string> implements ChainInterface<EVMTx, EVMSigner, ChainId, Signer> {
     readonly chainId: ChainId;
     readonly provider: JsonRpcApiProvider;
-    readonly retryPolicy: EVMRetryPolicy;
+    readonly retryPolicy?: EVMRetryPolicy;
     readonly evmChainId: number;
     readonly config: EVMConfiguration;
     Fees: EVMFees;

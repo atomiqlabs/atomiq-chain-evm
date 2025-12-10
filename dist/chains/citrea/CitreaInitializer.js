@@ -57,6 +57,10 @@ const CitreaContractAddresses = {
         }
     }
 };
+const chainTypeMapping = {
+    [base_1.BitcoinNetwork.MAINNET]: "MAINNET",
+    [base_1.BitcoinNetwork.TESTNET4]: "TESTNET4",
+};
 exports.CitreaAssets = {
     CBTC: {
         address: "0x0000000000000000000000000000000000000000",
@@ -75,18 +79,13 @@ exports.CitreaAssets = {
     }
 };
 function initializeCitrea(options, bitcoinRpc, network) {
-    if (options.chainType == null) {
-        switch (network) {
-            case base_1.BitcoinNetwork.TESTNET4:
-                options.chainType = "TESTNET4";
-                break;
-            case base_1.BitcoinNetwork.MAINNET:
-                options.chainType = "MAINNET";
-                break;
-        }
-    }
+    options.chainType ?? (options.chainType = chainTypeMapping[network]);
+    if (options.chainType == null)
+        throw new Error("Please specify chainType in options!");
     const defaultContractAddresses = CitreaContractAddresses[options.chainType];
     const chainId = CitreaChainIds[options.chainType];
+    if (chainId == null)
+        throw new Error("Invalid chainId due to wrong chainType specified, check the passed chainType!");
     const provider = typeof (options.rpcUrl) === "string" ?
         (options.rpcUrl.startsWith("ws")
             ? new ethers_1.WebSocketProvider(options.rpcUrl, { name: "Citrea", chainId })

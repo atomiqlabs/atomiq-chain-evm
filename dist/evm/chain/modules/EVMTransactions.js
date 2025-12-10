@@ -94,7 +94,9 @@ class EVMTransactions extends EVMModule_1.EVMModule {
                         value: (0, ethers_1.toBeHex)(tx.value ?? 0n),
                         input: tx.data,
                         data: tx.data,
-                        accessList: this.root.config.defaultAccessListAddresses.map(val => ({ address: val, storageKeys: [] }))
+                        accessList: this.root.config.defaultAccessListAddresses == null
+                            ? undefined
+                            : this.root.config.defaultAccessListAddresses.map(val => ({ address: val, storageKeys: [] }))
                     }, "pending"]);
             }
             catch (e) {
@@ -158,7 +160,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
             await onBeforePublish(tx.hash, await this.serializeTx(tx));
         this.logger.debug("sendSignedTransaction(): sending transaction: ", tx.hash);
         const serializedTx = tx.serialized;
-        let result;
+        let result = null;
         if (this.cbkSendTransaction != null)
             result = await this.cbkSendTransaction(serializedTx);
         if (result == null) {
@@ -298,7 +300,9 @@ class EVMTransactions extends EVMModule_1.EVMModule {
         if (txResponse.blockHash == null)
             return "pending";
         const [safeBlockNumber, txReceipt] = await Promise.all([
-            this.root.config.safeBlockTag === "latest" ? Promise.resolve(null) : this.provider.getBlock(this.root.config.safeBlockTag).then(res => res.number),
+            this.root.config.safeBlockTag === "latest"
+                ? Promise.resolve(null)
+                : this.provider.getBlock(this.root.config.safeBlockTag).then(res => res?.number ?? 0),
             this.provider.getTransactionReceipt(txId)
         ]);
         if (txReceipt == null || (safeBlockNumber != null && txReceipt.blockNumber > safeBlockNumber))
@@ -321,7 +325,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
         this.cbkSendTransaction = callback;
     }
     offSendTransaction(callback) {
-        this.cbkSendTransaction = null;
+        delete this.cbkSendTransaction;
         return true;
     }
     onBeforeTxReplace(callback) {

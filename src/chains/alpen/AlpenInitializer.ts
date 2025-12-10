@@ -77,6 +77,12 @@ const AlpenContractAddresses = {
     }
 };
 
+const chainTypeMapping: {[key in BitcoinNetwork]?: "MAINNET" | "TESTNET" | "TESTNET4"} = {
+    [BitcoinNetwork.MAINNET]: "MAINNET",
+    [BitcoinNetwork.TESTNET]: "TESTNET",
+    [BitcoinNetwork.TESTNET4]: "TESTNET4",
+};
+
 export type AlpenAssetsType = BaseTokenType<"BTC">;
 export const AlpenAssets: AlpenAssetsType = {
     BTC: {
@@ -115,19 +121,8 @@ export function initializeAlpen(
     bitcoinRpc: BitcoinRpc<any>,
     network: BitcoinNetwork
 ): ChainData<AlpenChainType> {
-    if(options.chainType==null) {
-        switch (network) {
-            case BitcoinNetwork.MAINNET:
-                options.chainType = "MAINNET";
-                break;
-            case BitcoinNetwork.TESTNET:
-                options.chainType = "TESTNET";
-                break;
-            case BitcoinNetwork.TESTNET4:
-                options.chainType = "TESTNET4";
-                break;
-        }
-    }
+    options.chainType ??= chainTypeMapping[network];
+    if(options.chainType==null) throw new Error("Please specify chainType in options!");
 
     const defaultContractAddresses = AlpenContractAddresses[options.chainType];
     const chainId = AlpenChainIds[options.chainType];
@@ -194,8 +189,8 @@ export function initializeAlpen(
 export type AlpenInitializerType = ChainInitializer<AlpenOptions, AlpenChainType, AlpenAssetsType>;
 export const AlpenInitializer: AlpenInitializerType = {
     chainId: "ALPEN",
-    chainType: null as AlpenChainType,
+    chainType: null as unknown as AlpenChainType,
     initializer: initializeAlpen,
     tokens: AlpenAssets,
-    options: null as AlpenOptions
+    options: null as unknown as AlpenOptions
 } as const;

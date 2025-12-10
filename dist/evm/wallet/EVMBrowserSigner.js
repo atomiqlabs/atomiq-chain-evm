@@ -5,7 +5,7 @@ const EVMSigner_1 = require("./EVMSigner");
 class EVMBrowserSigner extends EVMSigner_1.EVMSigner {
     constructor(account, address) {
         super(account, address, false);
-        this.signTransaction = null;
+        delete this.signTransaction;
     }
 }
 exports.EVMBrowserSigner = EVMBrowserSigner;

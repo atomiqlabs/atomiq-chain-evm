@@ -23,6 +23,8 @@ class EVMBtcHeader {
         return this.nonce;
     }
     getReversedPrevBlockhash() {
+        if (this.previousBlockhash == null)
+            throw new Error("Previous blockhash is not known from compact blockheader!");
         return this.previousBlockhash;
     }
     getTimestamp() {
@@ -44,6 +46,8 @@ class EVMBtcHeader {
         return buffer;
     }
     serialize() {
+        if (this.previousBlockhash == null)
+            throw new Error("Cannot serialize compact blockheader without previous blockhash!");
         const buffer = buffer_1.Buffer.alloc(80);
         buffer.writeUInt32LE(this.version, 0);
         this.previousBlockhash.copy(buffer, 4);

@@ -58,6 +58,11 @@ const CitreaContractAddresses = {
     }
 };
 
+const chainTypeMapping: {[key in BitcoinNetwork]?: "MAINNET" | "TESTNET4"} = {
+    [BitcoinNetwork.MAINNET]: "MAINNET",
+    [BitcoinNetwork.TESTNET4]: "TESTNET4",
+};
+
 export type CitreaAssetsType = BaseTokenType<"CBTC" | "WBTC" | "USDC">;
 export const CitreaAssets: CitreaAssetsType = {
     CBTC: {
@@ -106,19 +111,12 @@ export function initializeCitrea(
     bitcoinRpc: BitcoinRpc<any>,
     network: BitcoinNetwork
 ): ChainData<CitreaChainType> {
-    if(options.chainType==null) {
-        switch (network) {
-            case BitcoinNetwork.TESTNET4:
-                options.chainType = "TESTNET4";
-                break;
-            case BitcoinNetwork.MAINNET:
-                options.chainType = "MAINNET";
-                break;
-        }
-    }
+    options.chainType ??= chainTypeMapping[network];
+    if(options.chainType==null) throw new Error("Please specify chainType in options!");
 
     const defaultContractAddresses = CitreaContractAddresses[options.chainType];
     const chainId = CitreaChainIds[options.chainType];
+    if(chainId==null) throw new Error("Invalid chainId due to wrong chainType specified, check the passed chainType!");
 
     const provider = typeof(options.rpcUrl)==="string" ?
         (
@@ -183,8 +181,8 @@ export function initializeCitrea(
 export type CitreaInitializerType = ChainInitializer<CitreaOptions, CitreaChainType, CitreaAssetsType>;
 export const CitreaInitializer: CitreaInitializerType = {
     chainId: "CITREA",
-    chainType: null as CitreaChainType,
+    chainType: null as unknown as CitreaChainType,
     initializer: initializeCitrea,
     tokens: CitreaAssets,
-    options: null as CitreaOptions
+    options: null as unknown as CitreaOptions
 } as const;

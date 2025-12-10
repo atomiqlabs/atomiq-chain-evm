@@ -17,7 +17,7 @@ export declare class EVMSpvVaultData extends SpvVaultData<EVMSpvWithdrawalData> 
         multiplier: bigint;
         rawAmount: bigint;
     };
-    readonly initialUtxo: string;
+    readonly initialUtxo?: string;
     utxo: string;
     readonly confirmations: number;
     withdrawCount: number;

@@ -11,4 +11,4 @@ import { EVMSwapContract } from "../../evm/swaps/EVMSwapContract";
 import { EVMBtcRelay } from "../../evm/btcrelay/EVMBtcRelay";
 import { EVMSpvVaultContract } from "../../evm/spv_swap/EVMSpvVaultContract";
 import { Signer } from "ethers";
-export type AlpenChainType = ChainType<"ALPEN", never, EVMPreFetchVerification, EVMTx, EVMSigner, Signer, EVMSwapData, EVMSwapContract<"ALPEN">, EVMChainInterface<"ALPEN">, EVMChainEventsBrowser, EVMBtcRelay<any>, EVMSpvVaultData, EVMSpvWithdrawalData, EVMSpvVaultContract<"ALPEN">>;
+export type AlpenChainType = ChainType<"ALPEN", never, EVMPreFetchVerification, EVMTx, EVMSigner, Signer, EVMSwapData, EVMSwapContract<"ALPEN">, EVMChainInterface<"ALPEN">, EVMChainEventsBrowser, EVMBtcRelay<any>, EVMSpvWithdrawalData, EVMSpvVaultData, EVMSpvVaultContract<"ALPEN">>;

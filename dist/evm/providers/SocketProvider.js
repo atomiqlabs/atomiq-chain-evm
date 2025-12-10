@@ -195,7 +195,7 @@ class SocketProvider extends ethers_1.JsonRpcApiProvider {
         // If any events come in before a subscriber has finished
         // registering, queue them
         _SocketProvider_pending.set(this, void 0);
-        _SocketProvider_connected.set(this, void 0);
+        _SocketProvider_connected.set(this, false);
         __classPrivateFieldSet(this, _SocketProvider_callbacks, new Map(), "f");
         __classPrivateFieldSet(this, _SocketProvider_subs, new Map(), "f");
         __classPrivateFieldSet(this, _SocketProvider_pending, new Map(), "f");

@@ -76,6 +76,11 @@ const AlpenContractAddresses = {
         }
     }
 };
+const chainTypeMapping = {
+    [base_1.BitcoinNetwork.MAINNET]: "MAINNET",
+    [base_1.BitcoinNetwork.TESTNET]: "TESTNET",
+    [base_1.BitcoinNetwork.TESTNET4]: "TESTNET4",
+};
 exports.AlpenAssets = {
     BTC: {
         address: "0x0000000000000000000000000000000000000000",
@@ -84,19 +89,9 @@ exports.AlpenAssets = {
     }
 };
 function initializeAlpen(options, bitcoinRpc, network) {
-    if (options.chainType == null) {
-        switch (network) {
-            case base_1.BitcoinNetwork.MAINNET:
-                options.chainType = "MAINNET";
-                break;
-            case base_1.BitcoinNetwork.TESTNET:
-                options.chainType = "TESTNET";
-                break;
-            case base_1.BitcoinNetwork.TESTNET4:
-                options.chainType = "TESTNET4";
-                break;
-        }
-    }
+    options.chainType ?? (options.chainType = chainTypeMapping[network]);
+    if (options.chainType == null)
+        throw new Error("Please specify chainType in options!");
     const defaultContractAddresses = AlpenContractAddresses[options.chainType];
     const chainId = AlpenChainIds[options.chainType];
     const provider = typeof (options.rpcUrl) === "string" ?

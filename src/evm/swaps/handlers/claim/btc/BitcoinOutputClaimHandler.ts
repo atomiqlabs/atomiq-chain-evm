@@ -44,8 +44,8 @@ export class BitcoinOutputClaimHandler extends IBitcoinClaimHandler<BitcoinOutpu
         const out = parsedBtcTx.getOutput(witnessData.vout);
 
         const {initialTxns, commitment, blockheader, merkleProof} = await this._getWitness(signer, swapData, witnessData, {
-            output: Buffer.from(out.script),
-            amount: out.amount
+            output: Buffer.from(out.script!),
+            amount: out.amount!
         });
 
         const voutAndTxData = Buffer.concat([

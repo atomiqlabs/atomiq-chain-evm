@@ -6,7 +6,7 @@ export declare class JsonRpcProviderWithRetries extends JsonRpcProvider {
         delay?: number;
         exponential?: boolean;
     };
-    constructor(url?: string | FetchRequest, network?: Networkish, options?: JsonRpcApiProviderOptions & {
+    constructor(url: string | FetchRequest, network?: Networkish, options?: JsonRpcApiProviderOptions & {
         maxRetries?: number;
         delay?: number;
         exponential?: boolean;
