@@ -24,10 +24,10 @@ export declare class EVMSwapData extends SwapData {
     depositToken: string;
     securityDeposit: bigint;
     claimerBounty: bigint;
-    extraData: string;
+    extraData?: string;
     successActionCommitment: string;
     kind: ChainSwapType;
-    constructor(offerer: string, claimer: string, token: string, refundHandler: string, claimHandler: string, payOut: boolean, payIn: boolean, reputation: boolean, sequence: bigint, claimData: string, refundData: string, amount: bigint, depositToken: string, securityDeposit: bigint, claimerBounty: bigint, kind: ChainSwapType, extraData: string, successActionCommitment?: string);
+    constructor(offerer: string, claimer: string, token: string, refundHandler: string, claimHandler: string, payOut: boolean, payIn: boolean, reputation: boolean, sequence: bigint, claimData: string, refundData: string, amount: bigint, depositToken: string, securityDeposit: bigint, claimerBounty: bigint, kind: ChainSwapType, extraData?: string, successActionCommitment?: string);
     constructor(data: any);
     getOfferer(): string;
     setOfferer(newOfferer: string): void;
@@ -44,10 +44,10 @@ export declare class EVMSwapData extends SwapData {
     getEscrowHash(): string;
     getClaimHash(): string;
     getSequence(): bigint;
-    getConfirmationsHint(): number;
-    getNonceHint(): bigint;
-    getTxoHashHint(): string;
-    getExtraData(): string;
+    getConfirmationsHint(): number | null;
+    getNonceHint(): bigint | null;
+    getTxoHashHint(): string | null;
+    getExtraData(): string | null;
     setExtraData(extraData: string): void;
     getSecurityDeposit(): bigint;
     getClaimerBounty(): bigint;

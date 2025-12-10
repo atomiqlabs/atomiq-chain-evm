@@ -15,6 +15,8 @@ class CitreaBtcRelay extends EVMBtcRelay_1.EVMBtcRelay {
     async estimateSynchronizeFee(requiredBlockheight, feeRate) {
         feeRate ?? (feeRate = await this.Chain.Fees.getFeeRate());
         const tipData = await this.getTipData();
+        if (tipData == null)
+            throw new Error("Cannot get relay tip data, relay not initialized?");
         const currBlockheight = tipData.blockheight;
         const blockheightDelta = requiredBlockheight - currBlockheight;
         if (blockheightDelta <= 0)

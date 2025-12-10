@@ -57,6 +57,11 @@ const BotanixContractAddresses = {
     }
 };
 
+const chainTypeMapping: {[key in BitcoinNetwork]?: "MAINNET" | "TESTNET"} = {
+    [BitcoinNetwork.MAINNET]: "MAINNET",
+    [BitcoinNetwork.TESTNET]: "TESTNET",
+};
+
 export type BotanixAssetsType = BaseTokenType<"BTC">;
 export const BotanixAssets: BotanixAssetsType = {
     BTC: {
@@ -95,16 +100,8 @@ export function initializeBotanix(
     bitcoinRpc: BitcoinRpc<any>,
     network: BitcoinNetwork
 ): ChainData<BotanixChainType> {
-    if(options.chainType==null) {
-        switch (network) {
-            case BitcoinNetwork.MAINNET:
-                options.chainType = "MAINNET";
-                break;
-            case BitcoinNetwork.TESTNET:
-                options.chainType = "TESTNET";
-                break;
-        }
-    }
+    options.chainType ??= chainTypeMapping[network];
+    if(options.chainType==null) throw new Error("Please specify chainType in options!");
 
     const defaultContractAddresses = BotanixContractAddresses[options.chainType];
     const chainId = BotanixChainIds[options.chainType];
@@ -175,8 +172,8 @@ export function initializeBotanix(
 export type BotanixInitializerType = ChainInitializer<BotanixOptions, BotanixChainType, BotanixAssetsType>;
 export const BotanixInitializer: BotanixInitializerType = {
     chainId: "BOTANIX",
-    chainType: null as BotanixChainType,
+    chainType: null as unknown as BotanixChainType,
     initializer: initializeBotanix,
     tokens: BotanixAssets,
-    options: null as BotanixOptions
+    options: null as unknown  as BotanixOptions
 } as const;

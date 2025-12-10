@@ -11,6 +11,7 @@ class ReconnectingWebSocketProvider extends SocketProvider_1.SocketProvider {
         this.reconnectSeconds = 5;
         this.pingIntervalSeconds = 30;
         this.connectionTimeout = 10;
+        this.websocket = null;
         this.wsCtor = typeof (url) === "string" ? () => new WebSocket(url) : url;
         this.connect();
     }
@@ -57,7 +58,7 @@ class ReconnectingWebSocketProvider extends SocketProvider_1.SocketProvider {
             return;
         if (this.websocket == null)
             return;
-        this.websocket.onclose = null;
+        this.websocket.onclose = undefined;
         //Register dummy handler, otherwise we get unhandled `error` event which crashes the whole thing
         this.websocket.onerror = (err) => logger.error("disconnectedAndScheduleReconnect(): Post-close onerror: ", err.error ?? err);
         this.websocket.onmessage = null;
@@ -72,6 +73,8 @@ class ReconnectingWebSocketProvider extends SocketProvider_1.SocketProvider {
         this.reconnectTimer = setTimeout(() => this.connect(), this.reconnectSeconds * 1000);
     }
     async _write(message) {
+        if (this.websocket == null)
+            throw new Error("Websocket not connected!");
         this.websocket.send(message);
     }
     async destroy() {

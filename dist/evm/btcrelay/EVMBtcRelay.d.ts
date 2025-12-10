@@ -39,7 +39,6 @@ export declare class EVMBtcRelay<B extends BtcBlock> extends EVMContractBase<Btc
      * @param signer
      * @param headers headers to sync to the btc relay
      * @param storedHeader current latest stored block header for a given fork
-     * @param tipWork work of the current tip in a given fork
      * @param forkId forkId to submit to, forkId=0 means main chain, forkId=-1 means short fork
      * @param feeRate feeRate for the transaction
      * @param totalForkHeaders Total number of headers in a fork
@@ -59,7 +58,7 @@ export declare class EVMBtcRelay<B extends BtcBlock> extends EVMContractBase<Btc
         blockhash: string;
         chainWork: Buffer;
         blockheight: number;
-    }>;
+    } | null>;
     /**
      * Retrieves blockheader with a specific blockhash, returns null if requiredBlockheight is provided and
      *  btc relay contract is not synced up to the desired blockheight
@@ -72,7 +71,7 @@ export declare class EVMBtcRelay<B extends BtcBlock> extends EVMContractBase<Btc
     }, requiredBlockheight?: number): Promise<{
         header: EVMBtcStoredHeader;
         height: number;
-    }>;
+    } | null>;
     /**
      * Retrieves blockheader data by blockheader's commit hash,
      *
@@ -81,14 +80,14 @@ export declare class EVMBtcRelay<B extends BtcBlock> extends EVMContractBase<Btc
      */
     retrieveLogByCommitHash(commitmentHashStr: string, blockData: {
         blockhash: string;
-    }): Promise<EVMBtcStoredHeader>;
+    }): Promise<EVMBtcStoredHeader | null>;
     /**
      * Retrieves latest known stored blockheader & blockheader from bitcoin RPC that is in the main chain
      */
     retrieveLatestKnownBlockLog(): Promise<{
         resultStoredHeader: EVMBtcStoredHeader;
         resultBitcoinHeader: B;
-    }>;
+    } | null>;
     /**
      * Saves blockheaders as a bitcoin main chain to the btc relay
      *
@@ -193,5 +192,5 @@ export declare class EVMBtcRelay<B extends BtcBlock> extends EVMContractBase<Btc
         blockhash: string;
     }[], txs: EVMTx[], synchronizer?: RelaySynchronizer<EVMBtcStoredHeader, EVMTx, any>, feeRate?: string): Promise<{
         [blockhash: string]: EVMBtcStoredHeader;
-    }>;
+    } | null>;
 }

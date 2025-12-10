@@ -14,10 +14,12 @@ class EVMPersistentSigner extends EVMSigner_1.EVMSigner {
     constructor(account, address, chainInterface, directory, minFeeIncreaseAbsolute, minFeeIncreasePpm, waitBeforeBumpMillis) {
         super(account, address, true);
         this.pendingTxs = new Map();
+        this.confirmedNonce = 0;
+        this.pendingNonce = 0;
         this.stopped = false;
         this.saveCount = 0;
         this.sendTransactionQueue = new promise_queue_ts_1.PromiseQueue();
-        this.signTransaction = null;
+        delete this.signTransaction;
         this.chainInterface = chainInterface;
         this.directory = directory;
         this.minFeeIncreaseAbsolute = minFeeIncreaseAbsolute ?? MIN_FEE_INCREASE_ABSOLUTE;
@@ -206,7 +208,8 @@ class EVMPersistentSigner extends EVMSigner_1.EVMSigner {
                 transaction.nonce = this.pendingNonce + 1;
             }
             const tx = {};
-            for (let key in transaction) {
+            for (let k in transaction) {
+                const key = k;
                 if (transaction[key] instanceof Promise) {
                     tx[key] = await transaction[key];
                 }
