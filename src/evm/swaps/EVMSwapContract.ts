@@ -313,7 +313,7 @@ export class EVMSwapContract<ChainId extends string = string>
                         return events[0].transactionHash;
                     }
                 };
-            default:
+            case ESCROW_STATE_REFUNDED:
                 return {
                     type: await this.isExpired(signer, data) ? SwapCommitStateType.EXPIRED : SwapCommitStateType.NOT_COMMITED,
                     getTxBlock: async () => {
@@ -324,13 +324,17 @@ export class EVMSwapContract<ChainId extends string = string>
                     },
                     getRefundTxId: async () => {
                         const events = await this.Events.getContractBlockEvents(
-                            ["Refund"],
-                            [null, null, "0x"+escrowHash],
-                            blockHeight, blockHeight
+                          ["Refund"],
+                          [null, null, "0x"+escrowHash],
+                          blockHeight, blockHeight
                         );
                         if(events.length===0) throw new Error("Refund event not found!");
                         return events[0].transactionHash;
                     }
+                };
+            default:
+                return {
+                    type: await this.isExpired(signer, data) ? SwapCommitStateType.EXPIRED : SwapCommitStateType.NOT_COMMITED,
                 };
         }
     }

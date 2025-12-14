@@ -243,7 +243,7 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
                         return events[0].transactionHash;
                     }
                 };
-            default:
+            case ESCROW_STATE_REFUNDED:
                 return {
                     type: await this.isExpired(signer, data) ? base_1.SwapCommitStateType.EXPIRED : base_1.SwapCommitStateType.NOT_COMMITED,
                     getTxBlock: async () => {
@@ -258,6 +258,10 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
                             throw new Error("Refund event not found!");
                         return events[0].transactionHash;
                     }
+                };
+            default:
+                return {
+                    type: await this.isExpired(signer, data) ? base_1.SwapCommitStateType.EXPIRED : base_1.SwapCommitStateType.NOT_COMMITED,
                 };
         }
     }
