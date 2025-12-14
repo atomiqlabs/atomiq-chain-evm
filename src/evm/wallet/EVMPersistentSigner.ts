@@ -52,7 +52,7 @@ export class EVMPersistentSigner extends EVMSigner {
         waitBeforeBumpMillis?: number
     ) {
         super(account, address, true);
-        delete this.signTransaction;
+        this.signTransaction = undefined;
         this.chainInterface = chainInterface;
         this.directory = directory;
         this.minFeeIncreaseAbsolute = minFeeIncreaseAbsolute ?? MIN_FEE_INCREASE_ABSOLUTE;

@@ -19,7 +19,7 @@ class EVMPersistentSigner extends EVMSigner_1.EVMSigner {
         this.stopped = false;
         this.saveCount = 0;
         this.sendTransactionQueue = new promise_queue_ts_1.PromiseQueue();
-        delete this.signTransaction;
+        this.signTransaction = undefined;
         this.chainInterface = chainInterface;
         this.directory = directory;
         this.minFeeIncreaseAbsolute = minFeeIncreaseAbsolute ?? MIN_FEE_INCREASE_ABSOLUTE;

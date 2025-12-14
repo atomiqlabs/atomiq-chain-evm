@@ -6,7 +6,7 @@ export class EVMBrowserSigner extends EVMSigner {
 
     constructor(account: Signer, address: string) {
         super(account, address, false);
-        delete this.signTransaction;
+        this.signTransaction = undefined;
     }
 
 }
