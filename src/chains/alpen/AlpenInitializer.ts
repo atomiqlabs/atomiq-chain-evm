@@ -13,7 +13,7 @@ import {AlpenChainType} from "./AlpenChainType";
 
 const AlpenChainIds = {
     MAINNET: -1,
-    TESTNET: 2892
+    TESTNET: 8150
 };
 
 const AlpenContractAddresses = {
@@ -37,21 +37,21 @@ const AlpenContractAddresses = {
         }
     },
     TESTNET: {
-        executionContract: "0xc98Ef084d3911C8447DBbE4dDa18bC2c9bB0584e",
-        swapContract: "0x59A54378B6bA9C21ba66487C6A701D702baDEabE",
-        btcRelayContract: "0x5bb0C725939cB825d1322A99a3FeB570097628c3",
-        btcRelayDeploymentHeight: 1424534,
-        spvVaultContract: "0x8A44f1995a54fD976c904Cccf9EbaB49c3182eb3",
-        spvVaultDeploymentHeight: 1424536,
+        executionContract: "0x32EB4DbDdC31e19ba908fecc7cae03F0d04F01Fa",
+        swapContract: "0x2920EE496693A5027249a027A6FD3F643E743745",
+        btcRelayContract: "0x59A54378B6bA9C21ba66487C6A701D702baDEabE",
+        btcRelayDeploymentHeight: 532610,
+        spvVaultContract: "0xaB2D14745362B26a732dD8B7F95daAE3D2914bBF",
+        spvVaultDeploymentHeight: 532613,
         handlerContracts: {
             refund: {
-                timelock: "0xe8be24CF21341c9567664009a8a82C9Dc1eE90D6"
+                timelock: "0x9a027B5Bf43382Cc4A5134d9EFD389f61ece27B9"
             },
             claim: {
-                [ChainSwapType.HTLC]: "0x32EB4DbDdC31e19ba908fecc7cae03F0d04F01Fa",
-                [ChainSwapType.CHAIN_TXID]: "0xaB2D14745362B26a732dD8B7F95daAE3D2914bBF",
-                [ChainSwapType.CHAIN]: "0x2920EE496693A5027249a027A6FD3F643E743745",
-                [ChainSwapType.CHAIN_NONCED]: "0x3887B02217726bB36958Dd595e57293fB63D5082"
+                [ChainSwapType.HTLC]: "0x3887B02217726bB36958Dd595e57293fB63D5082",
+                [ChainSwapType.CHAIN_TXID]: "0xe8be24CF21341c9567664009a8a82C9Dc1eE90D6",
+                [ChainSwapType.CHAIN]: "0x71Bc44F3F7203fC1279107D924e418F02b0d4029",
+                [ChainSwapType.CHAIN_NONCED]: "0xe510D5781C6C849284Fb25Dc20b1684cEC445C8B"
             }
         }
     }
