@@ -8,7 +8,7 @@ export declare const GoatAssets: GoatAssetsType;
 export type GoatOptions = {
     rpcUrl: string | JsonRpcApiProvider;
     retryPolicy?: EVMRetryPolicy;
-    chainType?: "MAINNET" | "TESTNET";
+    chainType?: "MAINNET" | "TESTNET" | "TESTNET4";
     swapContract?: string;
     btcRelayContract?: string;
     btcRelayDeploymentHeight?: number;

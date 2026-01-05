@@ -14,7 +14,8 @@ const EVMSpvVaultData_1 = require("../../evm/spv_swap/EVMSpvVaultData");
 const EVMSpvWithdrawalData_1 = require("../../evm/spv_swap/EVMSpvWithdrawalData");
 const GoatChainIds = {
     MAINNET: 2345,
-    TESTNET: 48816
+    TESTNET: 48816,
+    TESTNET4: 48816
 };
 const GoatContractAddresses = {
     MAINNET: {
@@ -54,6 +55,25 @@ const GoatContractAddresses = {
                 [base_1.ChainSwapType.CHAIN_NONCED]: "0x62a718348081F9CF9a8E3dF4B4EA6d6349991ad9"
             }
         }
+    },
+    TESTNET4: {
+        executionContract: "0x4f7d86C870F28ac30C8fa864Ee04264D7dD03847",
+        swapContract: "0x3FbbA0eb82cf1247cbf92B3D51641226310F0Ca5",
+        btcRelayContract: "0xEeD58871C24d24C49554aF8B65Dd86eD8ed778D3",
+        btcRelayDeploymentHeight: 10240368,
+        spvVaultContract: "0x8a80A68f8bA1732015A821b5260fEF8040a844b7",
+        spvVaultDeploymentHeight: 10240370,
+        handlerContracts: {
+            refund: {
+                timelock: "0x0Ff4792d4F792c5B3678f08c18e7cE1974880e48"
+            },
+            claim: {
+                [base_1.ChainSwapType.HTLC]: "0x122962B30c46Ef188Dd598a76647c2DBbE1E914e",
+                [base_1.ChainSwapType.CHAIN_TXID]: "0x4737C793a1f86a375BAad0D96134bEd64f246693",
+                [base_1.ChainSwapType.CHAIN]: "0xa2b2d8CD8D1a9200Ac0970523FdfFcbD94aE54B6",
+                [base_1.ChainSwapType.CHAIN_NONCED]: "0x3BfF76308e6DEaCaEfdF5a928d6a3082Ab55bf58"
+            }
+        }
     }
 };
 exports.GoatAssets = {
@@ -76,6 +96,9 @@ function initializeGoat(options, bitcoinRpc, network) {
                 break;
             case base_1.BitcoinNetwork.TESTNET:
                 options.chainType = "TESTNET";
+                break;
+            case base_1.BitcoinNetwork.TESTNET4:
+                options.chainType = "TESTNET4";
                 break;
         }
     }
