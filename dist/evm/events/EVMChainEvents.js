@@ -25,7 +25,7 @@ class EVMChainEvents extends EVMChainEventsBrowser_1.EVMChainEventsBrowser {
                     const lastBlockNumber = parseInt(stateResult[0]);
                     const logIndex = parseInt(stateResult[2]);
                     if (isNaN(lastBlockNumber) || isNaN(logIndex))
-                        throw new Error("");
+                        throw new Error();
                     return {
                         lastBlockNumber,
                         lastEvent: {
@@ -39,7 +39,7 @@ class EVMChainEvents extends EVMChainEventsBrowser_1.EVMChainEventsBrowser {
                         return null;
                     const lastBlockNumber = parseInt(stateResult[0]);
                     if (isNaN(lastBlockNumber))
-                        throw new Error("");
+                        throw new Error();
                     return {
                         lastBlockNumber
                     };

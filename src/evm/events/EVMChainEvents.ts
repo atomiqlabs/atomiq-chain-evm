@@ -37,7 +37,7 @@ export class EVMChainEvents extends EVMChainEventsBrowser {
                 if(stateResult.length>=3) {
                     const lastBlockNumber = parseInt(stateResult[0]);
                     const logIndex = parseInt(stateResult[2]);
-                    if(isNaN(lastBlockNumber) || isNaN(logIndex)) throw new Error("");
+                    if(isNaN(lastBlockNumber) || isNaN(logIndex)) throw new Error();
                     return {
                         lastBlockNumber,
                         lastEvent: {
@@ -48,7 +48,7 @@ export class EVMChainEvents extends EVMChainEventsBrowser {
                 } else if(stateResult.length>=1) {
                     if(stateResult[0]==="null") return null;
                     const lastBlockNumber = parseInt(stateResult[0]);
-                    if(isNaN(lastBlockNumber)) throw new Error("");
+                    if(isNaN(lastBlockNumber)) throw new Error();
                     return {
                         lastBlockNumber
                     };
