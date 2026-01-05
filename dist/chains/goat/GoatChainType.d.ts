@@ -1,6 +1,6 @@
 import { ChainType } from "@atomiqlabs/base";
 import { EVMPreFetchVerification } from "../../evm/swaps/modules/EVMSwapInit";
-import { EVMTx } from "../../evm/chain/modules/EVMTransactions";
+import { EVMTx, SignedEVMTx } from "../../evm/chain/modules/EVMTransactions";
 import { EVMSigner } from "../../evm/wallet/EVMSigner";
 import { EVMSwapData } from "../../evm/swaps/EVMSwapData";
 import { EVMChainInterface } from "../../evm/chain/EVMChainInterface";
@@ -11,4 +11,4 @@ import { EVMSwapContract } from "../../evm/swaps/EVMSwapContract";
 import { EVMBtcRelay } from "../../evm/btcrelay/EVMBtcRelay";
 import { EVMSpvVaultContract } from "../../evm/spv_swap/EVMSpvVaultContract";
 import { Signer } from "ethers";
-export type GoatChainType = ChainType<"GOAT", never, EVMPreFetchVerification, EVMTx, EVMSigner, Signer, EVMSwapData, EVMSwapContract<"GOAT">, EVMChainInterface<"GOAT">, EVMChainEventsBrowser, EVMBtcRelay<any>, EVMSpvWithdrawalData, EVMSpvVaultData, EVMSpvVaultContract<"GOAT">>;
+export type GoatChainType = ChainType<"GOAT", never, EVMPreFetchVerification, EVMTx, SignedEVMTx, EVMSigner, Signer, EVMSwapData, EVMSwapContract<"GOAT">, EVMChainInterface<"GOAT">, EVMChainEventsBrowser, EVMBtcRelay<any>, EVMSpvWithdrawalData, EVMSpvVaultData, EVMSpvVaultContract<"GOAT">>;

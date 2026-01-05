@@ -1,6 +1,6 @@
 import {ChainType} from "@atomiqlabs/base";
 import {EVMPreFetchVerification} from "../../evm/swaps/modules/EVMSwapInit";
-import {EVMTx} from "../../evm/chain/modules/EVMTransactions";
+import {EVMTx, SignedEVMTx} from "../../evm/chain/modules/EVMTransactions";
 import {EVMSigner} from "../../evm/wallet/EVMSigner";
 import {EVMSwapData} from "../../evm/swaps/EVMSwapData";
 import {EVMChainInterface} from "../../evm/chain/EVMChainInterface";
@@ -17,6 +17,7 @@ export type GoatChainType = ChainType<
     never,
     EVMPreFetchVerification,
     EVMTx,
+    SignedEVMTx,
     EVMSigner,
     Signer,
     EVMSwapData,

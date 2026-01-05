@@ -14,7 +14,7 @@ import {EVMBlocks, EVMBlockTag} from "./modules/EVMBlocks";
 import {EVMEvents} from "./modules/EVMEvents";
 import {EVMFees} from "./modules/EVMFees";
 import {EVMTokens} from "./modules/EVMTokens";
-import {EVMTransactions, EVMTx} from "./modules/EVMTransactions";
+import {EVMTransactions, EVMTx, SignedEVMTx} from "./modules/EVMTransactions";
 import { EVMSignatures } from "./modules/EVMSignatures";
 import {EVMAddresses} from "./modules/EVMAddresses";
 import {EVMSigner} from "../wallet/EVMSigner";
@@ -43,7 +43,7 @@ export type EVMConfiguration = {
     }
 };
 
-export class EVMChainInterface<ChainId extends string = string> implements ChainInterface<EVMTx, EVMSigner, ChainId, Signer> {
+export class EVMChainInterface<ChainId extends string = string> implements ChainInterface<EVMTx, SignedEVMTx, EVMSigner, ChainId, Signer> {
 
     readonly chainId: ChainId;
 
@@ -151,12 +151,30 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
         return this.Transactions.sendAndConfirm(signer, txs, waitForConfirmation, abortSignal, parallel, onBeforePublish, useAccessLists);
     }
 
-    serializeTx(tx: Transaction): Promise<string> {
-        return this.Transactions.serializeTx(tx);
+    sendSignedAndConfirm(
+        signedTxs: Transaction[],
+        waitForConfirmation?: boolean,
+        abortSignal?: AbortSignal,
+        parallel?: boolean,
+        onBeforePublish?: (txId: string, rawTx: string) => Promise<void>
+    ): Promise<string[]> {
+        return this.Transactions.sendSignedAndConfirm(signedTxs, waitForConfirmation, abortSignal, parallel, onBeforePublish);
     }
 
-    deserializeTx(txData: string): Promise<Transaction> {
-        return this.Transactions.deserializeTx(txData);
+    serializeTx(tx: TransactionRequest): Promise<string> {
+        return this.Transactions.serializeUnsignedTx(tx);
+    }
+
+    deserializeTx(txData: string): Promise<TransactionRequest> {
+        return Promise.resolve(this.Transactions.deserializeUnsignedTx(txData));
+    }
+
+    serializeSignedTx(tx: Transaction): Promise<string> {
+        return Promise.resolve(this.Transactions.serializeSignedTx(tx));
+    }
+
+    deserializeSignedTx(txData: string): Promise<Transaction> {
+        return Promise.resolve(this.Transactions.deserializeSignedTx(txData));
     }
 
     getTxIdStatus(txId: string): Promise<"not_found" | "pending" | "success" | "reverted"> {
