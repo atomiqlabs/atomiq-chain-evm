@@ -86,17 +86,25 @@ class EVMTransactions extends EVMModule_1.EVMModule {
         catch (e) {
             if (e.code !== "UNKNOWN_ERROR" || e.error?.code !== 3)
                 throw e;
-            //Re-attempt with default pre-populated access list
-            accessListResponse = await this.provider.send("eth_createAccessList", [{
-                    from: tx.from,
-                    to: tx.to,
-                    value: (0, ethers_1.toBeHex)(tx.value ?? 0n),
-                    input: tx.data,
-                    data: tx.data,
-                    accessList: this.root.config.defaultAccessListAddresses.map(val => ({ address: val, storageKeys: [] }))
-                }, "pending"]);
+            try {
+                //Re-attempt with default pre-populated access list
+                accessListResponse = await this.provider.send("eth_createAccessList", [{
+                        from: tx.from,
+                        to: tx.to,
+                        value: (0, ethers_1.toBeHex)(tx.value ?? 0n),
+                        input: tx.data,
+                        data: tx.data,
+                        accessList: this.root.config.defaultAccessListAddresses.map(val => ({ address: val, storageKeys: [] }))
+                    }, "pending"]);
+            }
+            catch (e) {
+                //Unable to create access list, fuck it
+                if (e.code !== "UNKNOWN_ERROR" || e.error?.code !== 3)
+                    throw e;
+            }
         }
-        tx.accessList = accessListResponse.accessList;
+        if (accessListResponse != null)
+            tx.accessList = accessListResponse.accessList;
     }
     /**
      * Prepares starknet transactions, checks if the account is deployed, assigns nonces if needed & calls beforeTxSigned callback

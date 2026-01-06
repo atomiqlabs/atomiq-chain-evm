@@ -1,5 +1,5 @@
 import {EVMModule} from "../EVMModule";
-import {JsonRpcResult, makeError, Transaction, TransactionRequest, TransactionResponse, toBeHex} from "ethers";
+import {Transaction, TransactionRequest, TransactionResponse, toBeHex} from "ethers";
 import {timeoutPromise} from "../../../utils/Utils";
 import {EVMSigner} from "../../wallet/EVMSigner";
 import {TransactionRevertedError} from "@atomiqlabs/base";
@@ -107,19 +107,24 @@ export class EVMTransactions extends EVMModule<any> {
             }, "pending"]);
         } catch (e) {
             if(e.code!=="UNKNOWN_ERROR" || e.error?.code!==3) throw e;
-            
-            //Re-attempt with default pre-populated access list
-            accessListResponse = await this.provider.send("eth_createAccessList", [{
-                from: tx.from,
-                to: tx.to,
-                value: toBeHex(tx.value ?? 0n),
-                input: tx.data,
-                data: tx.data,
-                accessList: this.root.config.defaultAccessListAddresses.map(val => ({address: val, storageKeys: []}))
-            }, "pending"]);
+
+            try {
+                //Re-attempt with default pre-populated access list
+                accessListResponse = await this.provider.send("eth_createAccessList", [{
+                    from: tx.from,
+                    to: tx.to,
+                    value: toBeHex(tx.value ?? 0n),
+                    input: tx.data,
+                    data: tx.data,
+                    accessList: this.root.config.defaultAccessListAddresses.map(val => ({address: val, storageKeys: []}))
+                }, "pending"]);
+            } catch (e) {
+                //Unable to create access list, fuck it
+                if(e.code!=="UNKNOWN_ERROR" || e.error?.code!==3) throw e;
+            }
         }
 
-        tx.accessList = accessListResponse.accessList;
+        if(accessListResponse!=null) tx.accessList = accessListResponse.accessList;
     }
 
     /**
