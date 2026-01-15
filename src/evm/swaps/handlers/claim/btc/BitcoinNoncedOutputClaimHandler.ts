@@ -21,7 +21,7 @@ function getTransactionNonce(btcTx: Transaction): bigint {
 }
 
 /**
- * @category Handlers
+ * @category Internal/Handlers
  */
 export class BitcoinNoncedOutputClaimHandler extends IBitcoinClaimHandler<BitcoinNoncedOutputCommitmentData, BitcoinOutputWitnessData> {
 

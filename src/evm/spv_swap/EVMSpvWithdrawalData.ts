@@ -4,7 +4,9 @@ import { EVMSpvVaultContract } from "./EVMSpvVaultContract";
 import {BitcoinVaultTransactionDataStruct} from "./SpvVaultContractTypechain";
 import {AbiCoder, keccak256, ZeroHash} from "ethers";
 
-
+/**
+ * @category Swaps
+ */
 export class EVMSpvWithdrawalData extends SpvWithdrawalTransactionData {
 
     private getExecutionHashWith0x() {

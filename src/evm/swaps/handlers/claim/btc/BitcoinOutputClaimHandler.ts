@@ -16,7 +16,7 @@ export type BitcoinOutputWitnessData = BitcoinWitnessData & {
 };
 
 /**
- * @category Handlers
+ * @category Internal/Handlers
  */
 export class BitcoinOutputClaimHandler extends IBitcoinClaimHandler<BitcoinOutputCommitmentData, BitcoinOutputWitnessData> {
 

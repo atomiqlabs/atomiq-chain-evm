@@ -45,6 +45,9 @@ export function unpackOwnerAndVaultId(data: string): [string, bigint] {
     return [getAddress(data.substring(0, 42)), BigInt("0x"+data.substring(42, 66))];
 }
 
+/**
+ * @category Swaps
+ */
 export class EVMSpvVaultContract<ChainId extends string>
     extends EVMContractBase<SpvVaultManager>
     implements SpvVaultContract<

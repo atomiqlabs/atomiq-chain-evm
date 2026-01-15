@@ -7,7 +7,7 @@ export type EVMFeeRate = {
 };
 
 /**
- * @category Chain
+ * @category Chain Interface
  */
 export class EVMFees {
     protected MAX_FEE_AGE = 5000;

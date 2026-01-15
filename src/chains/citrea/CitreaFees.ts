@@ -1,6 +1,9 @@
 import {EVMFees} from "../../evm/chain/modules/EVMFees";
 import {getLogger} from "../../utils/Utils";
 
+/**
+ * @category Networks/Citrea
+ */
 export class CitreaFees extends EVMFees {
 
     public static readonly StateDiffSize = {

@@ -4,7 +4,7 @@ import {EVMSwapData} from "../../EVMSwapData";
 import {EVMTx} from "../../../chain/modules/EVMTransactions";
 
 /**
- * @category Handlers
+ * @category Internal/Handlers
  */
 export class TimelockRefundHandler implements IHandler<bigint, never> {
 

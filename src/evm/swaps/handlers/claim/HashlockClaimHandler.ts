@@ -7,7 +7,7 @@ import {EVMTx} from "../../../chain/modules/EVMTransactions";
 import {sha256} from "@noble/hashes/sha2";
 
 /**
- * @category Handlers
+ * @category Internal/Handlers
  */
 export class HashlockClaimHandler implements IClaimHandler<Buffer, string> {
 

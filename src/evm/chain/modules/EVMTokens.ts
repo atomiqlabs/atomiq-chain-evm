@@ -5,7 +5,9 @@ import {EVMAddresses} from "./EVMAddresses";
 import {EVMFees} from "./EVMFees";
 import {EVMSwapData} from "../../swaps/EVMSwapData";
 
-
+/**
+ * @category Internal/Chain
+ */
 export class EVMTokens extends EVMModule<any> {
 
     public static readonly ETH_ADDRESS = "0x0000000000000000000000000000000000000000";

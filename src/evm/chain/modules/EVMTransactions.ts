@@ -28,6 +28,9 @@ export type EVMTxTrace = {
 
 const MAX_UNCONFIRMED_TXNS = 10;
 
+/**
+ * @category Internal/Chain
+ */
 export class EVMTransactions extends EVMModule<any> {
 
     private readonly latestConfirmedNonces: {[address: string]: number} = {};

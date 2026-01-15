@@ -4,7 +4,7 @@ import {Block} from "ethers";
 export type EVMBlockTag = "safe" | "pending" | "latest" | "finalized";
 
 /**
- * @category Chain
+ * @category Internal/Chain
  */
 export class EVMBlocks extends EVMModule<any> {
 

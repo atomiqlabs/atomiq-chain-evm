@@ -7,6 +7,9 @@ const DataHash = [
     { name: "dataHash", type: "bytes32" }
 ];
 
+/**
+ * @category Internal/Chain
+ */
 export class EVMSignatures extends EVMModule<any> {
 
     private readonly domainName: string;

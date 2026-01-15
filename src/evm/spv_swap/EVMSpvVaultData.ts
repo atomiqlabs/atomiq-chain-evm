@@ -28,6 +28,9 @@ export function getVaultUtxoFromState(state: SpvVaultStateStruct): string {
     return txHash.reverse().toString("hex")+":"+BigInt(state.utxoVout).toString(10);
 }
 
+/**
+ * @category Swaps
+ */
 export class EVMSpvVaultData extends SpvVaultData<EVMSpvWithdrawalData> {
 
     readonly owner: string;

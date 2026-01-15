@@ -3,7 +3,7 @@ import {Wallet, isAddress} from "ethers";
 
 
 /**
- * @category Chain
+ * @category Internal/Chain
  */
 export class EVMAddresses extends EVMModule<any> {
 

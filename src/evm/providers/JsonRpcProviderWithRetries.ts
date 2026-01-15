@@ -7,6 +7,9 @@ import {
     tryWithRetries
 } from "../../utils/Utils";
 
+/**
+ * @category Providers
+ */
 export class JsonRpcProviderWithRetries extends JsonRpcProvider {
 
     readonly retryPolicy?: {

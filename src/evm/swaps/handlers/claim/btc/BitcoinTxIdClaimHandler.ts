@@ -10,7 +10,7 @@ export type BitcoinTxIdCommitmentData = {
 };
 
 /**
- * @category Handlers
+ * @category Internal/Handlers
  */
 export class BitcoinTxIdClaimHandler extends IBitcoinClaimHandler<BitcoinTxIdCommitmentData, BitcoinWitnessData> {
 
