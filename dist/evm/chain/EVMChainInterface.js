@@ -12,6 +12,10 @@ const EVMSignatures_1 = require("./modules/EVMSignatures");
 const EVMAddresses_1 = require("./modules/EVMAddresses");
 const EVMSigner_1 = require("../wallet/EVMSigner");
 const EVMBrowserSigner_1 = require("../wallet/EVMBrowserSigner");
+/**
+ * Main chain interface for interacting with EVM-compatible blockchains
+ * @category Chain Interface
+ */
 class EVMChainInterface {
     constructor(chainId, evmChainId, provider, config, retryPolicy, evmFeeEstimator = new EVMFees_1.EVMFees(provider)) {
         var _a, _b, _c, _d;

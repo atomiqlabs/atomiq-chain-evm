@@ -3,6 +3,9 @@ import {Block} from "ethers";
 
 export type EVMBlockTag = "safe" | "pending" | "latest" | "finalized";
 
+/**
+ * @category Chain
+ */
 export class EVMBlocks extends EVMModule<any> {
 
     private BLOCK_CACHE_TIME = 5*1000;

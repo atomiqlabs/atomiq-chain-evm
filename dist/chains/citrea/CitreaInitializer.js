@@ -61,6 +61,10 @@ const chainTypeMapping = {
     [base_1.BitcoinNetwork.MAINNET]: "MAINNET",
     [base_1.BitcoinNetwork.TESTNET4]: "TESTNET4",
 };
+/**
+ * Default Citrea token assets configuration
+ * @category Networks/Citrea
+ */
 exports.CitreaAssets = {
     CBTC: {
         address: "0x0000000000000000000000000000000000000000",
@@ -78,6 +82,10 @@ exports.CitreaAssets = {
         displayDecimals: 6
     }
 };
+/**
+ * Initialize Citrea chain integration
+ * @category Networks/Citrea
+ */
 function initializeCitrea(options, bitcoinRpc, network) {
     options.chainType ?? (options.chainType = chainTypeMapping[network]);
     if (options.chainType == null)
@@ -130,6 +138,10 @@ function initializeCitrea(options, bitcoinRpc, network) {
 }
 exports.initializeCitrea = initializeCitrea;
 ;
+/**
+ * Citrea chain initializer instance
+ * @category Networks/Citrea
+ */
 exports.CitreaInitializer = {
     chainId: "CITREA",
     chainType: null,

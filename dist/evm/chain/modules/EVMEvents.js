@@ -2,6 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVMEvents = void 0;
 const EVMModule_1 = require("../EVMModule");
+/**
+ * @category Chain
+ */
 class EVMEvents extends EVMModule_1.EVMModule {
     /**
      * Wrapper for provider.getLogs(), automatically retries with smaller ranges if limits are reached

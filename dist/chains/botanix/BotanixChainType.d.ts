@@ -11,4 +11,8 @@ import { EVMSwapContract } from "../../evm/swaps/EVMSwapContract";
 import { EVMBtcRelay } from "../../evm/btcrelay/EVMBtcRelay";
 import { EVMSpvVaultContract } from "../../evm/spv_swap/EVMSpvVaultContract";
 import { Signer } from "ethers";
+/**
+ * Type definition for the Botanix chain implementation
+ * @category Networks/Botanix
+ */
 export type BotanixChainType = ChainType<"BOTANIX", never, EVMPreFetchVerification, EVMTx, SignedEVMTx, EVMSigner, Signer, EVMSwapData, EVMSwapContract<"BOTANIX">, EVMChainInterface<"BOTANIX">, EVMChainEventsBrowser, EVMBtcRelay<any>, EVMSpvWithdrawalData, EVMSpvVaultData, EVMSpvVaultContract<"BOTANIX">>;

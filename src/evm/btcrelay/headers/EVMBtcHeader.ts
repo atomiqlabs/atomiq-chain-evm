@@ -12,6 +12,9 @@ export type EVMBtcHeaderType = {
     hash?: Buffer;
 };
 
+/**
+ * @category BTC Relay
+ */
 export class EVMBtcHeader implements BtcHeader {
 
     version: number;

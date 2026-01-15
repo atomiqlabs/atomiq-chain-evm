@@ -20,6 +20,9 @@ function getTransactionNonce(btcTx: Transaction): bigint {
     return (locktimeSub500M << 24n) | (nSequence & 0x00FFFFFFn);
 }
 
+/**
+ * @category Handlers
+ */
 export class BitcoinNoncedOutputClaimHandler extends IBitcoinClaimHandler<BitcoinNoncedOutputCommitmentData, BitcoinOutputWitnessData> {
 
     public static readonly type: ChainSwapType = ChainSwapType.CHAIN_NONCED;

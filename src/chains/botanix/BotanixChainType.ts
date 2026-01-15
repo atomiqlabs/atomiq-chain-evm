@@ -12,6 +12,10 @@ import {EVMBtcRelay} from "../../evm/btcrelay/EVMBtcRelay";
 import {EVMSpvVaultContract} from "../../evm/spv_swap/EVMSpvVaultContract";
 import {Signer} from "ethers";
 
+/**
+ * Type definition for the Botanix chain implementation
+ * @category Networks/Botanix
+ */
 export type BotanixChainType = ChainType<
     "BOTANIX",
     never,

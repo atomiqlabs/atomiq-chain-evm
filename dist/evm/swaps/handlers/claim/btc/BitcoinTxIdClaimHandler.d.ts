@@ -8,6 +8,9 @@ import { EVMTx } from "../../../../chain/modules/EVMTransactions";
 export type BitcoinTxIdCommitmentData = {
     txId: string;
 };
+/**
+ * @category Handlers
+ */
 export declare class BitcoinTxIdClaimHandler extends IBitcoinClaimHandler<BitcoinTxIdCommitmentData, BitcoinWitnessData> {
     static readonly type: ChainSwapType;
     static readonly gas: number;

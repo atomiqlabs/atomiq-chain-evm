@@ -3,6 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVMAddresses = void 0;
 const EVMModule_1 = require("../EVMModule");
 const ethers_1 = require("ethers");
+/**
+ * @category Chain
+ */
 class EVMAddresses extends EVMModule_1.EVMModule {
     ///////////////////
     //// Address utils

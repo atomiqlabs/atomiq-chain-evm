@@ -2,6 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TimelockRefundHandler = void 0;
 const base_1 = require("@atomiqlabs/base");
+/**
+ * @category Handlers
+ */
 class TimelockRefundHandler {
     constructor(address) {
         this.address = address;

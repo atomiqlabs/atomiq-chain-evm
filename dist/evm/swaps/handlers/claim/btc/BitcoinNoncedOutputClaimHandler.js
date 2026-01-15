@@ -13,6 +13,9 @@ function getTransactionNonce(btcTx) {
     const nSequence = BigInt(btcTx.getInput(0).sequence);
     return (locktimeSub500M << 24n) | (nSequence & 0x00ffffffn);
 }
+/**
+ * @category Handlers
+ */
 class BitcoinNoncedOutputClaimHandler extends IBitcoinClaimHandler_1.IBitcoinClaimHandler {
     serializeCommitment(data) {
         const txoHash = (0, ethers_1.solidityPackedKeccak256)(["uint64", "uint64", "bytes32"], [data.nonce, data.amount, (0, ethers_1.keccak256)(data.output)]);

@@ -31,6 +31,9 @@ const ESCROW_STATE_COMMITTED = 1;
 const ESCROW_STATE_CLAIMED = 2;
 const ESCROW_STATE_REFUNDED = 3;
 
+/**
+ * @category Swaps
+ */
 export class EVMSwapContract<ChainId extends string = string>
     extends EVMContractBase<EscrowManager>
     implements SwapContract<

@@ -1,5 +1,8 @@
 import { EVMModule } from "../EVMModule";
 import { Log } from "ethers";
+/**
+ * @category Chain
+ */
 export declare class EVMEvents extends EVMModule<any> {
     /**
      * Wrapper for provider.getLogs(), automatically retries with smaller ranges if limits are reached

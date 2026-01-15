@@ -7,6 +7,9 @@ const TimelockRefundHandler_1 = require("./handlers/refund/TimelockRefundHandler
 const FLAG_PAY_OUT = 0x01n;
 const FLAG_PAY_IN = 0x02n;
 const FLAG_REPUTATION = 0x04n;
+/**
+ * @category Swaps
+ */
 class EVMSwapData extends base_1.SwapData {
     static toFlags(val) {
         return {

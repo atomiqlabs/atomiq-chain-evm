@@ -12,6 +12,9 @@ export type BitcoinOutputCommitmentData = {
 export type BitcoinOutputWitnessData = BitcoinWitnessData & {
     vout: number;
 };
+/**
+ * @category Handlers
+ */
 export declare class BitcoinOutputClaimHandler extends IBitcoinClaimHandler<BitcoinOutputCommitmentData, BitcoinOutputWitnessData> {
     static readonly type: ChainSwapType;
     static readonly gas: number;

@@ -17,6 +17,9 @@ const EVMSwapClaim_1 = require("./modules/EVMSwapClaim");
 const ESCROW_STATE_COMMITTED = 1;
 const ESCROW_STATE_CLAIMED = 2;
 const ESCROW_STATE_REFUNDED = 3;
+/**
+ * @category Swaps
+ */
 class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
     constructor(chainInterface, btcRelay, contractAddress, handlerAddresses) {
         super(chainInterface, contractAddress, EscrowManagerAbi_1.EscrowManagerAbi);

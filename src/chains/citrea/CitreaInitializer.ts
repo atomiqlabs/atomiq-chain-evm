@@ -63,7 +63,16 @@ const chainTypeMapping: {[key in BitcoinNetwork]?: "MAINNET" | "TESTNET4"} = {
     [BitcoinNetwork.TESTNET4]: "TESTNET4",
 };
 
+/**
+ * Token assets available on Citrea
+ * @category Networks/Citrea
+ */
 export type CitreaAssetsType = BaseTokenType<"CBTC" | "WBTC" | "USDC">;
+
+/**
+ * Default Citrea token assets configuration
+ * @category Networks/Citrea
+ */
 export const CitreaAssets: CitreaAssetsType = {
     CBTC: {
         address: "0x0000000000000000000000000000000000000000",
@@ -82,6 +91,10 @@ export const CitreaAssets: CitreaAssetsType = {
     }
 } as const;
 
+/**
+ * Configuration options for initializing Citrea chain
+ * @category Networks/Citrea
+ */
 export type CitreaOptions = {
     rpcUrl: string | JsonRpcApiProvider,
     retryPolicy?: EVMRetryPolicy,
@@ -106,6 +119,10 @@ export type CitreaOptions = {
     evmConfig?: Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag">
 }
 
+/**
+ * Initialize Citrea chain integration
+ * @category Networks/Citrea
+ */
 export function initializeCitrea(
     options: CitreaOptions,
     bitcoinRpc: BitcoinRpc<any>,
@@ -178,7 +195,16 @@ export function initializeCitrea(
     }
 };
 
+/**
+ * Type definition for the Citrea chain initializer
+ * @category Networks/Citrea
+ */
 export type CitreaInitializerType = ChainInitializer<CitreaOptions, CitreaChainType, CitreaAssetsType>;
+
+/**
+ * Citrea chain initializer instance
+ * @category Networks/Citrea
+ */
 export const CitreaInitializer: CitreaInitializerType = {
     chainId: "CITREA",
     chainType: null as unknown as CitreaChainType,

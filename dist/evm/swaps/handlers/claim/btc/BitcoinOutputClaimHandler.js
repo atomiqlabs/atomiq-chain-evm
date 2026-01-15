@@ -6,6 +6,9 @@ const IBitcoinClaimHandler_1 = require("./IBitcoinClaimHandler");
 const buffer_1 = require("buffer");
 const ethers_1 = require("ethers");
 const btc_signer_1 = require("@scure/btc-signer");
+/**
+ * @category Handlers
+ */
 class BitcoinOutputClaimHandler extends IBitcoinClaimHandler_1.IBitcoinClaimHandler {
     serializeCommitment(data) {
         const txoHash = (0, ethers_1.solidityPackedKeccak256)(["uint64", "bytes32"], [data.amount, (0, ethers_1.keccak256)(data.output)]);

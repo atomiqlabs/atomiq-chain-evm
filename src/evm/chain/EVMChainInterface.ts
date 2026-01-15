@@ -20,12 +20,20 @@ import {EVMAddresses} from "./modules/EVMAddresses";
 import {EVMSigner} from "../wallet/EVMSigner";
 import {EVMBrowserSigner} from "../wallet/EVMBrowserSigner";
 
+/**
+ * Retry policy configuration for EVM RPC calls
+ * @category Chain Interface
+ */
 export type EVMRetryPolicy = {
     maxRetries?: number,
     delay?: number,
     exponential?: boolean
 }
 
+/**
+ * Configuration options for EVM chain interface
+ * @category Chain Interface
+ */
 export type EVMConfiguration = {
     safeBlockTag: EVMBlockTag,
     finalizedBlockTag: EVMBlockTag,
@@ -43,6 +51,10 @@ export type EVMConfiguration = {
     }
 };
 
+/**
+ * Main chain interface for interacting with EVM-compatible blockchains
+ * @category Chain Interface
+ */
 export class EVMChainInterface<ChainId extends string = string> implements ChainInterface<EVMTx, SignedEVMTx, EVMSigner, ChainId, Signer> {
 
     readonly chainId: ChainId;

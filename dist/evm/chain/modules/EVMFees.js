@@ -2,6 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVMFees = void 0;
 const Utils_1 = require("../../../utils/Utils");
+/**
+ * @category Chain
+ */
 class EVMFees {
     constructor(provider, maxFeeRatePerGas = 500n * 1000000000n, priorityFee = 1n * 1000000000n, feeMultiplier = 1.25) {
         this.MAX_FEE_AGE = 5000;

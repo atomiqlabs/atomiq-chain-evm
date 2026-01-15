@@ -1,6 +1,9 @@
 import {EVMModule} from "../EVMModule";
 import {Log} from "ethers";
 
+/**
+ * @category Chain
+ */
 export class EVMEvents extends EVMModule<any> {
 
     /**

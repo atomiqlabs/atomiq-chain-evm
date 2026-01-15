@@ -26,6 +26,9 @@ function serializeBlockHeader(e: BtcBlock): EVMBtcHeader {
 
 const logger = getLogger("EVMBtcRelay: ");
 
+/**
+ * @category BTC Relay
+ */
 export class EVMBtcRelay<B extends BtcBlock>
     extends EVMContractBase<BtcRelayTypechain>
     implements BtcRelay<EVMBtcStoredHeader, EVMTx, B, EVMSigner> {

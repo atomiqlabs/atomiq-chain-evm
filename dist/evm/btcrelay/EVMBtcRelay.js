@@ -22,6 +22,9 @@ function serializeBlockHeader(e) {
     });
 }
 const logger = (0, Utils_1.getLogger)("EVMBtcRelay: ");
+/**
+ * @category BTC Relay
+ */
 class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
     async SaveMainHeaders(signer, mainHeaders, storedHeader, feeRate) {
         const tx = await this.contract.submitMainBlockheaders.populateTransaction(Buffer.concat([

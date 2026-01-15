@@ -83,7 +83,16 @@ const chainTypeMapping: {[key in BitcoinNetwork]?: "MAINNET" | "TESTNET" | "TEST
     [BitcoinNetwork.TESTNET4]: "TESTNET4",
 };
 
+/**
+ * Token assets available on Alpen
+ * @category Networks/Alpen
+ */
 export type AlpenAssetsType = BaseTokenType<"BTC">;
+
+/**
+ * Default Alpen token assets configuration
+ * @category Networks/Alpen
+ */
 export const AlpenAssets: AlpenAssetsType = {
     BTC: {
         address: "0x0000000000000000000000000000000000000000",
@@ -92,6 +101,10 @@ export const AlpenAssets: AlpenAssetsType = {
     }
 } as const;
 
+/**
+ * Configuration options for initializing Alpen chain
+ * @category Networks/Alpen
+ */
 export type AlpenOptions = {
     rpcUrl: string | JsonRpcApiProvider,
     retryPolicy?: EVMRetryPolicy,
@@ -116,6 +129,10 @@ export type AlpenOptions = {
     evmConfig?: Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag">
 }
 
+/**
+ * Initialize Alpen chain integration
+ * @category Networks/Alpen
+ */
 export function initializeAlpen(
     options: AlpenOptions,
     bitcoinRpc: BitcoinRpc<any>,
@@ -186,7 +203,16 @@ export function initializeAlpen(
     }
 };
 
+/**
+ * Type definition for the Alpen chain initializer
+ * @category Networks/Alpen
+ */
 export type AlpenInitializerType = ChainInitializer<AlpenOptions, AlpenChainType, AlpenAssetsType>;
+
+/**
+ * Alpen chain initializer instance
+ * @category Networks/Alpen
+ */
 export const AlpenInitializer: AlpenInitializerType = {
     chainId: "ALPEN",
     chainType: null as unknown as AlpenChainType,

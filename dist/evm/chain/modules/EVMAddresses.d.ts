@@ -1,4 +1,7 @@
 import { EVMModule } from "../EVMModule";
+/**
+ * @category Chain
+ */
 export declare class EVMAddresses extends EVMModule<any> {
     /**
      * Checks whether an address is a valid EVM address

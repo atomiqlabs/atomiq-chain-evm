@@ -8,6 +8,9 @@ const FLAG_PAY_OUT: bigint = 0x01n;
 const FLAG_PAY_IN: bigint = 0x02n;
 const FLAG_REPUTATION: bigint = 0x04n;
 
+/**
+ * @category Swaps
+ */
 export class EVMSwapData extends SwapData {
 
     static toFlags(val: bigint): {payOut: boolean, payIn: boolean, reputation: boolean, sequence: bigint} {

@@ -11,6 +11,9 @@ export type StarknetBtcStoredHeaderType = {
     lastDiffAdjustment: number;
     prevBlockTimestamps: number[];
 };
+/**
+ * @category BTC Relay
+ */
 export declare class EVMBtcStoredHeader implements BtcStoredHeader<EVMBtcHeader> {
     blockheader: EVMBtcHeader;
     blockHash: Buffer;

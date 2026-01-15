@@ -4,6 +4,9 @@ exports.BitcoinTxIdClaimHandler = void 0;
 const base_1 = require("@atomiqlabs/base");
 const IBitcoinClaimHandler_1 = require("./IBitcoinClaimHandler");
 const buffer_1 = require("buffer");
+/**
+ * @category Handlers
+ */
 class BitcoinTxIdClaimHandler extends IBitcoinClaimHandler_1.IBitcoinClaimHandler {
     serializeCommitment(data) {
         return buffer_1.Buffer.concat([

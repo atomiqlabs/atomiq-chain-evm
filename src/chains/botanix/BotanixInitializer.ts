@@ -62,7 +62,16 @@ const chainTypeMapping: {[key in BitcoinNetwork]?: "MAINNET" | "TESTNET"} = {
     [BitcoinNetwork.TESTNET]: "TESTNET",
 };
 
+/**
+ * Token assets available on Botanix
+ * @category Networks/Botanix
+ */
 export type BotanixAssetsType = BaseTokenType<"BTC">;
+
+/**
+ * Default Botanix token assets configuration
+ * @category Networks/Botanix
+ */
 export const BotanixAssets: BotanixAssetsType = {
     BTC: {
         address: "0x0000000000000000000000000000000000000000",
@@ -71,6 +80,10 @@ export const BotanixAssets: BotanixAssetsType = {
     }
 } as const;
 
+/**
+ * Configuration options for initializing Botanix chain
+ * @category Networks/Botanix
+ */
 export type BotanixOptions = {
     rpcUrl: string | JsonRpcApiProvider,
     retryPolicy?: EVMRetryPolicy,
@@ -95,6 +108,10 @@ export type BotanixOptions = {
     evmConfig?: Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag">
 }
 
+/**
+ * Initialize Botanix chain integration
+ * @category Networks/Botanix
+ */
 export function initializeBotanix(
     options: BotanixOptions,
     bitcoinRpc: BitcoinRpc<any>,
@@ -169,7 +186,16 @@ export function initializeBotanix(
     }
 };
 
+/**
+ * Type definition for the Botanix chain initializer
+ * @category Networks/Botanix
+ */
 export type BotanixInitializerType = ChainInitializer<BotanixOptions, BotanixChainType, BotanixAssetsType>;
+
+/**
+ * Botanix chain initializer instance
+ * @category Networks/Botanix
+ */
 export const BotanixInitializer: BotanixInitializerType = {
     chainId: "BOTANIX",
     chainType: null as unknown as BotanixChainType,

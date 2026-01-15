@@ -11,4 +11,8 @@ import { CitreaSwapContract } from "./CitreaSwapContract";
 import { CitreaBtcRelay } from "./CitreaBtcRelay";
 import { CitreaSpvVaultContract } from "./CitreaSpvVaultContract";
 import { Signer } from "ethers";
+/**
+ * Type definition for the Citrea chain implementation
+ * @category Networks/Citrea
+ */
 export type CitreaChainType = ChainType<"CITREA", never, EVMPreFetchVerification, EVMTx, SignedEVMTx, EVMSigner, Signer, EVMSwapData, CitreaSwapContract, EVMChainInterface<"CITREA">, EVMChainEventsBrowser, CitreaBtcRelay<any>, EVMSpvWithdrawalData, EVMSpvVaultData, CitreaSpvVaultContract>;

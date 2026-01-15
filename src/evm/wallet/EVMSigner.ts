@@ -1,7 +1,10 @@
 import {AbstractSigner} from "@atomiqlabs/base";
 import {getAddress, Signer, Transaction, TransactionRequest, TransactionResponse} from "ethers";
 
-
+/**
+ * EVM signer implementation wrapping an ethers Signer
+ * @category Wallets
+ */
 export class EVMSigner implements AbstractSigner {
     type = "AtomiqAbstractSigner" as const;
 

@@ -5,6 +5,9 @@ const base_1 = require("@atomiqlabs/base");
 const buffer_1 = require("buffer");
 const ethers_1 = require("ethers");
 const sha2_1 = require("@noble/hashes/sha2");
+/**
+ * @category Handlers
+ */
 class HashlockClaimHandler {
     constructor(address) {
         this.address = address;

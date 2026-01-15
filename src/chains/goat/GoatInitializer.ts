@@ -83,7 +83,16 @@ const chainTypeMapping: {[key in BitcoinNetwork]?: "MAINNET" | "TESTNET" | "TEST
     [BitcoinNetwork.TESTNET4]: "TESTNET4",
 };
 
+/**
+ * Token assets available on GOAT Network
+ * @category Networks/GOAT
+ */
 export type GoatAssetsType = BaseTokenType<"BTC" | "PBTC" | "_PBTC_DEV">;
+
+/**
+ * Default GOAT Network token assets configuration
+ * @category Networks/GOAT
+ */
 export const GoatAssets: GoatAssetsType = {
     BTC: {
         address: "0x0000000000000000000000000000000000000000",
@@ -102,6 +111,10 @@ export const GoatAssets: GoatAssetsType = {
     }
 } as const;
 
+/**
+ * Configuration options for initializing GOAT Network chain
+ * @category Networks/GOAT
+ */
 export type GoatOptions = {
     rpcUrl: string | JsonRpcApiProvider,
     retryPolicy?: EVMRetryPolicy,
@@ -126,6 +139,10 @@ export type GoatOptions = {
     evmConfig?: Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag">
 }
 
+/**
+ * Initialize GOAT Network chain integration
+ * @category Networks/GOAT
+ */
 export function initializeGoat(
     options: GoatOptions,
     bitcoinRpc: BitcoinRpc<any>,
@@ -196,7 +213,16 @@ export function initializeGoat(
     }
 };
 
+/**
+ * Type definition for the GOAT Network chain initializer
+ * @category Networks/GOAT
+ */
 export type GoatInitializerType = ChainInitializer<GoatOptions, GoatChainType, GoatAssetsType>;
+
+/**
+ * GOAT Network chain initializer instance
+ * @category Networks/GOAT
+ */
 export const GoatInitializer: GoatInitializerType = {
     chainId: "GOAT",
     chainType: null as unknown as GoatChainType,

@@ -3,6 +3,9 @@ export type EVMFeeRate = {
     maxFeePerGas: bigint;
     maxPriorityFee: bigint;
 };
+/**
+ * @category Chain
+ */
 export declare class EVMFees {
     protected MAX_FEE_AGE: number;
     protected readonly logger: import("../../../utils/Utils").LoggerType;

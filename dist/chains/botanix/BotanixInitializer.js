@@ -60,6 +60,10 @@ const chainTypeMapping = {
     [base_1.BitcoinNetwork.MAINNET]: "MAINNET",
     [base_1.BitcoinNetwork.TESTNET]: "TESTNET",
 };
+/**
+ * Default Botanix token assets configuration
+ * @category Networks/Botanix
+ */
 exports.BotanixAssets = {
     BTC: {
         address: "0x0000000000000000000000000000000000000000",
@@ -67,6 +71,10 @@ exports.BotanixAssets = {
         displayDecimals: 8
     }
 };
+/**
+ * Initialize Botanix chain integration
+ * @category Networks/Botanix
+ */
 function initializeBotanix(options, bitcoinRpc, network) {
     options.chainType ?? (options.chainType = chainTypeMapping[network]);
     if (options.chainType == null)
@@ -120,6 +128,10 @@ function initializeBotanix(options, bitcoinRpc, network) {
 }
 exports.initializeBotanix = initializeBotanix;
 ;
+/**
+ * Botanix chain initializer instance
+ * @category Networks/Botanix
+ */
 exports.BotanixInitializer = {
     chainId: "BOTANIX",
     chainType: null,

@@ -12,6 +12,10 @@ import {EVMBtcRelay} from "../../evm/btcrelay/EVMBtcRelay";
 import {EVMSpvVaultContract} from "../../evm/spv_swap/EVMSpvVaultContract";
 import {Signer} from "ethers";
 
+/**
+ * Type definition for the GOAT Network chain implementation
+ * @category Networks/GOAT
+ */
 export type GoatChainType = ChainType<
     "GOAT",
     never,

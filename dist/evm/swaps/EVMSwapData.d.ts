@@ -1,6 +1,9 @@
 import { SwapData, ChainSwapType } from "@atomiqlabs/base";
 import { EscrowDataStruct } from "./EscrowManagerTypechain";
 import { IClaimHandler } from "./handlers/claim/ClaimHandlers";
+/**
+ * @category Swaps
+ */
 export declare class EVMSwapData extends SwapData {
     static toFlags(val: bigint): {
         payOut: boolean;

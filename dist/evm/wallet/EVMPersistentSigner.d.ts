@@ -9,6 +9,7 @@ export declare class EVMPersistentSigner extends EVMSigner {
     private pendingNonce;
     private feeBumper;
     private stopped;
+    private fs;
     private readonly directory;
     private readonly waitBeforeBump;
     private readonly minFeeIncreaseAbsolute;

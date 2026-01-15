@@ -12,6 +12,10 @@ import {CitreaBtcRelay} from "./CitreaBtcRelay";
 import {CitreaSpvVaultContract} from "./CitreaSpvVaultContract";
 import {Signer} from "ethers";
 
+/**
+ * Type definition for the Citrea chain implementation
+ * @category Networks/Citrea
+ */
 export type CitreaChainType = ChainType<
     "CITREA",
     never,

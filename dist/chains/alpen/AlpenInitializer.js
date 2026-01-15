@@ -81,6 +81,10 @@ const chainTypeMapping = {
     [base_1.BitcoinNetwork.TESTNET]: "TESTNET",
     [base_1.BitcoinNetwork.TESTNET4]: "TESTNET4",
 };
+/**
+ * Default Alpen token assets configuration
+ * @category Networks/Alpen
+ */
 exports.AlpenAssets = {
     BTC: {
         address: "0x0000000000000000000000000000000000000000",
@@ -88,6 +92,10 @@ exports.AlpenAssets = {
         displayDecimals: 8
     }
 };
+/**
+ * Initialize Alpen chain integration
+ * @category Networks/Alpen
+ */
 function initializeAlpen(options, bitcoinRpc, network) {
     options.chainType ?? (options.chainType = chainTypeMapping[network]);
     if (options.chainType == null)
@@ -137,6 +145,10 @@ function initializeAlpen(options, bitcoinRpc, network) {
 }
 exports.initializeAlpen = initializeAlpen;
 ;
+/**
+ * Alpen chain initializer instance
+ * @category Networks/Alpen
+ */
 exports.AlpenInitializer = {
     chainId: "ALPEN",
     chainType: null,

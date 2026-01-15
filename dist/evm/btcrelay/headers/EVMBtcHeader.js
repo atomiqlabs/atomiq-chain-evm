@@ -3,6 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVMBtcHeader = void 0;
 const buffer_1 = require("buffer");
 const sha2_1 = require("@noble/hashes/sha2");
+/**
+ * @category BTC Relay
+ */
 class EVMBtcHeader {
     constructor(data) {
         this.version = data.version;
