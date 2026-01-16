@@ -11,5 +11,15 @@ class EVMBrowserSigner extends EVMSigner_1.EVMSigner {
         super(account, address, false);
         this.signTransaction = undefined;
     }
+    async sendTransaction(transaction, onBeforePublish) {
+        try {
+            return await super.sendTransaction(transaction, onBeforePublish);
+        }
+        catch (e) {
+            if (e.message != null && e.message.includes("ACTION_REJECTED"))
+                throw new Error("User refused to authorize the transaction");
+            throw e;
+        }
+    }
 }
 exports.EVMBrowserSigner = EVMBrowserSigner;
