@@ -6,6 +6,7 @@ const Utils_1 = require("../../utils/Utils");
 const EVMFees_1 = require("../chain/modules/EVMFees");
 const EVMSigner_1 = require("./EVMSigner");
 const promise_queue_ts_1 = require("promise-queue-ts");
+const fs = require("fs/promises");
 const WAIT_BEFORE_BUMP = 15 * 1000;
 const MIN_FEE_INCREASE_ABSOLUTE = 1n * 1000000000n; //1GWei
 const MIN_FEE_INCREASE_PPM = 100000n; // +10%
@@ -28,10 +29,10 @@ class EVMPersistentSigner extends EVMSigner_1.EVMSigner {
         this.logger = (0, Utils_1.getLogger)("EVMPersistentSigner(" + address + "): ");
     }
     async load() {
-        const fileExists = await this.fs.access(this.directory + "/txs.json", this.fs.constants.F_OK).then(() => true).catch(() => false);
+        const fileExists = await fs.access(this.directory + "/txs.json", fs.constants.F_OK).then(() => true).catch(() => false);
         if (!fileExists)
             return;
-        const res = await this.fs.readFile(this.directory + "/txs.json");
+        const res = await fs.readFile(this.directory + "/txs.json");
         if (res != null) {
             const pendingTxs = JSON.parse(res.toString());
             for (let nonceStr in pendingTxs) {
@@ -66,7 +67,7 @@ class EVMPersistentSigner extends EVMSigner_1.EVMSigner {
             await this.priorSavePromise;
         }
         if (requiredSaveCount === this.saveCount) {
-            this.priorSavePromise = this.fs.writeFile(this.directory + "/txs.json", JSON.stringify(pendingTxs));
+            this.priorSavePromise = fs.writeFile(this.directory + "/txs.json", JSON.stringify(pendingTxs));
             await this.priorSavePromise;
         }
     }
@@ -179,9 +180,8 @@ class EVMPersistentSigner extends EVMSigner_1.EVMSigner {
         }
     }
     async init() {
-        this.fs = await Promise.resolve().then(() => require("fs/promises"));
         try {
-            await this.fs.mkdir(this.directory);
+            await fs.mkdir(this.directory);
         }
         catch (e) { }
         const txCount = await this.chainInterface.provider.getTransactionCount(this.address, this.safeBlockTag);

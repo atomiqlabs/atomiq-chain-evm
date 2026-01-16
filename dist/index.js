@@ -50,7 +50,7 @@ __exportStar(require("./evm/swaps/handlers/claim/btc/BitcoinOutputClaimHandler")
 __exportStar(require("./evm/swaps/handlers/claim/btc/BitcoinNoncedOutputClaimHandler"), exports);
 __exportStar(require("./evm/wallet/EVMSigner"), exports);
 __exportStar(require("./evm/wallet/EVMBrowserSigner"), exports);
-__exportStar(require("./evm/wallet/EVMPersistentSigner"), exports);
+// export * from "./evm/wallet/EVMPersistentSigner";
 __exportStar(require("./chains/citrea/CitreaInitializer"), exports);
 __exportStar(require("./chains/citrea/CitreaChainType"), exports);
 __exportStar(require("./chains/citrea/CitreaFees"), exports);

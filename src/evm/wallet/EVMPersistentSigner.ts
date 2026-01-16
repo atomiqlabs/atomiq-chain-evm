@@ -10,6 +10,7 @@ import {EVMChainInterface} from "../chain/EVMChainInterface";
 import {EVMFees} from "../chain/modules/EVMFees";
 import {EVMSigner} from "./EVMSigner";
 import {PromiseQueue} from "promise-queue-ts";
+import * as fs from "fs/promises";
 
 const WAIT_BEFORE_BUMP = 15*1000;
 const MIN_FEE_INCREASE_ABSOLUTE = 1n*1_000_000_000n; //1GWei
@@ -30,8 +31,6 @@ export class EVMPersistentSigner extends EVMSigner {
 
     private feeBumper: any;
     private stopped: boolean = false;
-    
-    private fs: any;
 
     private readonly directory: string;
 
@@ -64,9 +63,9 @@ export class EVMPersistentSigner extends EVMSigner {
     }
 
     private async load() {
-        const fileExists = await this.fs.access(this.directory+"/txs.json", this.fs.constants.F_OK).then(() => true).catch(() => false);
+        const fileExists = await fs.access(this.directory+"/txs.json", fs.constants.F_OK).then(() => true).catch(() => false);
         if(!fileExists) return;
-        const res = await this.fs.readFile(this.directory+"/txs.json");
+        const res = await fs.readFile(this.directory+"/txs.json");
         if(res!=null) {
             const pendingTxs: {
                 [nonce: string]: {
@@ -117,7 +116,7 @@ export class EVMPersistentSigner extends EVMSigner {
             await this.priorSavePromise;
         }
         if(requiredSaveCount===this.saveCount) {
-            this.priorSavePromise = this.fs.writeFile(this.directory+"/txs.json", JSON.stringify(pendingTxs));
+            this.priorSavePromise = fs.writeFile(this.directory+"/txs.json", JSON.stringify(pendingTxs));
             await this.priorSavePromise;
         }
     }
@@ -249,10 +248,8 @@ export class EVMPersistentSigner extends EVMSigner {
     }
 
     async init(): Promise<void> {
-        this.fs = await import("fs/promises");
-        
         try {
-            await this.fs.mkdir(this.directory)
+            await fs.mkdir(this.directory)
         } catch (e) {}
 
         const txCount = await this.chainInterface.provider.getTransactionCount(this.address, this.safeBlockTag);
