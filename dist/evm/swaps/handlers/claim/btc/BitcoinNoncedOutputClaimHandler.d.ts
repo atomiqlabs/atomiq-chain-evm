@@ -12,7 +12,7 @@ export type BitcoinNoncedOutputCommitmentData = {
     nonce: bigint;
 };
 /**
- * @category Handlers
+ * @category Internal/Handlers
  */
 export declare class BitcoinNoncedOutputClaimHandler extends IBitcoinClaimHandler<BitcoinNoncedOutputCommitmentData, BitcoinOutputWitnessData> {
     static readonly type: ChainSwapType;

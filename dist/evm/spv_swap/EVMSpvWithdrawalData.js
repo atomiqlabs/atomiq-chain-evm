@@ -5,6 +5,9 @@ const base_1 = require("@atomiqlabs/base");
 const buffer_1 = require("buffer");
 const EVMSpvVaultContract_1 = require("./EVMSpvVaultContract");
 const ethers_1 = require("ethers");
+/**
+ * @category Swaps
+ */
 class EVMSpvWithdrawalData extends base_1.SpvWithdrawalTransactionData {
     getExecutionHashWith0x() {
         return this.executionHash == null ? ethers_1.ZeroHash : (this.executionHash.startsWith("0x") ? this.executionHash : "0x" + this.executionHash);

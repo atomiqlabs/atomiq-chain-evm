@@ -7,7 +7,7 @@ const buffer_1 = require("buffer");
 const ethers_1 = require("ethers");
 const btc_signer_1 = require("@scure/btc-signer");
 /**
- * @category Handlers
+ * @category Internal/Handlers
  */
 class BitcoinOutputClaimHandler extends IBitcoinClaimHandler_1.IBitcoinClaimHandler {
     serializeCommitment(data) {

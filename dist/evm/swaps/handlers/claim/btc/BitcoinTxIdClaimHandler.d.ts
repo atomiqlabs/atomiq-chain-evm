@@ -9,7 +9,7 @@ export type BitcoinTxIdCommitmentData = {
     txId: string;
 };
 /**
- * @category Handlers
+ * @category Internal/Handlers
  */
 export declare class BitcoinTxIdClaimHandler extends IBitcoinClaimHandler<BitcoinTxIdCommitmentData, BitcoinWitnessData> {
     static readonly type: ChainSwapType;

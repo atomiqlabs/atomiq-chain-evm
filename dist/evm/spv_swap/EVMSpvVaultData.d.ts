@@ -3,6 +3,9 @@ import { EVMSpvWithdrawalData } from "./EVMSpvWithdrawalData";
 import { SpvVaultParametersStruct, SpvVaultStateStruct } from "./SpvVaultContractTypechain";
 export declare function getVaultParamsCommitment(vaultParams: SpvVaultParametersStruct): string;
 export declare function getVaultUtxoFromState(state: SpvVaultStateStruct): string;
+/**
+ * @category Swaps
+ */
 export declare class EVMSpvVaultData extends SpvVaultData<EVMSpvWithdrawalData> {
     readonly owner: string;
     readonly vaultId: bigint;

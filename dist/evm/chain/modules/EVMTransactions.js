@@ -6,6 +6,9 @@ const ethers_1 = require("ethers");
 const Utils_1 = require("../../../utils/Utils");
 const base_1 = require("@atomiqlabs/base");
 const MAX_UNCONFIRMED_TXNS = 10;
+/**
+ * @category Internal/Chain
+ */
 class EVMTransactions extends EVMModule_1.EVMModule {
     constructor() {
         super(...arguments);

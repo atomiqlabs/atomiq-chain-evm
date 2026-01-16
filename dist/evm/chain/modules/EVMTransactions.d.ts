@@ -15,6 +15,9 @@ export type EVMTxTrace = {
     calls: EVMTxTrace[];
     type: "CREATE" | "CALL" | "STATICCALL";
 };
+/**
+ * @category Internal/Chain
+ */
 export declare class EVMTransactions extends EVMModule<any> {
     private readonly latestConfirmedNonces;
     private readonly latestPendingNonces;

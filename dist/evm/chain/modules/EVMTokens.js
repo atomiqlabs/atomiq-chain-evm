@@ -6,6 +6,9 @@ const ethers_1 = require("ethers");
 const ERC20Abi_1 = require("./ERC20Abi");
 const EVMAddresses_1 = require("./EVMAddresses");
 const EVMFees_1 = require("./EVMFees");
+/**
+ * @category Internal/Chain
+ */
 class EVMTokens extends EVMModule_1.EVMModule {
     getContract(address) {
         return new ethers_1.Contract(address, ERC20Abi_1.ERC20Abi, this.root.provider);

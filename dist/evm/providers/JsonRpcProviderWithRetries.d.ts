@@ -1,5 +1,8 @@
 import { JsonRpcProvider, JsonRpcApiProviderOptions } from "ethers";
 import { Networkish, FetchRequest } from "ethers";
+/**
+ * @category Providers
+ */
 export declare class JsonRpcProviderWithRetries extends JsonRpcProvider {
     readonly retryPolicy?: {
         maxRetries?: number;

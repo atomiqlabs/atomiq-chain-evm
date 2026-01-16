@@ -3,6 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CitreaFees = void 0;
 const EVMFees_1 = require("../../evm/chain/modules/EVMFees");
 const Utils_1 = require("../../utils/Utils");
+/**
+ * @category Networks/Citrea
+ */
 class CitreaFees extends EVMFees_1.EVMFees {
     constructor() {
         super(...arguments);

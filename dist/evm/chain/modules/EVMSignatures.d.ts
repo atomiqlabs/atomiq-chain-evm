@@ -4,6 +4,9 @@ import { EVMSigner } from "../../wallet/EVMSigner";
 import { EVMModule } from "../EVMModule";
 import { EVMChainInterface } from "../EVMChainInterface";
 import { TypedDataField } from "ethers";
+/**
+ * @category Internal/Chain
+ */
 export declare class EVMSignatures extends EVMModule<any> {
     private readonly domainName;
     constructor(root: EVMChainInterface<any>, domainName?: string);

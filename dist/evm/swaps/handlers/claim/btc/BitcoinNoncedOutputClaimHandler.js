@@ -14,7 +14,7 @@ function getTransactionNonce(btcTx) {
     return (locktimeSub500M << 24n) | (nSequence & 0x00ffffffn);
 }
 /**
- * @category Handlers
+ * @category Internal/Handlers
  */
 class BitcoinNoncedOutputClaimHandler extends IBitcoinClaimHandler_1.IBitcoinClaimHandler {
     serializeCommitment(data) {

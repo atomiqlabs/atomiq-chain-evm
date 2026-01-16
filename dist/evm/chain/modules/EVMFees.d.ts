@@ -4,7 +4,7 @@ export type EVMFeeRate = {
     maxPriorityFee: bigint;
 };
 /**
- * @category Chain
+ * @category Chain Interface
  */
 export declare class EVMFees {
     protected MAX_FEE_AGE: number;

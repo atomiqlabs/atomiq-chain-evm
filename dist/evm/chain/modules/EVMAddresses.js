@@ -4,7 +4,7 @@ exports.EVMAddresses = void 0;
 const EVMModule_1 = require("../EVMModule");
 const ethers_1 = require("ethers");
 /**
- * @category Chain
+ * @category Internal/Chain
  */
 class EVMAddresses extends EVMModule_1.EVMModule {
     ///////////////////

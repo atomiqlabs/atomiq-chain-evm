@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVMBlocks = void 0;
 const EVMModule_1 = require("../EVMModule");
 /**
- * @category Chain
+ * @category Internal/Chain
  */
 class EVMBlocks extends EVMModule_1.EVMModule {
     constructor() {

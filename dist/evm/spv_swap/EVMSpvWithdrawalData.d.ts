@@ -3,6 +3,9 @@
 import { SpvWithdrawalTransactionData } from "@atomiqlabs/base";
 import { Buffer } from "buffer";
 import { BitcoinVaultTransactionDataStruct } from "./SpvVaultContractTypechain";
+/**
+ * @category Swaps
+ */
 export declare class EVMSpvWithdrawalData extends SpvWithdrawalTransactionData {
     private getExecutionHashWith0x;
     protected fromOpReturnData(data: Buffer): {

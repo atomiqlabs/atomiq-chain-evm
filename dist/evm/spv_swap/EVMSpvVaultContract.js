@@ -30,6 +30,9 @@ function unpackOwnerAndVaultId(data) {
     return [(0, ethers_1.getAddress)(data.substring(0, 42)), BigInt("0x" + data.substring(42, 66))];
 }
 exports.unpackOwnerAndVaultId = unpackOwnerAndVaultId;
+/**
+ * @category Swaps
+ */
 class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
     constructor(chainInterface, btcRelay, bitcoinRpc, contractAddress, contractDeploymentHeight) {
         super(chainInterface, contractAddress, SpvVaultContractAbi_1.SpvVaultContractAbi, contractDeploymentHeight);

@@ -1,5 +1,8 @@
 import { EVMModule } from "../EVMModule";
 import { TransactionRequest } from "ethers";
+/**
+ * @category Internal/Chain
+ */
 export declare class EVMTokens extends EVMModule<any> {
     static readonly ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
     static readonly GasCosts: {

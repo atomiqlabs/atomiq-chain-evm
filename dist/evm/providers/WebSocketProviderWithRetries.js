@@ -3,6 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.WebSocketProviderWithRetries = void 0;
 const Utils_1 = require("../../utils/Utils");
 const ReconnectingWebSocketProvider_1 = require("./ReconnectingWebSocketProvider");
+/**
+ * @category Providers
+ */
 class WebSocketProviderWithRetries extends ReconnectingWebSocketProvider_1.ReconnectingWebSocketProvider {
     constructor(url, network, options) {
         super(url, network, options);

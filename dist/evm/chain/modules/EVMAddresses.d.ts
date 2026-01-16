@@ -1,6 +1,6 @@
 import { EVMModule } from "../EVMModule";
 /**
- * @category Chain
+ * @category Internal/Chain
  */
 export declare class EVMAddresses extends EVMModule<any> {
     /**

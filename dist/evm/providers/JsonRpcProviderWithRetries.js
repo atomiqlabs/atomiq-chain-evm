@@ -4,6 +4,9 @@ exports.JsonRpcProviderWithRetries = void 0;
 const ethers_1 = require("ethers");
 const ethers_2 = require("ethers");
 const Utils_1 = require("../../utils/Utils");
+/**
+ * @category Providers
+ */
 class JsonRpcProviderWithRetries extends ethers_1.JsonRpcProvider {
     constructor(url, network, options) {
         if (typeof (url) === "string")

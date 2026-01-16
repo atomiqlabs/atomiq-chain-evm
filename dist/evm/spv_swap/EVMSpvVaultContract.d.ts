@@ -14,6 +14,9 @@ import { EVMSpvWithdrawalData } from "./EVMSpvWithdrawalData";
 import { EVMBtcStoredHeader } from "../btcrelay/headers/EVMBtcStoredHeader";
 export declare function packOwnerAndVaultId(owner: string, vaultId: bigint): string;
 export declare function unpackOwnerAndVaultId(data: string): [string, bigint];
+/**
+ * @category Swaps
+ */
 export declare class EVMSpvVaultContract<ChainId extends string> extends EVMContractBase<SpvVaultManager> implements SpvVaultContract<EVMTx, EVMSigner, ChainId, EVMSpvWithdrawalData, EVMSpvVaultData> {
     static readonly GasCosts: {
         DEPOSIT_BASE: number;

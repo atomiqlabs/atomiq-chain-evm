@@ -4,7 +4,7 @@ import { IHandler } from "../IHandler";
 import { EVMSwapData } from "../../EVMSwapData";
 import { EVMTx } from "../../../chain/modules/EVMTransactions";
 /**
- * @category Handlers
+ * @category Internal/Handlers
  */
 export declare class TimelockRefundHandler implements IHandler<bigint, never> {
     readonly address: string;

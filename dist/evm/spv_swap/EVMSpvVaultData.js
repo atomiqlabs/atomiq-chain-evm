@@ -16,6 +16,9 @@ function getVaultUtxoFromState(state) {
     return txHash.reverse().toString("hex") + ":" + BigInt(state.utxoVout).toString(10);
 }
 exports.getVaultUtxoFromState = getVaultUtxoFromState;
+/**
+ * @category Swaps
+ */
 class EVMSpvVaultData extends base_1.SpvVaultData {
     constructor(ownerOrObj, vaultId, state, params, initialUtxo) {
         super();
