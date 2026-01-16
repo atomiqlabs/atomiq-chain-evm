@@ -408,9 +408,9 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         const blockheaders = {};
         for (let btcTx of btcTxs) {
             const requiredBlockheight = btcTx.blockheight + btcTx.requiredConfirmations - 1;
-            const result = await (0, Utils_1.tryWithRetries)(() => btcRelay.retrieveLogAndBlockheight({
+            const result = await btcRelay.retrieveLogAndBlockheight({
                 blockhash: btcTx.blockhash
-            }, requiredBlockheight));
+            }, requiredBlockheight);
             if (result != null) {
                 blockheaders[result.header.getBlockHash().toString("hex")] = result.header;
             }

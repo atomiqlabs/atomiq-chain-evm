@@ -1,6 +1,6 @@
 import {BitcoinNetwork, BitcoinRpc, BtcBlock, BtcRelay, RelaySynchronizer, StatePredictorUtils} from "@atomiqlabs/base";
 import {EVMBtcHeader} from "./headers/EVMBtcHeader";
-import {getLogger, tryWithRetries} from "../../utils/Utils";
+import {getLogger} from "../../utils/Utils";
 import {EVMContractBase, TypedFunctionCall} from "../contract/EVMContractBase";
 import {BtcRelay as BtcRelayTypechain} from "./BtcRelayTypechain";
 import {EVMBtcStoredHeader} from "./headers/EVMBtcStoredHeader";
@@ -512,11 +512,9 @@ export class EVMBtcRelay<B extends BtcBlock>
         for(let btcTx of btcTxs) {
             const requiredBlockheight = btcTx.blockheight+btcTx.requiredConfirmations-1;
 
-            const result = await tryWithRetries(
-                () => btcRelay.retrieveLogAndBlockheight({
-                    blockhash: btcTx.blockhash
-                }, requiredBlockheight)
-            );
+            const result = await btcRelay.retrieveLogAndBlockheight({
+                blockhash: btcTx.blockhash
+            }, requiredBlockheight);
 
             if(result!=null) {
                 blockheaders[result.header.getBlockHash().toString("hex")] = result.header;
