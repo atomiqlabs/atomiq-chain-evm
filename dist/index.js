@@ -31,6 +31,7 @@ Object.defineProperty(exports, "EVMBtcStoredHeader", { enumerable: true, get: fu
 var EVMBtcRelay_1 = require("./evm/btcrelay/EVMBtcRelay");
 Object.defineProperty(exports, "EVMBtcRelay", { enumerable: true, get: function () { return EVMBtcRelay_1.EVMBtcRelay; } });
 __exportStar(require("./evm/chain/EVMChainInterface"), exports);
+__exportStar(require("./evm/chain/modules/EVMFees"), exports);
 __exportStar(require("./evm/events/EVMChainEventsBrowser"), exports);
 __exportStar(require("./evm/providers/JsonRpcProviderWithRetries"), exports);
 __exportStar(require("./evm/providers/WebSocketProviderWithRetries"), exports);

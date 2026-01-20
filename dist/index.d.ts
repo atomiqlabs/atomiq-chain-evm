@@ -11,6 +11,7 @@ export { EVMBtcHeader } from "./evm/btcrelay/headers/EVMBtcHeader";
 export { EVMBtcStoredHeader } from "./evm/btcrelay/headers/EVMBtcStoredHeader";
 export { EVMBtcRelay } from "./evm/btcrelay/EVMBtcRelay";
 export * from "./evm/chain/EVMChainInterface";
+export * from "./evm/chain/modules/EVMFees";
 export * from "./evm/events/EVMChainEventsBrowser";
 export * from "./evm/providers/JsonRpcProviderWithRetries";
 export * from "./evm/providers/WebSocketProviderWithRetries";
