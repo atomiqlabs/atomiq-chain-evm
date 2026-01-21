@@ -13,27 +13,27 @@ import {CitreaTokens} from "./CitreaTokens";
 import {CitreaSpvVaultContract} from "./CitreaSpvVaultContract";
 
 const CitreaChainIds = {
-    MAINNET: null,
+    MAINNET: 4114,
     TESTNET4: 5115
 };
 
 const CitreaContractAddresses = {
     MAINNET: {
-        executionContract: "",
-        swapContract: "",
-        btcRelayContract: "",
-        btcRelayDeploymentHeight: 0,
-        spvVaultContract: "",
-        spvVaultDeploymentHeight: 0,
+        executionContract: "0x6a373b6Adad83964727bA0fa15E22Be05173fc12",
+        swapContract: "0xc98Ef084d3911C8447DBbE4dDa18bC2c9bB0584e",
+        btcRelayContract: "0x11ac854A68830d61af975063c91602f878C36fA6",
+        btcRelayDeploymentHeight: 2452629,
+        spvVaultContract: "0x5bb0C725939cB825d1322A99a3FeB570097628c3",
+        spvVaultDeploymentHeight: 2452631,
         handlerContracts: {
             refund: {
-                timelock: ""
+                timelock: "0x2920EE496693A5027249a027A6FD3F643E743745"
             },
             claim: {
-                [ChainSwapType.HTLC]: "",
-                [ChainSwapType.CHAIN_TXID]: "",
-                [ChainSwapType.CHAIN]: "",
-                [ChainSwapType.CHAIN_NONCED]: ""
+                [ChainSwapType.HTLC]: "0x8A44f1995a54fD976c904Cccf9EbaB49c3182eb3",
+                [ChainSwapType.CHAIN_TXID]: "0x59A54378B6bA9C21ba66487C6A701D702baDEabE",
+                [ChainSwapType.CHAIN]: "0x32EB4DbDdC31e19ba908fecc7cae03F0d04F01Fa",
+                [ChainSwapType.CHAIN_NONCED]: "0xaB2D14745362B26a732dD8B7F95daAE3D2914bBF"
             }
         }
     },
@@ -58,11 +58,16 @@ const CitreaContractAddresses = {
     }
 };
 
-export type CitreaAssetsType = BaseTokenType<"CBTC" | "USDC">;
+export type CitreaAssetsType = BaseTokenType<"CBTC" | "WBTC" | "USDC">;
 export const CitreaAssets: CitreaAssetsType = {
     CBTC: {
         address: "0x0000000000000000000000000000000000000000",
         decimals: 18,
+        displayDecimals: 8
+    },
+    WBTC: {
+        address: "0xDF240DC08B0FdaD1d93b74d5048871232f6BEA3d",
+        decimals: 8,
         displayDecimals: 8
     },
     USDC: {

@@ -3,7 +3,7 @@ import { JsonRpcApiProvider } from "ethers";
 import { EVMConfiguration, EVMRetryPolicy } from "../../evm/chain/EVMChainInterface";
 import { CitreaChainType } from "./CitreaChainType";
 import { CitreaFees } from "./CitreaFees";
-export type CitreaAssetsType = BaseTokenType<"CBTC" | "USDC">;
+export type CitreaAssetsType = BaseTokenType<"CBTC" | "WBTC" | "USDC">;
 export declare const CitreaAssets: CitreaAssetsType;
 export type CitreaOptions = {
     rpcUrl: string | JsonRpcApiProvider;
