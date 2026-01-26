@@ -8,7 +8,7 @@ export declare const AlpenAssets: AlpenAssetsType;
 export type AlpenOptions = {
     rpcUrl: string | JsonRpcApiProvider;
     retryPolicy?: EVMRetryPolicy;
-    chainType?: "MAINNET" | "TESTNET";
+    chainType?: "MAINNET" | "TESTNET" | "TESTNET4";
     swapContract?: string;
     btcRelayContract?: string;
     btcRelayDeploymentHeight?: number;

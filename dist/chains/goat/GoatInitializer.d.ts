@@ -3,7 +3,7 @@ import { JsonRpcApiProvider } from "ethers";
 import { EVMConfiguration, EVMRetryPolicy } from "../../evm/chain/EVMChainInterface";
 import { EVMFees } from "../../evm/chain/modules/EVMFees";
 import { GoatChainType } from "./GoatChainType";
-export type GoatAssetsType = BaseTokenType<"BTC" | "PBTC">;
+export type GoatAssetsType = BaseTokenType<"BTC" | "PBTC" | "_PBTC_DEV">;
 export declare const GoatAssets: GoatAssetsType;
 export type GoatOptions = {
     rpcUrl: string | JsonRpcApiProvider;

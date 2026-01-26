@@ -13,7 +13,8 @@ import {AlpenChainType} from "./AlpenChainType";
 
 const AlpenChainIds = {
     MAINNET: null,
-    TESTNET: 8150
+    TESTNET: 8150,
+    TESTNET4: 8150
 };
 
 const AlpenContractAddresses = {
@@ -54,6 +55,25 @@ const AlpenContractAddresses = {
                 [ChainSwapType.CHAIN_NONCED]: "0xe510D5781C6C849284Fb25Dc20b1684cEC445C8B"
             }
         }
+    },
+    TESTNET4: {
+        executionContract: "0xa2698D2fBE3f7c74cCca428a5fd968411644C641",
+        swapContract: "0xb0226bAC3BD30179fb66A43cEA212AbBC988e004",
+        btcRelayContract: "0xfFA842529977a40A3fdb988cdDC9CB5c39bAcF26",
+        btcRelayDeploymentHeight: 843611,
+        spvVaultContract: "0x62a718348081F9CF9a8E3dF4B4EA6d6349991ad9",
+        spvVaultDeploymentHeight: 843613,
+        handlerContracts: {
+            refund: {
+                timelock: "0xA6E5eBF158cDFC4A5B3694495FB26ecadb1378eb"
+            },
+            claim: {
+                [ChainSwapType.HTLC]: "0x44aC0f0677C88e2c0B2FEc986b70E3b9A224f553",
+                [ChainSwapType.CHAIN_TXID]: "0xCBd9bcfb4b47F0A98948eD4d7Dcc872433989d57",
+                [ChainSwapType.CHAIN]: "0x50dFF49039c0e45eCb8040fC986fA24B4dda787D",
+                [ChainSwapType.CHAIN_NONCED]: "0xFB5582400a527342a7D32491D7e756Ba3C346FE7"
+            }
+        }
     }
 };
 
@@ -69,7 +89,7 @@ export const AlpenAssets: AlpenAssetsType = {
 export type AlpenOptions = {
     rpcUrl: string | JsonRpcApiProvider,
     retryPolicy?: EVMRetryPolicy,
-    chainType?: "MAINNET" | "TESTNET",
+    chainType?: "MAINNET" | "TESTNET" | "TESTNET4",
 
     swapContract?: string,
     btcRelayContract?: string,
@@ -102,6 +122,9 @@ export function initializeAlpen(
                 break;
             case BitcoinNetwork.TESTNET:
                 options.chainType = "TESTNET";
+                break;
+            case BitcoinNetwork.TESTNET4:
+                options.chainType = "TESTNET4";
                 break;
         }
     }

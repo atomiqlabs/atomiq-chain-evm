@@ -77,7 +77,7 @@ const GoatContractAddresses = {
     }
 };
 
-export type GoatAssetsType = BaseTokenType<"BTC" | "PBTC">;
+export type GoatAssetsType = BaseTokenType<"BTC" | "PBTC" | "_PBTC_DEV">;
 export const GoatAssets: GoatAssetsType = {
     BTC: {
         address: "0x0000000000000000000000000000000000000000",
@@ -85,6 +85,11 @@ export const GoatAssets: GoatAssetsType = {
         displayDecimals: 8
     },
     PBTC: {
+        address: "0xdA97429ea2082334C63813f092B6A6209bfC4DEb",
+        decimals: 18,
+        displayDecimals: 8
+    },
+    _PBTC_DEV: {
         address: "0x42Dff13a9D6C33f89311C188F6eA780D00287F17",
         decimals: 18,
         displayDecimals: 8
