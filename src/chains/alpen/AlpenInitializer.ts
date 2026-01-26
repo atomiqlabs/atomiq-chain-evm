@@ -12,7 +12,7 @@ import {EVMSpvWithdrawalData} from "../../evm/spv_swap/EVMSpvWithdrawalData";
 import {AlpenChainType} from "./AlpenChainType";
 
 const AlpenChainIds = {
-    MAINNET: null,
+    MAINNET: -1,
     TESTNET: 8150,
     TESTNET4: 8150
 };

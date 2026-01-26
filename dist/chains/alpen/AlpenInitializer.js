@@ -13,7 +13,7 @@ const EVMSwapData_1 = require("../../evm/swaps/EVMSwapData");
 const EVMSpvVaultData_1 = require("../../evm/spv_swap/EVMSpvVaultData");
 const EVMSpvWithdrawalData_1 = require("../../evm/spv_swap/EVMSpvWithdrawalData");
 const AlpenChainIds = {
-    MAINNET: null,
+    MAINNET: -1,
     TESTNET: 8150,
     TESTNET4: 8150
 };

@@ -85,7 +85,7 @@ export const CitreaAssets: CitreaAssetsType = {
         displayDecimals: 8
     },
     USDC: {
-        address: "0x2C8abD2A528D19AFc33d2ebA507c0F405c131335",
+        address: "0xE045e6c36cF77FAA2CfB54466D71A3aEF7bbE839",
         decimals: 6,
         displayDecimals: 6
     }
