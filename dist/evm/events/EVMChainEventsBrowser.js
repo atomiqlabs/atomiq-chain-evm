@@ -291,7 +291,7 @@ class EVMChainEventsBrowser {
         }
         return { lastEvent, lastBlockNumber };
     }
-    async checkEvents(lastState) {
+    async poll(lastState) {
         lastState ?? (lastState = []);
         const currentBlock = await this.provider.getBlock(this.chainInterface.config.safeBlockTag, false);
         if (currentBlock == null)
@@ -313,7 +313,7 @@ class EVMChainEventsBrowser {
         this.stopped = false;
         let func;
         func = async () => {
-            await this.checkEvents(lastState).then(newState => {
+            await this.poll(lastState).then(newState => {
                 lastState = newState;
                 if (saveLatestProcessedBlockNumber != null)
                     return saveLatestProcessedBlockNumber(newState);
@@ -431,7 +431,9 @@ class EVMChainEventsBrowser {
             this.handleWsEvent(event);
         });
     }
-    async init() {
+    async init(noAutomaticPoll) {
+        if (noAutomaticPoll)
+            return Promise.resolve();
         if (this.provider.websocket != null) {
             await this.setupWebsocket();
         }

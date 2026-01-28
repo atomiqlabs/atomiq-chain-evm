@@ -36,7 +36,7 @@ type AtomiqTypedEvent = (
  *  out on some events if the network is unreliable, front-end systems should take this into consideration and not
  *  rely purely on events
  */
-export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
+export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventListenerState[]> {
 
     private eventsProcessing: {
         [signature: string]: Promise<void>
@@ -409,7 +409,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         return {lastEvent, lastBlockNumber};
     }
 
-    protected async checkEvents(lastState?: EVMEventListenerState[]): Promise<EVMEventListenerState[]> {
+    async poll(lastState?: EVMEventListenerState[]): Promise<EVMEventListenerState[]> {
         lastState ??= [];
 
         const currentBlock = await this.provider.getBlock(this.chainInterface.config.safeBlockTag, false);
@@ -438,7 +438,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         this.stopped = false;
         let func: () => Promise<void>;
         func = async () => {
-            await this.checkEvents(lastState).then(newState => {
+            await this.poll(lastState).then(newState => {
                 lastState = newState;
                 if(saveLatestProcessedBlockNumber!=null) return saveLatestProcessedBlockNumber(newState);
             }).catch(e => {
@@ -560,7 +560,8 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         });
     }
 
-    async init(): Promise<void> {
+    async init(noAutomaticPoll?: boolean): Promise<void> {
+        if(noAutomaticPoll) return Promise.resolve();
         if((this.provider as any).websocket!=null) {
             await this.setupWebsocket();
         } else {

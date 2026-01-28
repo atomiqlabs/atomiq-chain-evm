@@ -44,6 +44,7 @@ export declare class EVMSwapData extends SwapData {
     getExpiry(): bigint;
     isPayIn(): boolean;
     isPayOut(): boolean;
+    isTrackingReputation(): boolean;
     getEscrowHash(): string;
     getClaimHash(): string;
     getSequence(): bigint;

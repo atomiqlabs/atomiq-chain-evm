@@ -233,6 +233,10 @@ export class EVMSwapData extends SwapData {
         return this.payOut;
     }
 
+    isTrackingReputation(): boolean {
+        return this.reputation;
+    }
+
     getEscrowHash(): string {
         const encoded = AbiCoder.defaultAbiCoder().encode(
             ["address", "address", "uint256", "address", "uint256", "address", "bytes32", "address", "bytes32", "uint256", "uint256", "address", "bytes32"],

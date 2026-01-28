@@ -77,7 +77,9 @@ export class EVMChainEvents extends EVMChainEventsBrowser {
         }).join(";"));
     }
 
-    async init(): Promise<void> {
+    async init(noAutomaticPoll?: boolean): Promise<void> {
+        if(noAutomaticPoll) return Promise.resolve();
+        this.stopped = false;
         const lastState = await this.getLastEventData();
         if((this.provider as any).websocket!=null) await this.setupWebsocket();
         await this.setupPoll(

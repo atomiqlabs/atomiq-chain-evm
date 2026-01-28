@@ -70,7 +70,10 @@ class EVMChainEvents extends EVMChainEventsBrowser_1.EVMChainEventsBrowser {
             }
         }).join(";"));
     }
-    async init() {
+    async init(noAutomaticPoll) {
+        if (noAutomaticPoll)
+            return Promise.resolve();
+        this.stopped = false;
         const lastState = await this.getLastEventData();
         if (this.provider.websocket != null)
             await this.setupWebsocket();

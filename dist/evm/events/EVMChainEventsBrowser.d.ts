@@ -22,7 +22,7 @@ type AtomiqTypedEvent = (TypedEventLog<EscrowManager["filters"]["Initialize" | "
  *  out on some events if the network is unreliable, front-end systems should take this into consideration and not
  *  rely purely on events
  */
-export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
+export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventListenerState[]> {
     private eventsProcessing;
     private processedEvents;
     private processedEventsIndex;
@@ -79,7 +79,7 @@ export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         blockHash: string;
         logIndex: number;
     }, lastBlockNumber?: number): Promise<EVMEventListenerState>;
-    protected checkEvents(lastState?: EVMEventListenerState[]): Promise<EVMEventListenerState[]>;
+    poll(lastState?: EVMEventListenerState[]): Promise<EVMEventListenerState[]>;
     /**
      * Sets up event handlers listening for swap events over websocket
      *
@@ -96,7 +96,7 @@ export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
     protected addOrRemoveBlockListener(): Promise<void>;
     protected startFinalityCheckTimer(): Promise<void>;
     protected setupWebsocket(): Promise<void>;
-    init(): Promise<void>;
+    init(noAutomaticPoll?: boolean): Promise<void>;
     stop(): Promise<void>;
     registerListener(cbk: EventListener<EVMSwapData>): void;
     unregisterListener(cbk: EventListener<EVMSwapData>): boolean;

@@ -166,6 +166,9 @@ class EVMSwapData extends base_1.SwapData {
     isPayOut() {
         return this.payOut;
     }
+    isTrackingReputation() {
+        return this.reputation;
+    }
     getEscrowHash() {
         const encoded = ethers_1.AbiCoder.defaultAbiCoder().encode(["address", "address", "uint256", "address", "uint256", "address", "bytes32", "address", "bytes32", "uint256", "uint256", "address", "bytes32"], [
             this.offerer, this.claimer, this.amount, this.token, this.getFlags(),
