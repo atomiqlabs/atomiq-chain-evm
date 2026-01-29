@@ -18,6 +18,9 @@ export class EVMSigner implements AbstractSigner {
         this.isManagingNoncesInternally = isManagingNoncesInternally;
     }
 
+    /**
+     * @inheritDoc
+     */
     getAddress(): string {
         return getAddress(this.address);
     }

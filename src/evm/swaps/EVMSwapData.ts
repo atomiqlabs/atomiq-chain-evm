@@ -161,19 +161,31 @@ export class EVMSwapData extends SwapData {
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     getOfferer(): string {
         return this.offerer;
     }
 
+    /**
+     * @inheritDoc
+     */
     setOfferer(newOfferer: string) {
         this.offerer = newOfferer;
         this.payIn = true;
     }
 
+    /**
+     * @inheritDoc
+     */
     getClaimer(): string {
         return this.claimer;
     }
 
+    /**
+     * @inheritDoc
+     */
     setClaimer(newClaimer: string) {
         this.claimer = newClaimer;
         this.payIn = false;
@@ -181,6 +193,9 @@ export class EVMSwapData extends SwapData {
         this.reputation = false;
     }
 
+    /**
+     * @inheritDoc
+     */
     serialize(): any {
         return {
             type: "evm",
@@ -205,38 +220,65 @@ export class EVMSwapData extends SwapData {
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     getAmount(): bigint {
         return this.amount;
     }
 
+    /**
+     * @inheritDoc
+     */
     getToken(): string {
         return this.token;
     }
 
+    /**
+     * @inheritDoc
+     */
     isToken(token: string): boolean {
         return this.token.toLowerCase()===token.toLowerCase();
     }
 
+    /**
+     * @inheritDoc
+     */
     getType(): ChainSwapType {
         return this.kind;
     }
 
+    /**
+     * @inheritDoc
+     */
     getExpiry(): bigint {
         return TimelockRefundHandler.getExpiry(this);
     }
 
+    /**
+     * @inheritDoc
+     */
     isPayIn(): boolean {
         return this.payIn;
     }
 
+    /**
+     * @inheritDoc
+     */
     isPayOut(): boolean {
         return this.payOut;
     }
 
+    /**
+     * @inheritDoc
+     */
     isTrackingReputation(): boolean {
         return this.reputation;
     }
 
+    /**
+     * @inheritDoc
+     */
     getEscrowHash(): string {
         const encoded = AbiCoder.defaultAbiCoder().encode(
             ["address", "address", "uint256", "address", "uint256", "address", "bytes32", "address", "bytes32", "uint256", "uint256", "address", "bytes32"],
@@ -250,68 +292,110 @@ export class EVMSwapData extends SwapData {
         return escrowHash.slice(2); //Strip `0x`
    }
 
+    /**
+     * @inheritDoc
+     */
     getClaimHash(): string {
         let hash = this.claimData;
         if(hash.startsWith("0x")) hash = hash.slice(2);
         return hash;
     }
 
+    /**
+     * @inheritDoc
+     */
     getSequence(): bigint {
         return this.sequence;
     }
 
+    /**
+     * @inheritDoc
+     */
     getConfirmationsHint(): number | null {
         if(this.extraData==null) return null;
         if(this.extraData.length!=84) return null;
         return parseInt(this.extraData.slice(80), 16);
     }
 
+    /**
+     * @inheritDoc
+     */
     getNonceHint(): bigint | null {
         if(this.extraData==null) return null;
         if(this.extraData.length!=84) return null;
         return BigInt("0x"+this.extraData.slice(64, 80));
     }
 
+    /**
+     * @inheritDoc
+     */
     getTxoHashHint(): string | null {
         if(this.extraData==null) return null;
         if(this.extraData.length!=84) return null;
         return this.extraData.slice(0, 64);
     }
 
+    /**
+     * @inheritDoc
+     */
     getExtraData(): string | null {
         return this.extraData ?? null;
     }
 
+    /**
+     * @inheritDoc
+     */
     setExtraData(extraData: string): void {
         this.extraData = extraData;
     }
 
+    /**
+     * @inheritDoc
+     */
     getSecurityDeposit() {
         return this.securityDeposit;
     }
 
+    /**
+     * @inheritDoc
+     */
     getClaimerBounty() {
         return this.claimerBounty;
     }
 
+    /**
+     * @inheritDoc
+     */
     getTotalDeposit() {
         return this.claimerBounty < this.securityDeposit ? this.securityDeposit : this.claimerBounty;
     }
 
+    /**
+     * @inheritDoc
+     */
     getDepositToken() {
         return this.depositToken;
     }
 
+    /**
+     * @inheritDoc
+     */
     isDepositToken(token: string): boolean {
         if(!token.startsWith("0x")) token = "0x"+token;
         return this.depositToken.toLowerCase() === token.toLowerCase();
     }
 
+    /**
+     * @inheritDoc
+     */
     isClaimer(address: string) {
         if(!address.startsWith("0x")) address = "0x"+address;
         return this.claimer.toLowerCase() === address.toLowerCase();
     }
 
+    /**
+     * @inheritDoc
+     */
     isOfferer(address: string) {
         if(!address.startsWith("0x")) address = "0x"+address;
         return this.offerer.toLowerCase() === address.toLowerCase();
@@ -332,6 +416,9 @@ export class EVMSwapData extends SwapData {
         return (this.claimData.startsWith("0x") ? this.claimData : "0x"+this.claimData) === data;
     }
 
+    /**
+     * @inheritDoc
+     */
     equals(other: EVMSwapData): boolean {
         return other.offerer.toLowerCase()===this.offerer.toLowerCase() &&
             other.claimer.toLowerCase()===this.claimer.toLowerCase() &&
@@ -368,6 +455,9 @@ export class EVMSwapData extends SwapData {
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     hasSuccessAction(): boolean {
         return this.successActionCommitment !== ZeroHash;
     }

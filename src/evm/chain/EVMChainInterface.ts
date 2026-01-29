@@ -104,46 +104,79 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
     }
 
 
+    /**
+     * @inheritDoc
+     */
     async getBalance(signer: string, tokenAddress: string): Promise<bigint> {
         //TODO: For native token we should discount the cost of transactions
         return await this.Tokens.getTokenBalance(signer, tokenAddress);
     }
 
+    /**
+     * @inheritDoc
+     */
     getNativeCurrencyAddress(): string {
         return this.Tokens.getNativeCurrencyAddress();
     }
 
+    /**
+     * @inheritDoc
+     */
     isValidToken(tokenIdentifier: string): boolean {
         return this.Tokens.isValidToken(tokenIdentifier);
     }
 
+    /**
+     * @inheritDoc
+     */
     isValidAddress(address: string): boolean {
         return EVMAddresses.isValidAddress(address);
     }
 
+    /**
+     * @inheritDoc
+     */
     normalizeAddress(address: string): string {
         return getAddress(address);
     }
 
     ///////////////////////////////////
     //// Callbacks & handlers
+    /**
+     * @inheritDoc
+     */
     offBeforeTxReplace(callback: (oldTx: string, oldTxId: string, newTx: string, newTxId: string) => Promise<void>): boolean {
         return true;
     }
+    /**
+     * @inheritDoc
+     */
     onBeforeTxReplace(callback: (oldTx: string, oldTxId: string, newTx: string, newTxId: string) => Promise<void>): void {}
 
+    /**
+     * @inheritDoc
+     */
     onBeforeTxSigned(callback: (tx: TransactionRequest) => Promise<void>): void {
         this.Transactions.onBeforeTxSigned(callback);
     }
 
+    /**
+     * @inheritDoc
+     */
     offBeforeTxSigned(callback: (tx: TransactionRequest) => Promise<void>): boolean {
         return this.Transactions.offBeforeTxSigned(callback);
     }
 
+    /**
+     * @inheritDoc
+     */
     randomAddress(): string {
         return EVMAddresses.randomAddress();
     }
 
+    /**
+     * @inheritDoc
+     */
     randomSigner(): EVMSigner {
         const wallet = Wallet.createRandom();
         return new EVMSigner(wallet, wallet.address);
@@ -151,6 +184,9 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
 
     ////////////////////////////////////////////
     //// Transactions
+    /**
+     * @inheritDoc
+     */
     sendAndConfirm(
         signer: EVMSigner,
         txs: TransactionRequest[],
@@ -163,6 +199,9 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
         return this.Transactions.sendAndConfirm(signer, txs, waitForConfirmation, abortSignal, parallel, onBeforePublish, useAccessLists);
     }
 
+    /**
+     * @inheritDoc
+     */
     sendSignedAndConfirm(
         signedTxs: Transaction[],
         waitForConfirmation?: boolean,
@@ -173,30 +212,51 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
         return this.Transactions.sendSignedAndConfirm(signedTxs, waitForConfirmation, abortSignal, parallel, onBeforePublish);
     }
 
+    /**
+     * @inheritDoc
+     */
     serializeTx(tx: TransactionRequest): Promise<string> {
         return this.Transactions.serializeUnsignedTx(tx);
     }
 
+    /**
+     * @inheritDoc
+     */
     deserializeTx(txData: string): Promise<TransactionRequest> {
         return Promise.resolve(this.Transactions.deserializeUnsignedTx(txData));
     }
 
+    /**
+     * @inheritDoc
+     */
     serializeSignedTx(tx: Transaction): Promise<string> {
         return Promise.resolve(this.Transactions.serializeSignedTx(tx));
     }
 
+    /**
+     * @inheritDoc
+     */
     deserializeSignedTx(txData: string): Promise<Transaction> {
         return Promise.resolve(this.Transactions.deserializeSignedTx(txData));
     }
 
+    /**
+     * @inheritDoc
+     */
     getTxIdStatus(txId: string): Promise<"not_found" | "pending" | "success" | "reverted"> {
         return this.Transactions.getTxIdStatus(txId);
     }
 
+    /**
+     * @inheritDoc
+     */
     getTxStatus(tx: string): Promise<"not_found" | "pending" | "success" | "reverted"> {
         return this.Transactions.getTxStatus(tx);
     }
 
+    /**
+     * @inheritDoc
+     */
     async getFinalizedBlock(): Promise<{ height: number; blockHash: string }> {
         const block = await this.Blocks.getBlock(this.config.finalizedBlockTag);
         return {
@@ -205,10 +265,16 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
         };
     }
 
+    /**
+     * @inheritDoc
+     */
     async txsTransfer(signer: string, token: string, amount: bigint, dstAddress: string, feeRate?: string): Promise<TransactionRequest[]> {
         return [await this.Tokens.Transfer(signer, token, amount, dstAddress, feeRate)];
     }
 
+    /**
+     * @inheritDoc
+     */
     async transfer(
         signer: EVMSigner,
         token: string,
@@ -221,6 +287,9 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
         return txId;
     }
 
+    /**
+     * @inheritDoc
+     */
     async wrapSigner(signer: Signer): Promise<EVMSigner> {
         const address = await signer.getAddress();
         if(signer instanceof JsonRpcSigner || signer.provider instanceof BrowserProvider) {

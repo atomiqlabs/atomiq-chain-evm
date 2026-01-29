@@ -409,6 +409,9 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventL
         return {lastEvent, lastBlockNumber};
     }
 
+    /**
+     * @inheritDoc
+     */
     async poll(lastState?: EVMEventListenerState[]): Promise<EVMEventListenerState[]> {
         lastState ??= [];
 
@@ -560,6 +563,9 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventL
         });
     }
 
+    /**
+     * @inheritDoc
+     */
     async init(noAutomaticPoll?: boolean): Promise<void> {
         if(noAutomaticPoll) return Promise.resolve();
         if((this.provider as any).websocket!=null) {
@@ -571,6 +577,9 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventL
         return Promise.resolve();
     }
 
+    /**
+     * @inheritDoc
+     */
     async stop(): Promise<void> {
         this.stopped = true;
         if(this.timeout!=null) clearTimeout(this.timeout);
@@ -583,10 +592,16 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventL
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     registerListener(cbk: EventListener<EVMSwapData>): void {
         this.listeners.push(cbk);
     }
 
+    /**
+     * @inheritDoc
+     */
     unregisterListener(cbk: EventListener<EVMSwapData>): boolean {
         const index = this.listeners.indexOf(cbk);
         if(index>=0) {

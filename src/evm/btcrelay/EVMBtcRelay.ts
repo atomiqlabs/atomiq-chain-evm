@@ -226,7 +226,7 @@ export class EVMBtcRelay<B extends BtcBlock>
     }
 
     /**
-     * Returns data about current main chain tip stored in the btc relay
+     * @inheritDoc
      */
     public async getTipData(): Promise<{ commitHash: string; blockhash: string, chainWork: Buffer, blockheight: number } | null> {
         const commitHash = await this.contract.getTipCommitHash();
@@ -246,11 +246,7 @@ export class EVMBtcRelay<B extends BtcBlock>
     }
 
     /**
-     * Retrieves blockheader with a specific blockhash, returns null if requiredBlockheight is provided and
-     *  btc relay contract is not synced up to the desired blockheight
-     *
-     * @param blockData
-     * @param requiredBlockheight
+     * @inheritDoc
      */
     public async retrieveLogAndBlockheight(blockData: {blockhash: string}, requiredBlockheight?: number): Promise<{
         header: EVMBtcStoredHeader,
@@ -277,10 +273,7 @@ export class EVMBtcRelay<B extends BtcBlock>
     }
 
     /**
-     * Retrieves blockheader data by blockheader's commit hash,
-     *
-     * @param commitmentHashStr
-     * @param blockData
+     * @inheritDoc
      */
     public async retrieveLogByCommitHash(commitmentHashStr: string, blockData: {blockhash: string}): Promise<EVMBtcStoredHeader | null> {
         const result = await this.getBlock(commitmentHashStr, Buffer.from(blockData.blockhash, "hex"));
@@ -299,7 +292,7 @@ export class EVMBtcRelay<B extends BtcBlock>
     }
 
     /**
-     * Retrieves latest known stored blockheader & blockheader from bitcoin RPC that is in the main chain
+     * @inheritDoc
      */
     public async retrieveLatestKnownBlockLog(): Promise<{
         resultStoredHeader: EVMBtcStoredHeader,
@@ -340,12 +333,7 @@ export class EVMBtcRelay<B extends BtcBlock>
     }
 
     /**
-     * Saves blockheaders as a bitcoin main chain to the btc relay
-     *
-     * @param signer
-     * @param mainHeaders
-     * @param storedHeader
-     * @param feeRate
+     * @inheritDoc
      */
     public async saveMainHeaders(signer: string, mainHeaders: BtcBlock[], storedHeader: EVMBtcStoredHeader, feeRate?: string) {
         feeRate ??= await this.Chain.Fees.getFeeRate();
@@ -354,13 +342,7 @@ export class EVMBtcRelay<B extends BtcBlock>
     }
 
     /**
-     * Creates a new long fork and submits the headers to it
-     *
-     * @param signer
-     * @param forkHeaders
-     * @param storedHeader
-     * @param tipWork
-     * @param feeRate
+     * @inheritDoc
      */
     public async saveNewForkHeaders(signer: string, forkHeaders: BtcBlock[], storedHeader: EVMBtcStoredHeader, tipWork: Buffer, feeRate?: string) {
         let forkId: number = Math.floor(Math.random() * 0xFFFFFFFFFFFF);
@@ -378,14 +360,7 @@ export class EVMBtcRelay<B extends BtcBlock>
     }
 
     /**
-     * Continues submitting blockheaders to a given fork
-     *
-     * @param signer
-     * @param forkHeaders
-     * @param storedHeader
-     * @param forkId
-     * @param tipWork
-     * @param feeRate
+     * @inheritDoc
      */
     public async saveForkHeaders(signer: string, forkHeaders: BtcBlock[], storedHeader: EVMBtcStoredHeader, forkId: number, tipWork: Buffer, feeRate?: string) {
         feeRate ??= await this.Chain.Fees.getFeeRate();
@@ -402,13 +377,7 @@ export class EVMBtcRelay<B extends BtcBlock>
     }
 
     /**
-     * Submits short fork with given blockheaders
-     *
-     * @param signer
-     * @param forkHeaders
-     * @param storedHeader
-     * @param tipWork
-     * @param feeRate
+     * @inheritDoc
      */
     public async saveShortForkHeaders(signer: string, forkHeaders: BtcBlock[], storedHeader: EVMBtcStoredHeader, tipWork: Buffer, feeRate?: string) {
         feeRate ??= await this.Chain.Fees.getFeeRate();
@@ -425,10 +394,7 @@ export class EVMBtcRelay<B extends BtcBlock>
     }
 
     /**
-     * Estimate required synchronization fee (worst case) to synchronize btc relay to the required blockheight
-     *
-     * @param requiredBlockheight
-     * @param feeRate
+     * @inheritDoc
      */
     public async estimateSynchronizeFee(requiredBlockheight: number, feeRate?: string): Promise<bigint> {
         feeRate ??= await this.Chain.Fees.getFeeRate();
@@ -450,9 +416,7 @@ export class EVMBtcRelay<B extends BtcBlock>
     }
 
     /**
-     * Returns fee required (in native token) to synchronize a single block to btc relay
-     *
-     * @param feeRate
+     * @inheritDoc
      */
     public async getFeePerBlock(feeRate?: string): Promise<bigint> {
         feeRate ??= await this.Chain.Fees.getFeeRate();
@@ -460,19 +424,22 @@ export class EVMBtcRelay<B extends BtcBlock>
     }
 
     /**
-     * Gets fee rate required for submitting blockheaders to the main chain
+     * @inheritDoc
      */
     public getMainFeeRate(signer: string | null): Promise<string> {
         return this.Chain.Fees.getFeeRate();
     }
 
     /**
-     * Gets fee rate required for submitting blockheaders to the specific fork
+     * @inheritDoc
      */
     public getForkFeeRate(signer: string, forkId: number): Promise<string> {
         return this.Chain.Fees.getFeeRate();
     }
 
+    /**
+     * @inheritDoc
+     */
     saveInitialHeader(signer: string, header: B, epochStart: number, pastBlocksTimestamps: number[], feeRate?: string): Promise<EVMTx> {
         throw new Error("Not supported, EVM contract is initialized with constructor!");
     }
