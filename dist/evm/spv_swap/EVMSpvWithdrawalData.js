@@ -12,12 +12,21 @@ class EVMSpvWithdrawalData extends base_1.SpvWithdrawalTransactionData {
     getExecutionHashWith0x() {
         return this.executionHash == null ? ethers_1.ZeroHash : (this.executionHash.startsWith("0x") ? this.executionHash : "0x" + this.executionHash);
     }
+    /**
+     * @inheritDoc
+     */
     fromOpReturnData(data) {
         return EVMSpvVaultContract_1.EVMSpvVaultContract.fromOpReturnData(data);
     }
+    /**
+     * @inheritDoc
+     */
     isRecipient(address) {
         return this.getRecipient().toLowerCase() === address.toLowerCase();
     }
+    /**
+     * @inheritDoc
+     */
     getFrontingId() {
         const callerFee = this.getCallerFee();
         const frontingFee = this.getFrontingFee();
@@ -30,6 +39,9 @@ class EVMSpvWithdrawalData extends base_1.SpvWithdrawalTransactionData {
     getFrontingAmount() {
         return [this.rawAmounts[0] + this.getExecutionFee()[0], this.rawAmounts[1]];
     }
+    /**
+     * @inheritDoc
+     */
     serialize() {
         return {
             type: "EVM",

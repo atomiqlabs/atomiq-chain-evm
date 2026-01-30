@@ -79,6 +79,9 @@ export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, E
         blockHash: string;
         logIndex: number;
     }, lastBlockNumber?: number): Promise<EVMEventListenerState>;
+    /**
+     * @inheritDoc
+     */
     poll(lastState?: EVMEventListenerState[]): Promise<EVMEventListenerState[]>;
     /**
      * Sets up event handlers listening for swap events over websocket
@@ -96,9 +99,21 @@ export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, E
     protected addOrRemoveBlockListener(): Promise<void>;
     protected startFinalityCheckTimer(): Promise<void>;
     protected setupWebsocket(): Promise<void>;
+    /**
+     * @inheritDoc
+     */
     init(noAutomaticPoll?: boolean): Promise<void>;
+    /**
+     * @inheritDoc
+     */
     stop(): Promise<void>;
+    /**
+     * @inheritDoc
+     */
     registerListener(cbk: EventListener<EVMSwapData>): void;
+    /**
+     * @inheritDoc
+     */
     unregisterListener(cbk: EventListener<EVMSwapData>): boolean;
 }
 export {};

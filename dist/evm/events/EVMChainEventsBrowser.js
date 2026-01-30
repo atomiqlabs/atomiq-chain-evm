@@ -291,6 +291,9 @@ class EVMChainEventsBrowser {
         }
         return { lastEvent, lastBlockNumber };
     }
+    /**
+     * @inheritDoc
+     */
     async poll(lastState) {
         lastState ?? (lastState = []);
         const currentBlock = await this.provider.getBlock(this.chainInterface.config.safeBlockTag, false);
@@ -431,6 +434,9 @@ class EVMChainEventsBrowser {
             this.handleWsEvent(event);
         });
     }
+    /**
+     * @inheritDoc
+     */
     async init(noAutomaticPoll) {
         if (noAutomaticPoll)
             return Promise.resolve();
@@ -443,6 +449,9 @@ class EVMChainEventsBrowser {
         this.stopped = false;
         return Promise.resolve();
     }
+    /**
+     * @inheritDoc
+     */
     async stop() {
         this.stopped = true;
         if (this.timeout != null)
@@ -455,9 +464,15 @@ class EVMChainEventsBrowser {
             clearTimeout(this.finalityCheckTimer);
         }
     }
+    /**
+     * @inheritDoc
+     */
     registerListener(cbk) {
         this.listeners.push(cbk);
     }
+    /**
+     * @inheritDoc
+     */
     unregisterListener(cbk) {
         const index = this.listeners.indexOf(cbk);
         if (index >= 0) {

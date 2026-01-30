@@ -94,11 +94,17 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         EVMFees_1.EVMFees.applyFeeRate(tx, this.getClaimGas(signer, vault, data), feeRate);
         return tx;
     }
+    /**
+     * @inheritDoc
+     */
     async checkWithdrawalTx(tx) {
         const result = await this.contract.parseBitcoinTx(buffer_1.Buffer.from(tx.btcTx.hex, "hex"));
         if (result == null)
             throw new Error("Failed to parse transaction!");
     }
+    /**
+     * @inheritDoc
+     */
     createVaultData(owner, vaultId, utxo, confirmations, tokenData) {
         if (tokenData.length !== 2)
             throw new Error("Must specify 2 tokens in tokenData!");
@@ -123,12 +129,18 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         }, vaultParams, utxo));
     }
     //Getters
+    /**
+     * @inheritDoc
+     */
     async getFronterAddress(owner, vaultId, withdrawal) {
         const frontingAddress = await this.contract.getFronterById(owner, vaultId, "0x" + withdrawal.getFrontingId());
         if (frontingAddress === ethers_1.ZeroAddress)
             return null;
         return frontingAddress;
     }
+    /**
+     * @inheritDoc
+     */
     async getFronterAddresses(withdrawals) {
         const result = {};
         let promises = [];
@@ -145,6 +157,9 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         await Promise.all(promises);
         return result;
     }
+    /**
+     * @inheritDoc
+     */
     async getVaultData(owner, vaultId) {
         const vaultState = await this.contract.getVault(owner, vaultId);
         if (vaultState.spvVaultParametersCommitment === ethers_1.ZeroHash)
@@ -164,6 +179,9 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
             return null;
         return new EVMSpvVaultData_1.EVMSpvVaultData(owner, vaultId, vaultState, vaultParams);
     }
+    /**
+     * @inheritDoc
+     */
     async getMultipleVaultData(vaults) {
         const result = {};
         let promises = [];
@@ -181,6 +199,9 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         await Promise.all(promises);
         return result;
     }
+    /**
+     * @inheritDoc
+     */
     async getVaultLatestUtxo(owner, vaultId) {
         const vaultState = await this.contract.getVault(owner, vaultId);
         const utxo = (0, EVMSpvVaultData_1.getVaultUtxoFromState)(vaultState);
@@ -188,6 +209,9 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
             return null;
         return utxo;
     }
+    /**
+     * @inheritDoc
+     */
     async getVaultLatestUtxos(vaults) {
         const result = {};
         let promises = [];
@@ -205,6 +229,9 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         await Promise.all(promises);
         return result;
     }
+    /**
+     * @inheritDoc
+     */
     async getAllVaults(owner) {
         const openedVaults = new Map();
         await this.Events.findInContractEventsForward(["Opened", "Closed"], owner == null ? null : [
@@ -268,6 +295,9 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
                 return null;
         }
     }
+    /**
+     * @inheritDoc
+     */
     async getWithdrawalState(withdrawalTx, scStartHeight) {
         const txHash = buffer_1.Buffer.from(withdrawalTx.getTxId(), "hex").reverse();
         const events = ["Fronted", "Claimed", "Closed"];
@@ -298,6 +328,9 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         });
         return result;
     }
+    /**
+     * @inheritDoc
+     */
     async getWithdrawalStates(withdrawalTxs) {
         var _a;
         const result = {};
@@ -365,10 +398,16 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         }
         return result;
     }
+    /**
+     * @inheritDoc
+     */
     getWithdrawalData(btcTx) {
         return Promise.resolve(new EVMSpvWithdrawalData_1.EVMSpvWithdrawalData(btcTx));
     }
     //OP_RETURN data encoding/decoding
+    /**
+     * @inheritDoc
+     */
     fromOpReturnData(data) {
         return EVMSpvVaultContract.fromOpReturnData(data);
     }
@@ -400,6 +439,9 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
             throw new Error("Invalid recipient specified");
         return { executionHash, rawAmounts: [rawAmount0, rawAmount1], recipient: (0, ethers_1.getAddress)(recipient) };
     }
+    /**
+     * @inheritDoc
+     */
     toOpReturnData(recipient, rawAmounts, executionHash) {
         return EVMSpvVaultContract.toOpReturnData(recipient, rawAmounts, executionHash);
     }
@@ -432,27 +474,42 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         ]);
     }
     //Actions
+    /**
+     * @inheritDoc
+     */
     async claim(signer, vault, txs, synchronizer, initAta, txOptions) {
         const result = await this.txsClaim(signer.getAddress(), vault, txs, synchronizer, initAta, txOptions?.feeRate);
         const [signature] = await this.Chain.sendAndConfirm(signer, result, txOptions?.waitForConfirmation, txOptions?.abortSignal);
         return signature;
     }
+    /**
+     * @inheritDoc
+     */
     async deposit(signer, vault, rawAmounts, txOptions) {
         const result = await this.txsDeposit(signer.getAddress(), vault, rawAmounts, txOptions?.feeRate);
         const txHashes = await this.Chain.sendAndConfirm(signer, result, txOptions?.waitForConfirmation, txOptions?.abortSignal);
         return txHashes[txHashes.length - 1];
     }
+    /**
+     * @inheritDoc
+     */
     async frontLiquidity(signer, vault, realWithdrawalTx, withdrawSequence, txOptions) {
         const result = await this.txsFrontLiquidity(signer.getAddress(), vault, realWithdrawalTx, withdrawSequence, txOptions?.feeRate);
         const txHashes = await this.Chain.sendAndConfirm(signer, result, txOptions?.waitForConfirmation, txOptions?.abortSignal);
         return txHashes[txHashes.length - 1];
     }
+    /**
+     * @inheritDoc
+     */
     async open(signer, vault, txOptions) {
         const result = await this.txsOpen(signer.getAddress(), vault, txOptions?.feeRate);
         const [signature] = await this.Chain.sendAndConfirm(signer, result, txOptions?.waitForConfirmation, txOptions?.abortSignal);
         return signature;
     }
     //Transactions
+    /**
+     * @inheritDoc
+     */
     async txsClaim(signer, vault, txs, synchronizer, initAta, feeRate) {
         if (!vault.isOpened())
             throw new Error("Cannot claim from a closed vault!");
@@ -487,6 +544,9 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
             " vaultId: " + vault.getVaultId().toString(10));
         return evmTxs;
     }
+    /**
+     * @inheritDoc
+     */
     async txsDeposit(signer, vault, rawAmounts, feeRate) {
         var _a;
         if (!vault.isOpened())
@@ -518,6 +578,9 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
             " token1: " + vault.token1.token + " rawAmount1: " + (rawAmounts[1] ?? 0n).toString(10) + " amount1: " + realAmount1.toString(10));
         return txs;
     }
+    /**
+     * @inheritDoc
+     */
     async txsFrontLiquidity(signer, vault, realWithdrawalTx, withdrawSequence, feeRate) {
         var _a;
         if (!vault.isOpened())
@@ -551,6 +614,9 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
             " token1: " + vault.token1.token + " rawAmount1: " + (rawAmounts[1] ?? 0n).toString(10) + " amount1: " + realAmount1.toString(10));
         return txs;
     }
+    /**
+     * @inheritDoc
+     */
     async txsOpen(signer, vault, feeRate) {
         if (vault.isOpened())
             throw new Error("Cannot open an already opened vault!");
@@ -598,10 +664,16 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
             totalGas += EVMSpvVaultContract.GasCosts.FRONT_EXECUTION_SCHEDULE;
         return totalGas;
     }
+    /**
+     * @inheritDoc
+     */
     async getClaimFee(signer, vault, withdrawalData, feeRate) {
         feeRate ?? (feeRate = await this.Chain.Fees.getFeeRate());
         return EVMFees_1.EVMFees.getGasFee(this.getClaimGas(signer, vault, withdrawalData), feeRate);
     }
+    /**
+     * @inheritDoc
+     */
     async getFrontFee(signer, vault, withdrawalData, feeRate) {
         vault ?? (vault = EVMSpvVaultData_1.EVMSpvVaultData.randomVault());
         feeRate ?? (feeRate = await this.Chain.Fees.getFeeRate());

@@ -51,85 +51,118 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
             [type in ChainSwapType]: string;
         };
     });
+    /**
+     * @inheritDoc
+     */
     start(): Promise<void>;
+    /**
+     * @inheritDoc
+     */
     preFetchForInitSignatureVerification(): Promise<EVMPreFetchVerification>;
+    /**
+     * @inheritDoc
+     */
     getInitSignature(signer: EVMSigner, swapData: EVMSwapData, authorizationTimeout: number, preFetchedBlockData?: never, feeRate?: string): Promise<SignatureData>;
+    /**
+     * @inheritDoc
+     */
     isValidInitAuthorization(sender: string, swapData: EVMSwapData, signature: SignatureData, feeRate?: string, preFetchedData?: EVMPreFetchVerification): Promise<Buffer | null>;
+    /**
+     * @inheritDoc
+     */
     getInitAuthorizationExpiry(swapData: EVMSwapData, signature: SignatureData, preFetchedData?: EVMPreFetchVerification): Promise<number>;
+    /**
+     * @inheritDoc
+     */
     isInitAuthorizationExpired(swapData: EVMSwapData, signature: SignatureData): Promise<boolean>;
+    /**
+     * @inheritDoc
+     */
     getRefundSignature(signer: EVMSigner, swapData: EVMSwapData, authorizationTimeout: number): Promise<SignatureData>;
+    /**
+     * @inheritDoc
+     */
     isValidRefundAuthorization(swapData: EVMSwapData, signature: SignatureData): Promise<Buffer | null>;
+    /**
+     * @inheritDoc
+     */
     getDataSignature(signer: EVMSigner, data: Buffer): Promise<string>;
+    /**
+     * @inheritDoc
+     */
     isValidDataSignature(data: Buffer, signature: string, publicKey: string): Promise<boolean>;
     /**
-     * Checks whether the claim is claimable by us, that means not expired, we are claimer & the swap is commited
-     *
-     * @param signer
-     * @param data
+     * @inheritDoc
      */
     isClaimable(signer: string, data: EVMSwapData): Promise<boolean>;
     /**
-     * Checks whether a swap is commited, i.e. the swap still exists on-chain and was not claimed nor refunded
-     *
-     * @param swapData
+     * @inheritDoc
      */
     isCommited(swapData: EVMSwapData): Promise<boolean>;
     /**
-     * Checks whether the swap is expired, takes into consideration possible on-chain time skew, therefore for claimer
-     *  the swap expires a bit sooner than it should've & for the offerer it expires a bit later
-     *
-     * @param signer
-     * @param data
+     * @inheritDoc
      */
     isExpired(signer: string, data: EVMSwapData): Promise<boolean>;
     /**
-     * Checks if the swap is refundable by us, checks if we are offerer, if the swap is already expired & if the swap
-     *  is still commited
-     *
-     * @param signer
-     * @param data
+     * @inheritDoc
      */
     isRequestRefundable(signer: string, data: EVMSwapData): Promise<boolean>;
+    /**
+     * @inheritDoc
+     */
     getHashForTxId(txId: string, confirmations: number): Buffer;
     /**
-     * Get the swap payment hash to be used for an on-chain swap, uses poseidon hash of the value
-     *
-     * @param outputScript output script required to claim the swap
-     * @param amount sats sent required to claim the swap
-     * @param confirmations
-     * @param nonce swap nonce uniquely identifying the transaction to prevent replay attacks
+     * @inheritDoc
      */
     getHashForOnchain(outputScript: Buffer, amount: bigint, confirmations: number, nonce?: bigint): Buffer;
     /**
-     * Get the swap payment hash to be used for a lightning htlc swap, uses poseidon hash of the sha256 hash of the preimage
-     *
-     * @param paymentHash payment hash of the HTLC
+     * @inheritDoc
      */
     getHashForHtlc(paymentHash: Buffer): Buffer;
+    /**
+     * @inheritDoc
+     */
     getExtraData(outputScript: Buffer, amount: bigint, confirmations: number, nonce?: bigint): Buffer;
     /**
-     * Gets the status of the specific swap, this also checks if we are offerer/claimer & checks for expiry (to see
-     *  if swap is refundable)
-     *
-     * @param signer
-     * @param data
+     * @inheritDoc
      */
     getCommitStatus(signer: string, data: EVMSwapData): Promise<SwapCommitState>;
+    /**
+     * @inheritDoc
+     */
     getCommitStatuses(request: {
         signer: string;
         swapData: EVMSwapData;
     }[]): Promise<{
         [p: string]: SwapCommitState;
     }>;
+    /**
+     * @inheritDoc
+     */
     createSwapData(type: ChainSwapType, offerer: string, claimer: string, token: string, amount: bigint, paymentHash: string, sequence: bigint, expiry: bigint, payIn: boolean, payOut: boolean, securityDeposit: bigint, claimerBounty: bigint, depositToken?: string): Promise<EVMSwapData>;
+    /**
+     * @inheritDoc
+     */
     getBalance(signer: string, tokenAddress: string, inContract?: boolean): Promise<bigint>;
+    /**
+     * @inheritDoc
+     */
     getIntermediaryData(address: string, token: string): Promise<{
         balance: bigint;
         reputation: IntermediaryReputationType;
     }>;
+    /**
+     * @inheritDoc
+     */
     getIntermediaryReputation(address: string, token: string): Promise<IntermediaryReputationType>;
     getIntermediaryBalance(address: string, token: string): Promise<bigint>;
+    /**
+     * @inheritDoc
+     */
     txsClaimWithSecret(signer: string | EVMSigner, swapData: EVMSwapData, secret: string, checkExpiry?: boolean, initAta?: boolean, feeRate?: string, skipAtaCheck?: boolean): Promise<EVMTx[]>;
+    /**
+     * @inheritDoc
+     */
     txsClaimWithTxData(signer: string | EVMSigner, swapData: EVMSwapData, tx: {
         blockhash: string;
         confirmations: number;
@@ -137,12 +170,33 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
         hex: string;
         height: number;
     }, requiredConfirmations: number, vout: number, commitedHeader?: EVMBtcStoredHeader, synchronizer?: RelaySynchronizer<EVMBtcStoredHeader, EVMTx, any>, initAta?: boolean, feeRate?: string): Promise<EVMTx[]>;
+    /**
+     * @inheritDoc
+     */
     txsRefund(signer: string, swapData: EVMSwapData, check?: boolean, initAta?: boolean, feeRate?: string): Promise<EVMTx[]>;
+    /**
+     * @inheritDoc
+     */
     txsRefundWithAuthorization(signer: string, swapData: EVMSwapData, signature: SignatureData, check?: boolean, initAta?: boolean, feeRate?: string): Promise<EVMTx[]>;
+    /**
+     * @inheritDoc
+     */
     txsInit(signer: string, swapData: EVMSwapData, signature: SignatureData, skipChecks?: boolean, feeRate?: string): Promise<EVMTx[]>;
+    /**
+     * @inheritDoc
+     */
     txsWithdraw(signer: string, token: string, amount: bigint, feeRate?: string): Promise<EVMTx[]>;
+    /**
+     * @inheritDoc
+     */
     txsDeposit(signer: string, token: string, amount: bigint, feeRate?: string): Promise<EVMTx[]>;
+    /**
+     * @inheritDoc
+     */
     claimWithSecret(signer: EVMSigner, swapData: EVMSwapData, secret: string, checkExpiry?: boolean, initAta?: boolean, txOptions?: TransactionConfirmationOptions): Promise<string>;
+    /**
+     * @inheritDoc
+     */
     claimWithTxData(signer: EVMSigner, swapData: EVMSwapData, tx: {
         blockhash: string;
         confirmations: number;
@@ -150,22 +204,52 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
         hex: string;
         height: number;
     }, requiredConfirmations: number, vout: number, commitedHeader?: EVMBtcStoredHeader, synchronizer?: RelaySynchronizer<EVMBtcStoredHeader, EVMTx, any>, initAta?: boolean, txOptions?: TransactionConfirmationOptions): Promise<string>;
+    /**
+     * @inheritDoc
+     */
     refund(signer: EVMSigner, swapData: EVMSwapData, check?: boolean, initAta?: boolean, txOptions?: TransactionConfirmationOptions): Promise<string>;
+    /**
+     * @inheritDoc
+     */
     refundWithAuthorization(signer: EVMSigner, swapData: EVMSwapData, signature: SignatureData, check?: boolean, initAta?: boolean, txOptions?: TransactionConfirmationOptions): Promise<string>;
+    /**
+     * @inheritDoc
+     */
     init(signer: EVMSigner, swapData: EVMSwapData, signature: SignatureData, skipChecks?: boolean, txOptions?: TransactionConfirmationOptions): Promise<string>;
+    /**
+     * @inheritDoc
+     */
     withdraw(signer: EVMSigner, token: string, amount: bigint, txOptions?: TransactionConfirmationOptions): Promise<string>;
+    /**
+     * @inheritDoc
+     */
     deposit(signer: EVMSigner, token: string, amount: bigint, txOptions?: TransactionConfirmationOptions): Promise<string>;
+    /**
+     * @inheritDoc
+     */
     getInitPayInFeeRate(offerer?: string, claimer?: string, token?: string, paymentHash?: string): Promise<string>;
+    /**
+     * @inheritDoc
+     */
     getInitFeeRate(offerer?: string, claimer?: string, token?: string, paymentHash?: string): Promise<string>;
+    /**
+     * @inheritDoc
+     */
     getRefundFeeRate(swapData: EVMSwapData): Promise<string>;
+    /**
+     * @inheritDoc
+     */
     getClaimFeeRate(signer: string, swapData: EVMSwapData): Promise<string>;
+    /**
+     * @inheritDoc
+     */
     getClaimFee(signer: string, swapData: EVMSwapData, feeRate?: string): Promise<bigint>;
     /**
-     * Get the estimated fee of the commit transaction
+     * @inheritDoc
      */
     getCommitFee(signer: string, swapData: EVMSwapData, feeRate?: string): Promise<bigint>;
     /**
-     * Get the estimated transaction fee of the refund transaction
+     * @inheritDoc
      */
     getRefundFee(signer: string, swapData: EVMSwapData, feeRate?: string): Promise<bigint>;
 }

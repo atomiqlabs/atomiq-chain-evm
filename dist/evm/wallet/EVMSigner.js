@@ -13,6 +13,9 @@ class EVMSigner {
         this.address = address;
         this.isManagingNoncesInternally = isManagingNoncesInternally;
     }
+    /**
+     * @inheritDoc
+     */
     getAddress() {
         return (0, ethers_1.getAddress)(this.address);
     }
