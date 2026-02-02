@@ -17,6 +17,9 @@ const EVMSwapClaim_1 = require("./modules/EVMSwapClaim");
 const ESCROW_STATE_COMMITTED = 1;
 const ESCROW_STATE_CLAIMED = 2;
 const ESCROW_STATE_REFUNDED = 3;
+/**
+ * @category Swaps
+ */
 class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
     constructor(chainInterface, btcRelay, contractAddress, handlerAddresses) {
         super(chainInterface, contractAddress, EscrowManagerAbi_1.EscrowManagerAbi);
@@ -48,44 +51,71 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
         this.timelockRefundHandler = new TimelockRefundHandler_1.TimelockRefundHandler(handlerAddresses.refund.timelock);
         this.refundHandlersByAddress[this.timelockRefundHandler.address.toLowerCase()] = this.timelockRefundHandler;
     }
+    /**
+     * @inheritDoc
+     */
     async start() {
     }
     ////////////////////////////////////////////
     //// Signatures
+    /**
+     * @inheritDoc
+     */
     preFetchForInitSignatureVerification() {
         return this.Init.preFetchForInitSignatureVerification();
     }
+    /**
+     * @inheritDoc
+     */
     getInitSignature(signer, swapData, authorizationTimeout, preFetchedBlockData, feeRate) {
         return this.Init.signSwapInitialization(signer, swapData, authorizationTimeout);
     }
-    isValidInitAuthorization(sender, swapData, { timeout, prefix, signature }, feeRate, preFetchedData) {
-        return this.Init.isSignatureValid(sender, swapData, timeout, prefix, signature, preFetchedData);
+    /**
+     * @inheritDoc
+     */
+    isValidInitAuthorization(sender, swapData, signature, feeRate, preFetchedData) {
+        return this.Init.isSignatureValid(sender, swapData, signature.timeout, signature.prefix, signature.signature, preFetchedData);
     }
-    getInitAuthorizationExpiry(swapData, { timeout, prefix, signature }, preFetchedData) {
-        return this.Init.getSignatureExpiry(timeout);
+    /**
+     * @inheritDoc
+     */
+    getInitAuthorizationExpiry(swapData, signature, preFetchedData) {
+        return this.Init.getSignatureExpiry(signature.timeout);
     }
-    isInitAuthorizationExpired(swapData, { timeout, prefix, signature }) {
-        return this.Init.isSignatureExpired(timeout);
+    /**
+     * @inheritDoc
+     */
+    isInitAuthorizationExpired(swapData, signature) {
+        return this.Init.isSignatureExpired(signature.timeout);
     }
+    /**
+     * @inheritDoc
+     */
     getRefundSignature(signer, swapData, authorizationTimeout) {
         return this.Refund.signSwapRefund(signer, swapData, authorizationTimeout);
     }
-    isValidRefundAuthorization(swapData, { timeout, prefix, signature }) {
-        return this.Refund.isSignatureValid(swapData, timeout, prefix, signature);
+    /**
+     * @inheritDoc
+     */
+    isValidRefundAuthorization(swapData, signature) {
+        return this.Refund.isSignatureValid(swapData, signature.timeout, signature.prefix, signature.signature);
     }
+    /**
+     * @inheritDoc
+     */
     getDataSignature(signer, data) {
         return this.Chain.Signatures.getDataSignature(signer, data);
     }
+    /**
+     * @inheritDoc
+     */
     isValidDataSignature(data, signature, publicKey) {
         return this.Chain.Signatures.isValidDataSignature(data, signature, publicKey);
     }
     ////////////////////////////////////////////
     //// Swap data utils
     /**
-     * Checks whether the claim is claimable by us, that means not expired, we are claimer & the swap is commited
-     *
-     * @param signer
-     * @param data
+     * @inheritDoc
      */
     async isClaimable(signer, data) {
         if (!data.isClaimer(signer))
@@ -95,20 +125,14 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
         return await this.isCommited(data);
     }
     /**
-     * Checks whether a swap is commited, i.e. the swap still exists on-chain and was not claimed nor refunded
-     *
-     * @param swapData
+     * @inheritDoc
      */
     async isCommited(swapData) {
         const data = await this.contract.getHashState("0x" + swapData.getEscrowHash());
         return Number(data.state) === ESCROW_STATE_COMMITTED;
     }
     /**
-     * Checks whether the swap is expired, takes into consideration possible on-chain time skew, therefore for claimer
-     *  the swap expires a bit sooner than it should've & for the offerer it expires a bit later
-     *
-     * @param signer
-     * @param data
+     * @inheritDoc
      */
     isExpired(signer, data) {
         let currentTimestamp = BigInt(Math.floor(Date.now() / 1000));
@@ -119,11 +143,7 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
         return Promise.resolve(data.getExpiry() < currentTimestamp);
     }
     /**
-     * Checks if the swap is refundable by us, checks if we are offerer, if the swap is already expired & if the swap
-     *  is still commited
-     *
-     * @param signer
-     * @param data
+     * @inheritDoc
      */
     async isRequestRefundable(signer, data) {
         //Swap can only be refunded by the offerer
@@ -133,25 +153,29 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
             return false;
         return await this.isCommited(data);
     }
+    /**
+     * @inheritDoc
+     */
     getHashForTxId(txId, confirmations) {
-        return buffer_1.Buffer.from(this.claimHandlersBySwapType[base_1.ChainSwapType.CHAIN_TXID].getCommitment({
+        const chainTxIdHandler = this.claimHandlersBySwapType[base_1.ChainSwapType.CHAIN_TXID];
+        if (chainTxIdHandler == null)
+            throw new Error("Claim handler for CHAIN_TXID not found!");
+        return buffer_1.Buffer.from(chainTxIdHandler.getCommitment({
             txId,
             confirmations,
             btcRelay: this.btcRelay
         }).slice(2), "hex");
     }
     /**
-     * Get the swap payment hash to be used for an on-chain swap, uses poseidon hash of the value
-     *
-     * @param outputScript output script required to claim the swap
-     * @param amount sats sent required to claim the swap
-     * @param confirmations
-     * @param nonce swap nonce uniquely identifying the transaction to prevent replay attacks
+     * @inheritDoc
      */
     getHashForOnchain(outputScript, amount, confirmations, nonce) {
         let result;
         if (nonce == null || nonce === 0n) {
-            result = this.claimHandlersBySwapType[base_1.ChainSwapType.CHAIN].getCommitment({
+            const chainHandler = this.claimHandlersBySwapType[base_1.ChainSwapType.CHAIN];
+            if (chainHandler == null)
+                throw new Error("Claim handler for CHAIN not found!");
+            result = chainHandler.getCommitment({
                 output: outputScript,
                 amount,
                 confirmations,
@@ -159,7 +183,10 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
             });
         }
         else {
-            result = this.claimHandlersBySwapType[base_1.ChainSwapType.CHAIN_NONCED].getCommitment({
+            const chainNoncedHandler = this.claimHandlersBySwapType[base_1.ChainSwapType.CHAIN_NONCED];
+            if (chainNoncedHandler == null)
+                throw new Error("Claim handler for CHAIN_NONCED not found!");
+            result = chainNoncedHandler.getCommitment({
                 output: outputScript,
                 amount,
                 nonce,
@@ -170,13 +197,17 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
         return buffer_1.Buffer.from(result.slice(2), "hex");
     }
     /**
-     * Get the swap payment hash to be used for a lightning htlc swap, uses poseidon hash of the sha256 hash of the preimage
-     *
-     * @param paymentHash payment hash of the HTLC
+     * @inheritDoc
      */
     getHashForHtlc(paymentHash) {
-        return buffer_1.Buffer.from(this.claimHandlersBySwapType[base_1.ChainSwapType.HTLC].getCommitment(paymentHash).slice(2), "hex");
+        const htlcHandler = this.claimHandlersBySwapType[base_1.ChainSwapType.HTLC];
+        if (htlcHandler == null)
+            throw new Error("Claim handler for HTLC not found!");
+        return buffer_1.Buffer.from(htlcHandler.getCommitment(paymentHash).slice(2), "hex");
     }
+    /**
+     * @inheritDoc
+     */
     getExtraData(outputScript, amount, confirmations, nonce) {
         if (nonce == null)
             nonce = 0n;
@@ -193,11 +224,7 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
     ////////////////////////////////////////////
     //// Swap data getters
     /**
-     * Gets the status of the specific swap, this also checks if we are offerer/claimer & checks for expiry (to see
-     *  if swap is refundable)
-     *
-     * @param signer
-     * @param data
+     * @inheritDoc
      */
     async getCommitStatus(signer, data) {
         const escrowHash = data.getEscrowHash();
@@ -220,14 +247,18 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
                     },
                     getClaimResult: async () => {
                         const events = await this.Events.getContractBlockEvents(["Claim"], [null, null, "0x" + escrowHash], blockHeight, blockHeight);
-                        return events.length === 0 ? null : events[0].args.witnessResult;
+                        if (events.length === 0)
+                            throw new Error("Claim event not found!");
+                        return events[0].args.witnessResult;
                     },
                     getClaimTxId: async () => {
                         const events = await this.Events.getContractBlockEvents(["Claim"], [null, null, "0x" + escrowHash], blockHeight, blockHeight);
-                        return events.length === 0 ? null : events[0].transactionHash;
+                        if (events.length === 0)
+                            throw new Error("Claim event not found!");
+                        return events[0].transactionHash;
                     }
                 };
-            default:
+            case ESCROW_STATE_REFUNDED:
                 return {
                     type: await this.isExpired(signer, data) ? base_1.SwapCommitStateType.EXPIRED : base_1.SwapCommitStateType.NOT_COMMITED,
                     getTxBlock: async () => {
@@ -238,11 +269,20 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
                     },
                     getRefundTxId: async () => {
                         const events = await this.Events.getContractBlockEvents(["Refund"], [null, null, "0x" + escrowHash], blockHeight, blockHeight);
-                        return events.length === 0 ? null : events[0].transactionHash;
+                        if (events.length === 0)
+                            throw new Error("Refund event not found!");
+                        return events[0].transactionHash;
                     }
+                };
+            default:
+                return {
+                    type: await this.isExpired(signer, data) ? base_1.SwapCommitStateType.EXPIRED : base_1.SwapCommitStateType.NOT_COMMITED,
                 };
         }
     }
+    /**
+     * @inheritDoc
+     */
     async getCommitStatuses(request) {
         const result = {};
         let promises = [];
@@ -259,32 +299,37 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
         await Promise.all(promises);
         return result;
     }
-    /**
-     * Returns the data committed for a specific payment hash, or null if no data is currently commited for
-     *  the specific swap
-     *
-     * @param paymentHashHex
-     */
-    async getCommitedData(paymentHashHex) {
-        //TODO: Noop
-        return null;
-    }
     ////////////////////////////////////////////
     //// Swap data initializer
+    /**
+     * @inheritDoc
+     */
     createSwapData(type, offerer, claimer, token, amount, paymentHash, sequence, expiry, payIn, payOut, securityDeposit, claimerBounty, depositToken = this.Chain.Tokens.getNativeCurrencyAddress()) {
-        return Promise.resolve(new EVMSwapData_1.EVMSwapData(offerer, claimer, token, this.timelockRefundHandler.address, this.claimHandlersBySwapType?.[type]?.address, payOut, payIn, payIn, //For now track reputation for all payIn swaps
-        sequence, "0x" + paymentHash, (0, ethers_1.hexlify)(base_1.BigIntBufferUtils.toBuffer(expiry, "be", 32)), amount, depositToken, securityDeposit, claimerBounty, type, null));
+        const claimHandler = this.claimHandlersBySwapType?.[type];
+        if (claimHandler == null)
+            throw new Error(`Claim handler unknown for swap type: ${base_1.ChainSwapType[type]}!`);
+        return Promise.resolve(new EVMSwapData_1.EVMSwapData(offerer, claimer, token, this.timelockRefundHandler.address, claimHandler.address, payOut, payIn, payIn, //For now track reputation for all payIn swaps
+        sequence, "0x" + paymentHash, (0, ethers_1.hexlify)(base_1.BigIntBufferUtils.toBuffer(expiry, "be", 32)), amount, depositToken, securityDeposit, claimerBounty, type));
     }
     ////////////////////////////////////////////
     //// Utils
+    /**
+     * @inheritDoc
+     */
     async getBalance(signer, tokenAddress, inContract) {
         if (inContract)
             return await this.getIntermediaryBalance(signer, tokenAddress);
         return await this.Chain.getBalance(signer, tokenAddress);
     }
+    /**
+     * @inheritDoc
+     */
     getIntermediaryData(address, token) {
         return this.LpVault.getIntermediaryData(address, token);
     }
+    /**
+     * @inheritDoc
+     */
     getIntermediaryReputation(address, token) {
         return this.LpVault.getIntermediaryReputation(address, token);
     }
@@ -293,34 +338,61 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
     }
     ////////////////////////////////////////////
     //// Transaction initializers
+    /**
+     * @inheritDoc
+     */
     async txsClaimWithSecret(signer, swapData, secret, checkExpiry, initAta, feeRate, skipAtaCheck) {
         return this.Claim.txsClaimWithSecret(typeof (signer) === "string" ? signer : signer.getAddress(), swapData, secret, checkExpiry, feeRate);
     }
+    /**
+     * @inheritDoc
+     */
     async txsClaimWithTxData(signer, swapData, tx, requiredConfirmations, vout, commitedHeader, synchronizer, initAta, feeRate) {
         return this.Claim.txsClaimWithTxData(typeof (signer) === "string" ? signer : signer.getAddress(), swapData, tx, requiredConfirmations, vout, commitedHeader, synchronizer, feeRate);
     }
+    /**
+     * @inheritDoc
+     */
     txsRefund(signer, swapData, check, initAta, feeRate) {
         return this.Refund.txsRefund(signer, swapData, check, feeRate);
     }
-    txsRefundWithAuthorization(signer, swapData, { timeout, prefix, signature }, check, initAta, feeRate) {
-        return this.Refund.txsRefundWithAuthorization(signer, swapData, timeout, prefix, signature, check, feeRate);
+    /**
+     * @inheritDoc
+     */
+    txsRefundWithAuthorization(signer, swapData, signature, check, initAta, feeRate) {
+        return this.Refund.txsRefundWithAuthorization(signer, swapData, signature.timeout, signature.prefix, signature.signature, check, feeRate);
     }
-    txsInit(signer, swapData, { timeout, prefix, signature }, skipChecks, feeRate) {
-        return this.Init.txsInit(signer, swapData, timeout, prefix, signature, skipChecks, feeRate);
+    /**
+     * @inheritDoc
+     */
+    txsInit(signer, swapData, signature, skipChecks, feeRate) {
+        return this.Init.txsInit(signer, swapData, signature.timeout, signature.prefix, signature.signature, skipChecks, feeRate);
     }
+    /**
+     * @inheritDoc
+     */
     txsWithdraw(signer, token, amount, feeRate) {
         return this.LpVault.txsWithdraw(signer, token, amount, feeRate);
     }
+    /**
+     * @inheritDoc
+     */
     txsDeposit(signer, token, amount, feeRate) {
         return this.LpVault.txsDeposit(signer, token, amount, feeRate);
     }
     ////////////////////////////////////////////
     //// Executors
+    /**
+     * @inheritDoc
+     */
     async claimWithSecret(signer, swapData, secret, checkExpiry, initAta, txOptions) {
         const result = await this.Claim.txsClaimWithSecret(signer.getAddress(), swapData, secret, checkExpiry, txOptions?.feeRate);
         const [signature] = await this.Chain.sendAndConfirm(signer, result, txOptions?.waitForConfirmation, txOptions?.abortSignal);
         return signature;
     }
+    /**
+     * @inheritDoc
+     */
     async claimWithTxData(signer, swapData, tx, requiredConfirmations, vout, commitedHeader, synchronizer, initAta, txOptions) {
         const txs = await this.Claim.txsClaimWithTxData(signer.getAddress(), swapData, tx, requiredConfirmations, vout, commitedHeader, synchronizer, txOptions?.feeRate);
         if (txs === null)
@@ -328,16 +400,25 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
         const txHashes = await this.Chain.sendAndConfirm(signer, txs, txOptions?.waitForConfirmation, txOptions?.abortSignal);
         return txHashes[txHashes.length - 1];
     }
+    /**
+     * @inheritDoc
+     */
     async refund(signer, swapData, check, initAta, txOptions) {
         let result = await this.txsRefund(signer.getAddress(), swapData, check, initAta, txOptions?.feeRate);
         const [signature] = await this.Chain.sendAndConfirm(signer, result, txOptions?.waitForConfirmation, txOptions?.abortSignal);
         return signature;
     }
+    /**
+     * @inheritDoc
+     */
     async refundWithAuthorization(signer, swapData, signature, check, initAta, txOptions) {
         let result = await this.txsRefundWithAuthorization(signer.getAddress(), swapData, signature, check, initAta, txOptions?.feeRate);
         const [txSignature] = await this.Chain.sendAndConfirm(signer, result, txOptions?.waitForConfirmation, txOptions?.abortSignal);
         return txSignature;
     }
+    /**
+     * @inheritDoc
+     */
     async init(signer, swapData, signature, skipChecks, txOptions) {
         if (swapData.isPayIn()) {
             if (!swapData.isOfferer(signer.getAddress()) && !swapData.isOfferer(signer.getAddress()))
@@ -351,11 +432,17 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
         const txHashes = await this.Chain.sendAndConfirm(signer, result, txOptions?.waitForConfirmation, txOptions?.abortSignal);
         return txHashes[txHashes.length - 1];
     }
+    /**
+     * @inheritDoc
+     */
     async withdraw(signer, token, amount, txOptions) {
         const txs = await this.LpVault.txsWithdraw(signer.getAddress(), token, amount, txOptions?.feeRate);
         const [txId] = await this.Chain.sendAndConfirm(signer, txs, txOptions?.waitForConfirmation, txOptions?.abortSignal, false);
         return txId;
     }
+    /**
+     * @inheritDoc
+     */
     async deposit(signer, token, amount, txOptions) {
         const txs = await this.LpVault.txsDeposit(signer.getAddress(), token, amount, txOptions?.feeRate);
         const [txId] = await this.Chain.sendAndConfirm(signer, txs, txOptions?.waitForConfirmation, txOptions?.abortSignal, false);
@@ -363,29 +450,44 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
     }
     ////////////////////////////////////////////
     //// Fees
+    /**
+     * @inheritDoc
+     */
     getInitPayInFeeRate(offerer, claimer, token, paymentHash) {
         return this.Chain.Fees.getFeeRate();
     }
+    /**
+     * @inheritDoc
+     */
     getInitFeeRate(offerer, claimer, token, paymentHash) {
         return this.Chain.Fees.getFeeRate();
     }
+    /**
+     * @inheritDoc
+     */
     getRefundFeeRate(swapData) {
         return this.Chain.Fees.getFeeRate();
     }
+    /**
+     * @inheritDoc
+     */
     getClaimFeeRate(signer, swapData) {
         return this.Chain.Fees.getFeeRate();
     }
+    /**
+     * @inheritDoc
+     */
     getClaimFee(signer, swapData, feeRate) {
         return this.Claim.getClaimFee(swapData, feeRate);
     }
     /**
-     * Get the estimated fee of the commit transaction
+     * @inheritDoc
      */
     getCommitFee(signer, swapData, feeRate) {
         return this.Init.getInitFee(swapData, feeRate);
     }
     /**
-     * Get the estimated transaction fee of the refund transaction
+     * @inheritDoc
      */
     getRefundFee(signer, swapData, feeRate) {
         return this.Refund.getRefundFee(swapData, feeRate);

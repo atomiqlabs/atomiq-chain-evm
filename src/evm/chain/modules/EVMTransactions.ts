@@ -1,10 +1,17 @@
 import {EVMModule} from "../EVMModule";
-import {Transaction, TransactionRequest, TransactionResponse, toBeHex} from "ethers";
+import {
+    Transaction,
+    TransactionRequest,
+    TransactionResponse,
+    toBeHex,
+    Signature, resolveAddress
+} from "ethers";
 import {timeoutPromise} from "../../../utils/Utils";
 import {EVMSigner} from "../../wallet/EVMSigner";
 import {TransactionRevertedError} from "@atomiqlabs/base";
 
 export type EVMTx = TransactionRequest;
+export type SignedEVMTx = Transaction;
 
 export type EVMTxTrace = {
     from: string,
@@ -21,6 +28,9 @@ export type EVMTxTrace = {
 
 const MAX_UNCONFIRMED_TXNS = 10;
 
+/**
+ * @category Internal/Chain
+ */
 export class EVMTransactions extends EVMModule<any> {
 
     private readonly latestConfirmedNonces: {[address: string]: number} = {};
@@ -29,7 +39,7 @@ export class EVMTransactions extends EVMModule<any> {
 
     readonly _cbksBeforeTxReplace: ((oldTx: string, oldTxId: string, newTx: string, newTxId: string) => Promise<void>)[] = [];
     private readonly cbksBeforeTxSigned: ((tx: TransactionRequest) => Promise<void>)[] = [];
-    private cbkSendTransaction: (tx: string) => Promise<string>;
+    private cbkSendTransaction?: (tx: string) => Promise<string | null>;
 
     readonly _knownTxSet: Set<string> = new Set();
 
@@ -41,7 +51,7 @@ export class EVMTransactions extends EVMModule<any> {
      * @private
      */
     private async confirmTransaction(tx: TransactionResponse | Transaction, abortSignal?: AbortSignal): Promise<string> {
-        const checkTxns: Set<string> = new Set([tx.hash]);
+        const checkTxns: Set<string> = new Set([tx.hash!]);
 
         const txReplaceListener = (oldTx: string, oldTxId: string, newTx: string, newTxId: string) => {
             if(checkTxns.has(oldTxId)) checkTxns.add(newTxId);
@@ -50,10 +60,10 @@ export class EVMTransactions extends EVMModule<any> {
         this.onBeforeTxReplace(txReplaceListener);
 
         let state = "pending";
-        let confirmedTxId: string = null;
+        let confirmedTxId: string | null = null;
         while(state==="pending") {
             await timeoutPromise(3000, abortSignal);
-            const latestConfirmedNonce = this.latestConfirmedNonces[tx.from];
+            const latestConfirmedNonce = this.latestConfirmedNonces[tx.from!];
 
             const snapshot = [...checkTxns]; //Iterate over a snapshot
             const totalTxnCount = snapshot.length;
@@ -73,10 +83,10 @@ export class EVMTransactions extends EVMModule<any> {
                     throw new Error("Transaction failed - replaced!");
                 }
                 this.logger.warn("confirmTransaction(): All transactions not found, fetching the latest account nonce...");
-                const _latestConfirmedNonce = this.latestConfirmedNonces[tx.from];
-                const currentLatestNonce = await this.provider.getTransactionCount(tx.from, this.root.config.safeBlockTag);
+                const _latestConfirmedNonce = this.latestConfirmedNonces[tx.from!];
+                const currentLatestNonce = await this.provider.getTransactionCount(tx.from!, this.root.config.safeBlockTag);
                 if(_latestConfirmedNonce==null || _latestConfirmedNonce < currentLatestNonce) {
-                    this.latestConfirmedNonces[tx.from] = currentLatestNonce;
+                    this.latestConfirmedNonces[tx.from!] = currentLatestNonce;
                 }
             }
         }
@@ -84,19 +94,19 @@ export class EVMTransactions extends EVMModule<any> {
         this.offBeforeTxReplace(txReplaceListener);
 
         const nextAccountNonce = tx.nonce + 1;
-        const currentConfirmedNonce = this.latestConfirmedNonces[tx.from];
+        const currentConfirmedNonce = this.latestConfirmedNonces[tx.from!];
         if(currentConfirmedNonce==null || nextAccountNonce > currentConfirmedNonce) {
-            this.latestConfirmedNonces[tx.from] = nextAccountNonce;
+            this.latestConfirmedNonces[tx.from!] = nextAccountNonce;
         }
         if(state==="reverted") throw new TransactionRevertedError("Transaction reverted!");
 
-        return confirmedTxId;
+        return confirmedTxId!;
     }
 
     private async applyAccessList(tx: TransactionRequest) {
         let accessListResponse: {
             accessList: {address: string, storageKeys: string[]}[]
-        };
+        } | undefined;
         try {
             accessListResponse = await this.provider.send("eth_createAccessList", [{
                 from: tx.from,
@@ -105,7 +115,7 @@ export class EVMTransactions extends EVMModule<any> {
                 input: tx.data,
                 data: tx.data
             }, "pending"]);
-        } catch (e) {
+        } catch (e: any) {
             if(e.code!=="UNKNOWN_ERROR" || e.error?.code!==3) throw e;
 
             try {
@@ -116,9 +126,11 @@ export class EVMTransactions extends EVMModule<any> {
                     value: toBeHex(tx.value ?? 0n),
                     input: tx.data,
                     data: tx.data,
-                    accessList: this.root.config.defaultAccessListAddresses.map(val => ({address: val, storageKeys: []}))
+                    accessList: this.root.config.defaultAccessListAddresses==null
+                        ? undefined
+                        : this.root.config.defaultAccessListAddresses.map(val => ({address: val, storageKeys: []}))
                 }, "pending"]);
-            } catch (e) {
+            } catch (e: any) {
                 //Unable to create access list, fuck it
                 if(e.code!=="UNKNOWN_ERROR" || e.error?.code!==3) throw e;
             }
@@ -180,12 +192,12 @@ export class EVMTransactions extends EVMModule<any> {
         tx: Transaction,
         onBeforePublish?: (txId: string, rawTx: string) => Promise<void>,
     ): Promise<string> {
-        if(onBeforePublish!=null) await onBeforePublish(tx.hash, await this.serializeTx(tx));
+        if(onBeforePublish!=null) await onBeforePublish(tx.hash!, this.serializeSignedTx(tx));
         this.logger.debug("sendSignedTransaction(): sending transaction: ", tx.hash);
 
         const serializedTx = tx.serialized;
 
-        let result: string;
+        let result: string | null = null;
         if(this.cbkSendTransaction!=null) result = await this.cbkSendTransaction(serializedTx);
         if(result==null) {
             const broadcastResult = await this.provider.broadcastTransaction(tx.serialized);
@@ -226,9 +238,9 @@ export class EVMTransactions extends EVMModule<any> {
             this.logger.debug("sendAndConfirm(): transaction signed ("+(i+1)+"/"+txs.length+"): "+signedTx);
 
             const nextAccountNonce = signedTx.nonce + 1;
-            const currentSignedNonce = this.latestSignedNonces[signedTx.from];
+            const currentSignedNonce = this.latestSignedNonces[signedTx.from!];
             if(currentSignedNonce==null || nextAccountNonce > currentSignedNonce) {
-                this.latestSignedNonces[signedTx.from] = nextAccountNonce;
+                this.latestSignedNonces[signedTx.from!] = nextAccountNonce;
             }
         }
 
@@ -249,13 +261,13 @@ export class EVMTransactions extends EVMModule<any> {
                 }
 
                 const nextAccountNonce = tx.nonce + 1;
-                const currentPendingNonce = this.latestPendingNonces[tx.from];
+                const currentPendingNonce = this.latestPendingNonces[tx.from!];
                 if(currentPendingNonce==null || nextAccountNonce > currentPendingNonce) {
-                    this.latestPendingNonces[tx.from] = nextAccountNonce;
+                    this.latestPendingNonces[tx.from!] = nextAccountNonce;
                 }
 
                 promises.push(this.confirmTransaction(tx, abortSignal));
-                if(!waitForConfirmation) txIds.push(tx.hash);
+                if(!waitForConfirmation) txIds.push(tx.hash!);
                 this.logger.debug("sendAndConfirm(): transaction sent ("+(i+1)+"/"+signedTxs.length+"): "+tx.hash);
                 if(promises.length >= MAX_UNCONFIRMED_TXNS) {
                     if(waitForConfirmation) txIds.push(...await Promise.all(promises));
@@ -277,15 +289,15 @@ export class EVMTransactions extends EVMModule<any> {
                 }
 
                 const nextAccountNonce = tx.nonce + 1;
-                const currentPendingNonce = this.latestPendingNonces[tx.from];
+                const currentPendingNonce = this.latestPendingNonces[tx.from!];
                 if(currentPendingNonce==null || nextAccountNonce > currentPendingNonce) {
-                    this.latestPendingNonces[tx.from] = nextAccountNonce;
+                    this.latestPendingNonces[tx.from!] = nextAccountNonce;
                 }
 
                 const confirmPromise = this.confirmTransaction(tx, abortSignal);
                 this.logger.debug("sendAndConfirm(): transaction sent ("+(i+1)+"/"+txs.length+"): "+tx.hash);
                 //Don't await the last promise when !waitForConfirmation
-                let txHash = tx.hash;
+                let txHash = tx.hash!;
                 if(i<txs.length-1 || waitForConfirmation) txHash = await confirmPromise;
                 txIds.push(txHash);
             }
@@ -297,22 +309,109 @@ export class EVMTransactions extends EVMModule<any> {
         return txIds;
     }
 
+    //TODO: Maybe consolidate this with sendAndConfirm() fn
+    public async sendSignedAndConfirm(
+        signedTxs: Transaction[], waitForConfirmation?: boolean,
+        abortSignal?: AbortSignal, parallel?: boolean, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>
+    ): Promise<string[]> {
+        this.logger.debug("sendSignedAndConfirm(): sending transactions, count: "+signedTxs.length+
+            " waitForConfirmation: "+waitForConfirmation+" parallel: "+parallel);
+
+        let txIds: string[] = [];
+        if(parallel) {
+            let promises: Promise<string>[] = [];
+            for(let i=0;i<signedTxs.length;i++) {
+                const signedTx = signedTxs[i]
+                await this.sendSignedTransaction(signedTx, onBeforePublish);
+
+                const nextAccountNonce = signedTx.nonce + 1;
+                const currentPendingNonce = this.latestPendingNonces[signedTx.from!];
+                if(currentPendingNonce==null || nextAccountNonce > currentPendingNonce) {
+                    this.latestPendingNonces[signedTx.from!] = nextAccountNonce;
+                }
+
+                promises.push(this.confirmTransaction(signedTx, abortSignal));
+                if(!waitForConfirmation) txIds.push(signedTx.hash!);
+                this.logger.debug("sendAndConfirm(): transaction sent ("+(i+1)+"/"+signedTxs.length+"): "+signedTx.hash);
+                if(promises.length >= MAX_UNCONFIRMED_TXNS) {
+                    if(waitForConfirmation) txIds.push(...await Promise.all(promises));
+                    promises = [];
+                }
+            }
+            if(waitForConfirmation && promises.length>0) {
+                txIds.push(...await Promise.all(promises));
+            }
+        } else {
+            for(let i=0;i<signedTxs.length;i++) {
+                const signedTx = signedTxs[i];
+                await this.sendSignedTransaction(signedTx, onBeforePublish);
+
+                const nextAccountNonce = signedTx.nonce + 1;
+                const currentPendingNonce = this.latestPendingNonces[signedTx.from!];
+                if(currentPendingNonce==null || nextAccountNonce > currentPendingNonce) {
+                    this.latestPendingNonces[signedTx.from!] = nextAccountNonce;
+                }
+
+                const confirmPromise = this.confirmTransaction(signedTx, abortSignal);
+                this.logger.debug("sendAndConfirm(): transaction sent ("+(i+1)+"/"+signedTxs.length+"): "+signedTx.hash);
+                //Don't await the last promise when !waitForConfirmation
+                let txHash = signedTx.hash!;
+                if(i<signedTxs.length-1 || waitForConfirmation) txHash = await confirmPromise;
+                txIds.push(txHash);
+            }
+        }
+
+        this.logger.info("sendSignedAndConfirm(): sent transactions, count: "+signedTxs.length+
+            " waitForConfirmation: "+waitForConfirmation+" parallel: "+parallel);
+
+        return txIds;
+    }
+
+    /**
+     * Serializes the unsigned EVM transaction
+     *
+     * @param unsignedTx
+     */
+    public async serializeUnsignedTx(unsignedTx: TransactionRequest): Promise<string> {
+        const tx = Transaction.from({
+            ...unsignedTx,
+            to: unsignedTx.to==null ? null : await resolveAddress(unsignedTx.to),
+            from: unsignedTx.from==null ? null : await resolveAddress(unsignedTx.from),
+            authorizationList: unsignedTx.authorizationList==null ? null : unsignedTx.authorizationList.map(val => ({
+                ...val,
+                nonce: BigInt(val.nonce),
+                chainId: BigInt(val.chainId),
+                signature: Signature.from(val.signature)
+            }))
+        });
+        return this.serializeSignedTx(tx);
+    }
+
     /**
      * Serializes the signed EVM transaction
      *
      * @param tx
      */
-    public serializeTx(tx: Transaction): Promise<string> {
-        return Promise.resolve(tx.serialized);
+    public serializeSignedTx(tx: Transaction): string {
+        return tx.serialized;
+    }
+
+    /**
+     * Deserializes an unsigned EVM transaction
+     *
+     * @param unsignedTxData
+     */
+    public deserializeUnsignedTx(unsignedTxData: string): TransactionRequest {
+        return this.deserializeSignedTx(unsignedTxData);
     }
 
     /**
      * Deserializes signed EVM transaction
      *
-     * @param txData
+     * @param signedTxData
      */
-    public deserializeTx(txData: string): Promise<Transaction> {
-        return Promise.resolve(Transaction.from(txData));
+    public deserializeSignedTx(signedTxData: string): Transaction {
+        return Transaction.from(signedTxData);
     }
 
     /**
@@ -321,8 +420,8 @@ export class EVMTransactions extends EVMModule<any> {
      * @param tx
      */
     public async getTxStatus(tx: string): Promise<"pending" | "success" | "not_found" | "reverted"> {
-        const parsedTx: Transaction = await this.deserializeTx(tx);
-        return await this.getTxIdStatus(parsedTx.hash);
+        const parsedTx: Transaction = this.deserializeSignedTx(tx);
+        return await this.getTxIdStatus(parsedTx.hash!);
     }
 
     /**
@@ -336,7 +435,9 @@ export class EVMTransactions extends EVMModule<any> {
         if(txResponse.blockHash==null) return "pending";
 
         const [safeBlockNumber, txReceipt] = await Promise.all([
-            this.root.config.safeBlockTag==="latest" ? Promise.resolve(null) : this.provider.getBlock(this.root.config.safeBlockTag).then(res => res.number),
+            this.root.config.safeBlockTag==="latest"
+                ? Promise.resolve(null)
+                : this.provider.getBlock(this.root.config.safeBlockTag).then(res => res?.number ?? 0),
             this.provider.getTransactionReceipt(txId)
         ]);
 
@@ -361,7 +462,7 @@ export class EVMTransactions extends EVMModule<any> {
     }
 
     public offSendTransaction(callback: (tx: string) => Promise<string>): boolean {
-        this.cbkSendTransaction = null;
+        delete this.cbkSendTransaction;
         return true;
     }
 

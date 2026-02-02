@@ -12,6 +12,10 @@ const EVMSignatures_1 = require("./modules/EVMSignatures");
 const EVMAddresses_1 = require("./modules/EVMAddresses");
 const EVMSigner_1 = require("../wallet/EVMSigner");
 const EVMBrowserSigner_1 = require("../wallet/EVMBrowserSigner");
+/**
+ * Main chain interface for interacting with EVM-compatible blockchains
+ * @category Chain Interface
+ */
 class EVMChainInterface {
     constructor(chainId, evmChainId, provider, config, retryPolicy, evmFeeEstimator = new EVMFees_1.EVMFees(provider)) {
         var _a, _b, _c, _d;
@@ -32,58 +36,127 @@ class EVMChainInterface {
         this.Events = new EVMEvents_1.EVMEvents(this);
         this.Blocks = new EVMBlocks_1.EVMBlocks(this);
     }
+    /**
+     * @inheritDoc
+     */
     async getBalance(signer, tokenAddress) {
         //TODO: For native token we should discount the cost of transactions
         return await this.Tokens.getTokenBalance(signer, tokenAddress);
     }
+    /**
+     * @inheritDoc
+     */
     getNativeCurrencyAddress() {
         return this.Tokens.getNativeCurrencyAddress();
     }
+    /**
+     * @inheritDoc
+     */
     isValidToken(tokenIdentifier) {
         return this.Tokens.isValidToken(tokenIdentifier);
     }
+    /**
+     * @inheritDoc
+     */
     isValidAddress(address) {
         return EVMAddresses_1.EVMAddresses.isValidAddress(address);
     }
+    /**
+     * @inheritDoc
+     */
     normalizeAddress(address) {
         return (0, ethers_1.getAddress)(address);
     }
     ///////////////////////////////////
     //// Callbacks & handlers
+    /**
+     * @inheritDoc
+     */
     offBeforeTxReplace(callback) {
         return true;
     }
+    /**
+     * @inheritDoc
+     */
     onBeforeTxReplace(callback) { }
+    /**
+     * @inheritDoc
+     */
     onBeforeTxSigned(callback) {
         this.Transactions.onBeforeTxSigned(callback);
     }
+    /**
+     * @inheritDoc
+     */
     offBeforeTxSigned(callback) {
         return this.Transactions.offBeforeTxSigned(callback);
     }
+    /**
+     * @inheritDoc
+     */
     randomAddress() {
         return EVMAddresses_1.EVMAddresses.randomAddress();
     }
+    /**
+     * @inheritDoc
+     */
     randomSigner() {
         const wallet = ethers_1.Wallet.createRandom();
         return new EVMSigner_1.EVMSigner(wallet, wallet.address);
     }
     ////////////////////////////////////////////
     //// Transactions
+    /**
+     * @inheritDoc
+     */
     sendAndConfirm(signer, txs, waitForConfirmation, abortSignal, parallel, onBeforePublish, useAccessLists) {
         return this.Transactions.sendAndConfirm(signer, txs, waitForConfirmation, abortSignal, parallel, onBeforePublish, useAccessLists);
     }
+    /**
+     * @inheritDoc
+     */
+    sendSignedAndConfirm(signedTxs, waitForConfirmation, abortSignal, parallel, onBeforePublish) {
+        return this.Transactions.sendSignedAndConfirm(signedTxs, waitForConfirmation, abortSignal, parallel, onBeforePublish);
+    }
+    /**
+     * @inheritDoc
+     */
     serializeTx(tx) {
-        return this.Transactions.serializeTx(tx);
+        return this.Transactions.serializeUnsignedTx(tx);
     }
+    /**
+     * @inheritDoc
+     */
     deserializeTx(txData) {
-        return this.Transactions.deserializeTx(txData);
+        return Promise.resolve(this.Transactions.deserializeUnsignedTx(txData));
     }
+    /**
+     * @inheritDoc
+     */
+    serializeSignedTx(tx) {
+        return Promise.resolve(this.Transactions.serializeSignedTx(tx));
+    }
+    /**
+     * @inheritDoc
+     */
+    deserializeSignedTx(txData) {
+        return Promise.resolve(this.Transactions.deserializeSignedTx(txData));
+    }
+    /**
+     * @inheritDoc
+     */
     getTxIdStatus(txId) {
         return this.Transactions.getTxIdStatus(txId);
     }
+    /**
+     * @inheritDoc
+     */
     getTxStatus(tx) {
         return this.Transactions.getTxStatus(tx);
     }
+    /**
+     * @inheritDoc
+     */
     async getFinalizedBlock() {
         const block = await this.Blocks.getBlock(this.config.finalizedBlockTag);
         return {
@@ -91,14 +164,23 @@ class EVMChainInterface {
             blockHash: block.hash
         };
     }
+    /**
+     * @inheritDoc
+     */
     async txsTransfer(signer, token, amount, dstAddress, feeRate) {
         return [await this.Tokens.Transfer(signer, token, amount, dstAddress, feeRate)];
     }
+    /**
+     * @inheritDoc
+     */
     async transfer(signer, token, amount, dstAddress, txOptions) {
         const tx = await this.Tokens.Transfer(signer.getAddress(), token, amount, dstAddress, txOptions?.feeRate);
         const [txId] = await this.Transactions.sendAndConfirm(signer, [tx], txOptions?.waitForConfirmation, txOptions?.abortSignal, false);
         return txId;
     }
+    /**
+     * @inheritDoc
+     */
     async wrapSigner(signer) {
         const address = await signer.getAddress();
         if (signer instanceof ethers_1.JsonRpcSigner || signer.provider instanceof ethers_1.BrowserProvider) {

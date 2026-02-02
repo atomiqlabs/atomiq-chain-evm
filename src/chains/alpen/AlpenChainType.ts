@@ -1,6 +1,6 @@
 import {ChainType} from "@atomiqlabs/base";
 import {EVMPreFetchVerification} from "../../evm/swaps/modules/EVMSwapInit";
-import {EVMTx} from "../../evm/chain/modules/EVMTransactions";
+import {EVMTx, SignedEVMTx} from "../../evm/chain/modules/EVMTransactions";
 import {EVMSigner} from "../../evm/wallet/EVMSigner";
 import {EVMSwapData} from "../../evm/swaps/EVMSwapData";
 import {EVMChainInterface} from "../../evm/chain/EVMChainInterface";
@@ -12,11 +12,16 @@ import {EVMBtcRelay} from "../../evm/btcrelay/EVMBtcRelay";
 import {EVMSpvVaultContract} from "../../evm/spv_swap/EVMSpvVaultContract";
 import {Signer} from "ethers";
 
+/**
+ * Type definition for the Alpen chain implementation
+ * @category Networks/Alpen
+ */
 export type AlpenChainType = ChainType<
     "ALPEN",
     never,
     EVMPreFetchVerification,
     EVMTx,
+    SignedEVMTx,
     EVMSigner,
     Signer,
     EVMSwapData,
@@ -24,7 +29,7 @@ export type AlpenChainType = ChainType<
     EVMChainInterface<"ALPEN">,
     EVMChainEventsBrowser,
     EVMBtcRelay<any>,
-    EVMSpvVaultData,
     EVMSpvWithdrawalData,
+    EVMSpvVaultData,
     EVMSpvVaultContract<"ALPEN">
 >;

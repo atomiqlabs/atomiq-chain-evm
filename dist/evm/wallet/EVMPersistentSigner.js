@@ -1,12 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVMPersistentSigner = void 0;
-const fs = require("fs/promises");
 const ethers_1 = require("ethers");
 const Utils_1 = require("../../utils/Utils");
 const EVMFees_1 = require("../chain/modules/EVMFees");
 const EVMSigner_1 = require("./EVMSigner");
 const promise_queue_ts_1 = require("promise-queue-ts");
+const fs = require("fs/promises");
 const WAIT_BEFORE_BUMP = 15 * 1000;
 const MIN_FEE_INCREASE_ABSOLUTE = 1n * 1000000000n; //1GWei
 const MIN_FEE_INCREASE_PPM = 100000n; // +10%
@@ -14,10 +14,12 @@ class EVMPersistentSigner extends EVMSigner_1.EVMSigner {
     constructor(account, address, chainInterface, directory, minFeeIncreaseAbsolute, minFeeIncreasePpm, waitBeforeBumpMillis) {
         super(account, address, true);
         this.pendingTxs = new Map();
+        this.confirmedNonce = 0;
+        this.pendingNonce = 0;
         this.stopped = false;
         this.saveCount = 0;
         this.sendTransactionQueue = new promise_queue_ts_1.PromiseQueue();
-        this.signTransaction = null;
+        this.signTransaction = undefined;
         this.chainInterface = chainInterface;
         this.directory = directory;
         this.minFeeIncreaseAbsolute = minFeeIncreaseAbsolute ?? MIN_FEE_INCREASE_ABSOLUTE;
@@ -206,7 +208,8 @@ class EVMPersistentSigner extends EVMSigner_1.EVMSigner {
                 transaction.nonce = this.pendingNonce + 1;
             }
             const tx = {};
-            for (let key in transaction) {
+            for (let k in transaction) {
+                const key = k;
                 if (transaction[key] instanceof Promise) {
                     tx[key] = await transaction[key];
                 }

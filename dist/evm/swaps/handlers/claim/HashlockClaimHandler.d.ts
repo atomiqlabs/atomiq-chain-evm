@@ -5,6 +5,9 @@ import { Buffer } from "buffer";
 import { IClaimHandler } from "./ClaimHandlers";
 import { EVMSwapData } from "../../EVMSwapData";
 import { EVMTx } from "../../../chain/modules/EVMTransactions";
+/**
+ * @category Internal/Handlers
+ */
 export declare class HashlockClaimHandler implements IClaimHandler<Buffer, string> {
     readonly address: string;
     static readonly type: ChainSwapType;

@@ -3,6 +3,9 @@ import {Block} from "ethers";
 
 export type EVMBlockTag = "safe" | "pending" | "latest" | "finalized";
 
+/**
+ * @category Internal/Chain
+ */
 export class EVMBlocks extends EVMModule<any> {
 
     private BLOCK_CACHE_TIME = 5*1000;
@@ -26,7 +29,10 @@ export class EVMBlocks extends EVMModule<any> {
     } {
         const blockTagStr = blockTag.toString(10);
 
-        const blockPromise = this.provider.getBlock(blockTag, false);
+        const blockPromise = this.provider.getBlock(blockTag, false).then((block) => {
+            if(block==null) throw new Error(`Failed to fetch '${blockTag}' block!`);
+            return block;
+        });
         const timestamp = Date.now();
         this.blockCache[blockTagStr] = {
             block: blockPromise,

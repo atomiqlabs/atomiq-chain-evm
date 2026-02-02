@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVMSwapRefund = void 0;
 const base_1 = require("@atomiqlabs/base");
-const Utils_1 = require("../../../utils/Utils");
 const EVMSwapModule_1 = require("../EVMSwapModule");
 const EVMFees_1 = require("../../chain/modules/EVMFees");
 const Refund = [
@@ -85,7 +84,7 @@ class EVMSwapRefund extends EVMSwapModule_1.EVMSwapModule {
         const refundHandler = this.contract.refundHandlersByAddress[swapData.refundHandler.toLowerCase()];
         if (refundHandler == null)
             throw new Error("Invalid refund handler");
-        if (check && !await (0, Utils_1.tryWithRetries)(() => this.contract.isRequestRefundable(swapData.offerer.toString(), swapData), this.retryPolicy)) {
+        if (check && !await this.contract.isRequestRefundable(swapData.offerer.toString(), swapData)) {
             throw new base_1.SwapDataVerificationError("Not refundable yet!");
         }
         feeRate ?? (feeRate = await this.root.Fees.getFeeRate());
@@ -106,10 +105,10 @@ class EVMSwapRefund extends EVMSwapModule_1.EVMSwapModule {
      * @param feeRate fee rate to be used for the transactions
      */
     async txsRefundWithAuthorization(signer, swapData, timeout, prefix, signature, check, feeRate) {
-        if (check && !await (0, Utils_1.tryWithRetries)(() => this.contract.isCommited(swapData), this.retryPolicy)) {
+        if (check && !await this.contract.isCommited(swapData)) {
             throw new base_1.SwapDataVerificationError("Not correctly committed");
         }
-        await (0, Utils_1.tryWithRetries)(() => this.isSignatureValid(swapData, timeout, prefix, signature), this.retryPolicy, (e) => e instanceof base_1.SignatureVerificationError);
+        await this.isSignatureValid(swapData, timeout, prefix, signature);
         feeRate ?? (feeRate = await this.root.Fees.getFeeRate());
         const tx = await this.RefundWithSignature(signer, swapData, timeout, signature, feeRate);
         this.logger.debug("txsRefundWithAuthorization(): creating refund transaction, swap: " + swapData.getClaimHash() +

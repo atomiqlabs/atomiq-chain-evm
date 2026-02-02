@@ -7,7 +7,7 @@ export interface IHandler<TCommitmentData, TWitnessData> {
 
     getCommitment(data: TCommitmentData): string;
 
-    getWitness(signer: string, data: EVMSwapData, witnessData: TWitnessData, feeRate?: string): Promise<{
+    getWitness(signer: string, data: EVMSwapData, witnessData?: TWitnessData, feeRate?: string): Promise<{
         initialTxns: EVMTx[],
         witness: Buffer
     }>;

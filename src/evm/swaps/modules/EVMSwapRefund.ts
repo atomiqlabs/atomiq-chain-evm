@@ -1,5 +1,4 @@
 import {SignatureVerificationError, SwapDataVerificationError} from "@atomiqlabs/base";
-import {tryWithRetries} from "../../../utils/Utils";
 import {IHandler} from "../handlers/IHandler";
 import {EVMSwapModule} from "../EVMSwapModule";
 import {Buffer} from "buffer";
@@ -135,7 +134,7 @@ export class EVMSwapRefund extends EVMSwapModule {
         const refundHandler: IHandler<any, T> = this.contract.refundHandlersByAddress[swapData.refundHandler.toLowerCase()];
         if(refundHandler==null) throw new Error("Invalid refund handler");
 
-        if(check && !await tryWithRetries(() => this.contract.isRequestRefundable(swapData.offerer.toString(), swapData), this.retryPolicy)) {
+        if(check && !await this.contract.isRequestRefundable(swapData.offerer.toString(), swapData)) {
             throw new SwapDataVerificationError("Not refundable yet!");
         }
 
@@ -170,14 +169,10 @@ export class EVMSwapRefund extends EVMSwapModule {
         check?: boolean,
         feeRate?: string
     ): Promise<EVMTx[]> {
-        if(check && !await tryWithRetries(() => this.contract.isCommited(swapData), this.retryPolicy)) {
+        if(check && !await this.contract.isCommited(swapData)) {
             throw new SwapDataVerificationError("Not correctly committed");
         }
-        await tryWithRetries(
-            () => this.isSignatureValid(swapData, timeout, prefix, signature),
-            this.retryPolicy,
-            (e) => e instanceof SignatureVerificationError
-        );
+        await this.isSignatureValid(swapData, timeout, prefix, signature);
 
         feeRate ??= await this.root.Fees.getFeeRate();
 

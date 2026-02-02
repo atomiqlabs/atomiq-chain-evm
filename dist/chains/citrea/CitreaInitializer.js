@@ -57,6 +57,14 @@ const CitreaContractAddresses = {
         }
     }
 };
+const chainTypeMapping = {
+    [base_1.BitcoinNetwork.MAINNET]: "MAINNET",
+    [base_1.BitcoinNetwork.TESTNET4]: "TESTNET4",
+};
+/**
+ * Default Citrea token assets configuration
+ * @category Networks/Citrea
+ */
 exports.CitreaAssets = {
     CBTC: {
         address: "0x0000000000000000000000000000000000000000",
@@ -69,24 +77,23 @@ exports.CitreaAssets = {
         displayDecimals: 8
     },
     USDC: {
-        address: "0x2C8abD2A528D19AFc33d2ebA507c0F405c131335",
+        address: "0xE045e6c36cF77FAA2CfB54466D71A3aEF7bbE839",
         decimals: 6,
         displayDecimals: 6
     }
 };
+/**
+ * Initialize Citrea chain integration
+ * @category Networks/Citrea
+ */
 function initializeCitrea(options, bitcoinRpc, network) {
-    if (options.chainType == null) {
-        switch (network) {
-            case base_1.BitcoinNetwork.TESTNET4:
-                options.chainType = "TESTNET4";
-                break;
-            case base_1.BitcoinNetwork.MAINNET:
-                options.chainType = "MAINNET";
-                break;
-        }
-    }
+    options.chainType ?? (options.chainType = chainTypeMapping[network]);
+    if (options.chainType == null)
+        throw new Error("Please specify chainType in options!");
     const defaultContractAddresses = CitreaContractAddresses[options.chainType];
     const chainId = CitreaChainIds[options.chainType];
+    if (chainId == null)
+        throw new Error("Invalid chainId due to wrong chainType specified, check the passed chainType!");
     const provider = typeof (options.rpcUrl) === "string" ?
         (options.rpcUrl.startsWith("ws")
             ? new ethers_1.WebSocketProvider(options.rpcUrl, { name: "Citrea", chainId })
@@ -131,6 +138,10 @@ function initializeCitrea(options, bitcoinRpc, network) {
 }
 exports.initializeCitrea = initializeCitrea;
 ;
+/**
+ * Citrea chain initializer instance
+ * @category Networks/Citrea
+ */
 exports.CitreaInitializer = {
     chainId: "CITREA",
     chainType: null,

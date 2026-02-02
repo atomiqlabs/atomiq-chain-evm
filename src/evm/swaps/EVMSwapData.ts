@@ -8,6 +8,9 @@ const FLAG_PAY_OUT: bigint = 0x01n;
 const FLAG_PAY_IN: bigint = 0x02n;
 const FLAG_REPUTATION: bigint = 0x04n;
 
+/**
+ * @category Swaps
+ */
 export class EVMSwapData extends SwapData {
 
     static toFlags(val: bigint): {payOut: boolean, payIn: boolean, reputation: boolean, sequence: bigint} {
@@ -48,7 +51,7 @@ export class EVMSwapData extends SwapData {
     securityDeposit: bigint;
     claimerBounty: bigint;
 
-    extraData: string;
+    extraData?: string;
 
     successActionCommitment: string;
 
@@ -71,10 +74,9 @@ export class EVMSwapData extends SwapData {
         securityDeposit: bigint,
         claimerBounty: bigint,
         kind: ChainSwapType,
-        extraData: string,
+        extraData?: string,
         successActionCommitment?: string
     );
-
     constructor(data: any);
 
     constructor(
@@ -98,9 +100,23 @@ export class EVMSwapData extends SwapData {
         successActionCommitment?: string
     ) {
         super();
-        if(claimer!=null || token!=null || refundHandler!=null || claimHandler!=null ||
-            payOut!=null || payIn!=null || reputation!=null || sequence!=null || claimData!=null || refundData!=null ||
-            amount!=null || depositToken!=null || securityDeposit!=null || claimerBounty!=null) {
+        if(typeof(offererOrData)==="string") {
+            if(claimer==null) throw new Error("sequence is null!");
+            if(token==null) throw new Error("amount is null!");
+            if(refundHandler==null) throw new Error("securityDeposit is null!");
+            if(claimHandler==null) throw new Error("claimerBounty is null!");
+            if(payOut==null) throw new Error("sequence is null!");
+            if(payIn==null) throw new Error("amount is null!");
+            if(reputation==null) throw new Error("securityDeposit is null!");
+            if(sequence==null) throw new Error("claimerBounty is null!");
+            if(claimData==null) throw new Error("sequence is null!");
+            if(refundData==null) throw new Error("amount is null!");
+            if(amount==null) throw new Error("securityDeposit is null!");
+            if(depositToken==null) throw new Error("claimerBounty is null!");
+            if(securityDeposit==null) throw new Error("sequence is null!");
+            if(claimerBounty==null) throw new Error("amount is null!");
+            if(kind==null) throw new Error("securityDeposit is null!");
+
             this.offerer = offererOrData;
             this.claimer = claimer;
             this.token = token;
@@ -120,6 +136,10 @@ export class EVMSwapData extends SwapData {
             this.extraData = extraData;
             this.successActionCommitment = successActionCommitment ?? ZeroHash;
         } else {
+            if(offererOrData.sequence==null) throw new Error("sequence is null!");
+            if(offererOrData.amount==null) throw new Error("amount is null!");
+            if(offererOrData.securityDeposit==null) throw new Error("securityDeposit is null!");
+            if(offererOrData.claimerBounty==null) throw new Error("claimerBounty is null!");
             this.offerer = offererOrData.offerer;
             this.claimer = offererOrData.claimer;
             this.token = offererOrData.token;
@@ -128,32 +148,44 @@ export class EVMSwapData extends SwapData {
             this.payOut = offererOrData.payOut;
             this.payIn = offererOrData.payIn;
             this.reputation = offererOrData.reputation;
-            this.sequence = offererOrData.sequence==null ? null : BigInt(offererOrData.sequence);
+            this.sequence = BigInt(offererOrData.sequence);
             this.claimData = offererOrData.claimData;
             this.refundData = offererOrData.refundData;
-            this.amount = offererOrData.amount==null ? null : BigInt(offererOrData.amount);
+            this.amount = BigInt(offererOrData.amount);
             this.depositToken = offererOrData.depositToken;
-            this.securityDeposit = offererOrData.securityDeposit==null ? null : BigInt(offererOrData.securityDeposit);
-            this.claimerBounty = offererOrData.claimerBounty==null ? null : BigInt(offererOrData.claimerBounty);
+            this.securityDeposit = BigInt(offererOrData.securityDeposit);
+            this.claimerBounty = BigInt(offererOrData.claimerBounty);
             this.kind = offererOrData.kind;
             this.extraData = offererOrData.extraData;
             this.successActionCommitment = offererOrData.successActionCommitment ?? ZeroHash;
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     getOfferer(): string {
         return this.offerer;
     }
 
+    /**
+     * @inheritDoc
+     */
     setOfferer(newOfferer: string) {
         this.offerer = newOfferer;
         this.payIn = true;
     }
 
+    /**
+     * @inheritDoc
+     */
     getClaimer(): string {
         return this.claimer;
     }
 
+    /**
+     * @inheritDoc
+     */
     setClaimer(newClaimer: string) {
         this.claimer = newClaimer;
         this.payIn = false;
@@ -161,6 +193,9 @@ export class EVMSwapData extends SwapData {
         this.reputation = false;
     }
 
+    /**
+     * @inheritDoc
+     */
     serialize(): any {
         return {
             type: "evm",
@@ -185,34 +220,65 @@ export class EVMSwapData extends SwapData {
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     getAmount(): bigint {
         return this.amount;
     }
 
+    /**
+     * @inheritDoc
+     */
     getToken(): string {
         return this.token;
     }
 
+    /**
+     * @inheritDoc
+     */
     isToken(token: string): boolean {
         return this.token.toLowerCase()===token.toLowerCase();
     }
 
+    /**
+     * @inheritDoc
+     */
     getType(): ChainSwapType {
         return this.kind;
     }
 
+    /**
+     * @inheritDoc
+     */
     getExpiry(): bigint {
         return TimelockRefundHandler.getExpiry(this);
     }
 
+    /**
+     * @inheritDoc
+     */
     isPayIn(): boolean {
         return this.payIn;
     }
 
+    /**
+     * @inheritDoc
+     */
     isPayOut(): boolean {
         return this.payOut;
     }
 
+    /**
+     * @inheritDoc
+     */
+    isTrackingReputation(): boolean {
+        return this.reputation;
+    }
+
+    /**
+     * @inheritDoc
+     */
     getEscrowHash(): string {
         const encoded = AbiCoder.defaultAbiCoder().encode(
             ["address", "address", "uint256", "address", "uint256", "address", "bytes32", "address", "bytes32", "uint256", "uint256", "address", "bytes32"],
@@ -226,68 +292,110 @@ export class EVMSwapData extends SwapData {
         return escrowHash.slice(2); //Strip `0x`
    }
 
+    /**
+     * @inheritDoc
+     */
     getClaimHash(): string {
         let hash = this.claimData;
         if(hash.startsWith("0x")) hash = hash.slice(2);
         return hash;
     }
 
+    /**
+     * @inheritDoc
+     */
     getSequence(): bigint {
         return this.sequence;
     }
 
-    getConfirmationsHint(): number {
+    /**
+     * @inheritDoc
+     */
+    getConfirmationsHint(): number | null {
         if(this.extraData==null) return null;
         if(this.extraData.length!=84) return null;
         return parseInt(this.extraData.slice(80), 16);
     }
 
-    getNonceHint(): bigint {
+    /**
+     * @inheritDoc
+     */
+    getNonceHint(): bigint | null {
         if(this.extraData==null) return null;
         if(this.extraData.length!=84) return null;
         return BigInt("0x"+this.extraData.slice(64, 80));
     }
 
-    getTxoHashHint(): string {
+    /**
+     * @inheritDoc
+     */
+    getTxoHashHint(): string | null {
         if(this.extraData==null) return null;
         if(this.extraData.length!=84) return null;
         return this.extraData.slice(0, 64);
     }
 
-    getExtraData(): string {
-        return this.extraData;
+    /**
+     * @inheritDoc
+     */
+    getExtraData(): string | null {
+        return this.extraData ?? null;
     }
 
+    /**
+     * @inheritDoc
+     */
     setExtraData(extraData: string): void {
         this.extraData = extraData;
     }
 
+    /**
+     * @inheritDoc
+     */
     getSecurityDeposit() {
         return this.securityDeposit;
     }
 
+    /**
+     * @inheritDoc
+     */
     getClaimerBounty() {
         return this.claimerBounty;
     }
 
+    /**
+     * @inheritDoc
+     */
     getTotalDeposit() {
         return this.claimerBounty < this.securityDeposit ? this.securityDeposit : this.claimerBounty;
     }
 
+    /**
+     * @inheritDoc
+     */
     getDepositToken() {
         return this.depositToken;
     }
 
+    /**
+     * @inheritDoc
+     */
     isDepositToken(token: string): boolean {
         if(!token.startsWith("0x")) token = "0x"+token;
         return this.depositToken.toLowerCase() === token.toLowerCase();
     }
 
+    /**
+     * @inheritDoc
+     */
     isClaimer(address: string) {
         if(!address.startsWith("0x")) address = "0x"+address;
         return this.claimer.toLowerCase() === address.toLowerCase();
     }
 
+    /**
+     * @inheritDoc
+     */
     isOfferer(address: string) {
         if(!address.startsWith("0x")) address = "0x"+address;
         return this.offerer.toLowerCase() === address.toLowerCase();
@@ -308,6 +416,9 @@ export class EVMSwapData extends SwapData {
         return (this.claimData.startsWith("0x") ? this.claimData : "0x"+this.claimData) === data;
     }
 
+    /**
+     * @inheritDoc
+     */
     equals(other: EVMSwapData): boolean {
         return other.offerer.toLowerCase()===this.offerer.toLowerCase() &&
             other.claimer.toLowerCase()===this.claimer.toLowerCase() &&
@@ -344,6 +455,9 @@ export class EVMSwapData extends SwapData {
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     hasSuccessAction(): boolean {
         return this.successActionCommitment !== ZeroHash;
     }
@@ -368,7 +482,7 @@ export class EVMSwapData extends SwapData {
             BigInt(struct.securityDeposit),
             BigInt(struct.claimerBounty),
             claimHandlerImpl.getType(),
-            null,
+            undefined,
             struct.successActionCommitment as string
         );
     }

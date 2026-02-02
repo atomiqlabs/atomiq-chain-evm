@@ -6,6 +6,9 @@ const ethers_1 = require("ethers");
 const DataHash = [
     { name: "dataHash", type: "bytes32" }
 ];
+/**
+ * @category Internal/Chain
+ */
 class EVMSignatures extends EVMModule_1.EVMModule {
     constructor(root, domainName = "atomiq.exchange") {
         super(root);

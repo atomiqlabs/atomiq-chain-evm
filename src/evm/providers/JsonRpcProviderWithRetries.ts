@@ -7,13 +7,16 @@ import {
     tryWithRetries
 } from "../../utils/Utils";
 
+/**
+ * @category Providers
+ */
 export class JsonRpcProviderWithRetries extends JsonRpcProvider {
 
     readonly retryPolicy?: {
         maxRetries?: number, delay?: number, exponential?: boolean
     };
 
-    constructor(url?: string | FetchRequest, network?: Networkish, options?: JsonRpcApiProviderOptions & {
+    constructor(url: string | FetchRequest, network?: Networkish, options?: JsonRpcApiProviderOptions & {
         maxRetries?: number, delay?: number, exponential?: boolean, timeout?: number
     }) {
         if(typeof(url)==="string") url = new FetchRequest(url);

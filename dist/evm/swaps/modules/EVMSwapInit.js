@@ -5,7 +5,6 @@ const base_1 = require("@atomiqlabs/base");
 const EVMSwapModule_1 = require("../EVMSwapModule");
 const ethers_1 = require("ethers");
 const EVMFees_1 = require("../../chain/modules/EVMFees");
-const Utils_1 = require("../../../utils/Utils");
 const Initialize = [
     { name: "swapHash", type: "bytes32" },
     { name: "offerer", type: "address" },
@@ -199,8 +198,10 @@ class EVMSwapInit extends EVMSwapModule_1.EVMSwapModule {
             throw new Error("Cannot initialize as claimer for payIn=true and native currency!");
         if (!skipChecks) {
             const [_, payStatus] = await Promise.all([
-                swapData.isOfferer(sender) && !swapData.reputation ? Promise.resolve() : (0, Utils_1.tryWithRetries)(() => this.isSignatureValid(sender, swapData, timeout, prefix, signature), this.retryPolicy, (e) => e instanceof base_1.SignatureVerificationError),
-                (0, Utils_1.tryWithRetries)(() => this.contract.getCommitStatus(sender, swapData), this.retryPolicy)
+                swapData.isOfferer(sender) && !swapData.reputation
+                    ? Promise.resolve()
+                    : this.isSignatureValid(sender, swapData, timeout, prefix, signature),
+                this.contract.getCommitStatus(sender, swapData)
             ]);
             if (payStatus.type !== base_1.SwapCommitStateType.NOT_COMMITED)
                 throw new base_1.SwapDataVerificationError("Invoice already being paid for or paid");

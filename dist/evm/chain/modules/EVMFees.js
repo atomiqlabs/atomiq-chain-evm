@@ -2,11 +2,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVMFees = void 0;
 const Utils_1 = require("../../../utils/Utils");
+/**
+ * @category Chain Interface
+ */
 class EVMFees {
     constructor(provider, maxFeeRatePerGas = 500n * 1000000000n, priorityFee = 1n * 1000000000n, feeMultiplier = 1.25) {
         this.MAX_FEE_AGE = 5000;
         this.logger = (0, Utils_1.getLogger)("EVMFees: ");
-        this.blockFeeCache = null;
         this.provider = provider;
         this.maxFeeRatePerGas = maxFeeRatePerGas;
         this.priorityFee = priorityFee;
@@ -20,6 +22,10 @@ class EVMFees {
      */
     async _getFeeRate() {
         const block = await this.provider.getBlock("latest");
+        if (block == null)
+            throw new Error("Latest block not found!");
+        if (block.baseFeePerGas == null)
+            throw new Error("Fee estimation is only possible for post-eip1559 blocks!");
         const baseFee = block.baseFeePerGas * this.feeMultiplierPPM / 1000000n;
         this.logger.debug("_getFeeRate(): Base fee rate: " + baseFee.toString(10));
         return baseFee;
@@ -31,16 +37,15 @@ class EVMFees {
      */
     async getFeeRate() {
         if (this.blockFeeCache == null || Date.now() - this.blockFeeCache.timestamp > this.MAX_FEE_AGE) {
-            let obj = {
+            let obj;
+            this.blockFeeCache = obj = {
                 timestamp: Date.now(),
-                feeRate: null
+                feeRate: this._getFeeRate().catch(e => {
+                    if (this.blockFeeCache === obj)
+                        delete this.blockFeeCache;
+                    throw e;
+                })
             };
-            obj.feeRate = this._getFeeRate().catch(e => {
-                if (this.blockFeeCache === obj)
-                    this.blockFeeCache = null;
-                throw e;
-            });
-            this.blockFeeCache = obj;
         }
         let baseFee = await this.blockFeeCache.feeRate;
         if (baseFee > this.maxFeeRatePerGas)
@@ -63,7 +68,7 @@ class EVMFees {
     }
     static applyFeeRate(tx, gas, feeRate) {
         if (feeRate == null)
-            return null;
+            return;
         const [baseFee, priorityFee] = feeRate.split(",");
         tx.maxFeePerGas = BigInt(baseFee) + BigInt(priorityFee);
         tx.maxPriorityFeePerGas = BigInt(priorityFee);

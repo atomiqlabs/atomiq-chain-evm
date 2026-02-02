@@ -5,6 +5,9 @@ const base_1 = require("@atomiqlabs/base");
 const EVMBtcHeader_1 = require("./EVMBtcHeader");
 const buffer_1 = require("buffer");
 const ethers_1 = require("ethers");
+/**
+ * @category BTC Relay
+ */
 class EVMBtcStoredHeader {
     constructor(obj) {
         this.blockheader = obj.blockheader instanceof EVMBtcHeader_1.EVMBtcHeader ? obj.blockheader : new EVMBtcHeader_1.EVMBtcHeader(obj.blockheader);

@@ -9,7 +9,9 @@ import {
 import {ReconnectingWebSocketProvider} from "./ReconnectingWebSocketProvider";
 import type {WebSocketLike} from "ethers/lib.esm";
 
-
+/**
+ * @category Providers
+ */
 export class WebSocketProviderWithRetries extends ReconnectingWebSocketProvider {
 
     readonly retryPolicy?: {

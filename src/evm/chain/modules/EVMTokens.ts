@@ -5,7 +5,9 @@ import {EVMAddresses} from "./EVMAddresses";
 import {EVMFees} from "./EVMFees";
 import {EVMSwapData} from "../../swaps/EVMSwapData";
 
-
+/**
+ * @category Internal/Chain
+ */
 export class EVMTokens extends EVMModule<any> {
 
     public static readonly ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
@@ -105,6 +107,7 @@ export class EVMTokens extends EVMModule<any> {
     //// Approval
     /**
      * Creates transactions for approving spending of tokens
+     * Returns null for native token approval
      *
      * @param signer
      * @param token token to send
@@ -113,7 +116,7 @@ export class EVMTokens extends EVMModule<any> {
      * @param feeRate fee rate to use for the transactions
      * @private
      */
-    public async Approve(signer: string, token: string, amount: bigint, spender: string, feeRate?: string): Promise<TransactionRequest> {
+    public async Approve(signer: string, token: string, amount: bigint, spender: string, feeRate?: string): Promise<TransactionRequest | null> {
         if(token===this.getNativeCurrencyAddress()) return null;
 
         const tx = await this.getContract(token).approve.populateTransaction(spender, amount);

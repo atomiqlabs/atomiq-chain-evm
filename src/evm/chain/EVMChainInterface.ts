@@ -14,18 +14,26 @@ import {EVMBlocks, EVMBlockTag} from "./modules/EVMBlocks";
 import {EVMEvents} from "./modules/EVMEvents";
 import {EVMFees} from "./modules/EVMFees";
 import {EVMTokens} from "./modules/EVMTokens";
-import {EVMTransactions, EVMTx} from "./modules/EVMTransactions";
+import {EVMTransactions, EVMTx, SignedEVMTx} from "./modules/EVMTransactions";
 import { EVMSignatures } from "./modules/EVMSignatures";
 import {EVMAddresses} from "./modules/EVMAddresses";
 import {EVMSigner} from "../wallet/EVMSigner";
 import {EVMBrowserSigner} from "../wallet/EVMBrowserSigner";
 
+/**
+ * Retry policy configuration for EVM RPC calls
+ * @category Chain Interface
+ */
 export type EVMRetryPolicy = {
     maxRetries?: number,
     delay?: number,
     exponential?: boolean
 }
 
+/**
+ * Configuration options for EVM chain interface
+ * @category Chain Interface
+ */
 export type EVMConfiguration = {
     safeBlockTag: EVMBlockTag,
     finalizedBlockTag: EVMBlockTag,
@@ -43,12 +51,16 @@ export type EVMConfiguration = {
     }
 };
 
-export class EVMChainInterface<ChainId extends string = string> implements ChainInterface<EVMTx, EVMSigner, ChainId, Signer> {
+/**
+ * Main chain interface for interacting with EVM-compatible blockchains
+ * @category Chain Interface
+ */
+export class EVMChainInterface<ChainId extends string = string> implements ChainInterface<EVMTx, SignedEVMTx, EVMSigner, ChainId, Signer> {
 
     readonly chainId: ChainId;
 
     readonly provider: JsonRpcApiProvider;
-    readonly retryPolicy: EVMRetryPolicy;
+    readonly retryPolicy?: EVMRetryPolicy;
 
     public readonly evmChainId: number;
 
@@ -92,46 +104,79 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
     }
 
 
+    /**
+     * @inheritDoc
+     */
     async getBalance(signer: string, tokenAddress: string): Promise<bigint> {
         //TODO: For native token we should discount the cost of transactions
         return await this.Tokens.getTokenBalance(signer, tokenAddress);
     }
 
+    /**
+     * @inheritDoc
+     */
     getNativeCurrencyAddress(): string {
         return this.Tokens.getNativeCurrencyAddress();
     }
 
+    /**
+     * @inheritDoc
+     */
     isValidToken(tokenIdentifier: string): boolean {
         return this.Tokens.isValidToken(tokenIdentifier);
     }
 
+    /**
+     * @inheritDoc
+     */
     isValidAddress(address: string): boolean {
         return EVMAddresses.isValidAddress(address);
     }
 
+    /**
+     * @inheritDoc
+     */
     normalizeAddress(address: string): string {
         return getAddress(address);
     }
 
     ///////////////////////////////////
     //// Callbacks & handlers
+    /**
+     * @inheritDoc
+     */
     offBeforeTxReplace(callback: (oldTx: string, oldTxId: string, newTx: string, newTxId: string) => Promise<void>): boolean {
         return true;
     }
+    /**
+     * @inheritDoc
+     */
     onBeforeTxReplace(callback: (oldTx: string, oldTxId: string, newTx: string, newTxId: string) => Promise<void>): void {}
 
+    /**
+     * @inheritDoc
+     */
     onBeforeTxSigned(callback: (tx: TransactionRequest) => Promise<void>): void {
         this.Transactions.onBeforeTxSigned(callback);
     }
 
+    /**
+     * @inheritDoc
+     */
     offBeforeTxSigned(callback: (tx: TransactionRequest) => Promise<void>): boolean {
         return this.Transactions.offBeforeTxSigned(callback);
     }
 
+    /**
+     * @inheritDoc
+     */
     randomAddress(): string {
         return EVMAddresses.randomAddress();
     }
 
+    /**
+     * @inheritDoc
+     */
     randomSigner(): EVMSigner {
         const wallet = Wallet.createRandom();
         return new EVMSigner(wallet, wallet.address);
@@ -139,6 +184,9 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
 
     ////////////////////////////////////////////
     //// Transactions
+    /**
+     * @inheritDoc
+     */
     sendAndConfirm(
         signer: EVMSigner,
         txs: TransactionRequest[],
@@ -151,34 +199,82 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
         return this.Transactions.sendAndConfirm(signer, txs, waitForConfirmation, abortSignal, parallel, onBeforePublish, useAccessLists);
     }
 
-    serializeTx(tx: Transaction): Promise<string> {
-        return this.Transactions.serializeTx(tx);
+    /**
+     * @inheritDoc
+     */
+    sendSignedAndConfirm(
+        signedTxs: Transaction[],
+        waitForConfirmation?: boolean,
+        abortSignal?: AbortSignal,
+        parallel?: boolean,
+        onBeforePublish?: (txId: string, rawTx: string) => Promise<void>
+    ): Promise<string[]> {
+        return this.Transactions.sendSignedAndConfirm(signedTxs, waitForConfirmation, abortSignal, parallel, onBeforePublish);
     }
 
-    deserializeTx(txData: string): Promise<Transaction> {
-        return this.Transactions.deserializeTx(txData);
+    /**
+     * @inheritDoc
+     */
+    serializeTx(tx: TransactionRequest): Promise<string> {
+        return this.Transactions.serializeUnsignedTx(tx);
     }
 
+    /**
+     * @inheritDoc
+     */
+    deserializeTx(txData: string): Promise<TransactionRequest> {
+        return Promise.resolve(this.Transactions.deserializeUnsignedTx(txData));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    serializeSignedTx(tx: Transaction): Promise<string> {
+        return Promise.resolve(this.Transactions.serializeSignedTx(tx));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    deserializeSignedTx(txData: string): Promise<Transaction> {
+        return Promise.resolve(this.Transactions.deserializeSignedTx(txData));
+    }
+
+    /**
+     * @inheritDoc
+     */
     getTxIdStatus(txId: string): Promise<"not_found" | "pending" | "success" | "reverted"> {
         return this.Transactions.getTxIdStatus(txId);
     }
 
+    /**
+     * @inheritDoc
+     */
     getTxStatus(tx: string): Promise<"not_found" | "pending" | "success" | "reverted"> {
         return this.Transactions.getTxStatus(tx);
     }
 
+    /**
+     * @inheritDoc
+     */
     async getFinalizedBlock(): Promise<{ height: number; blockHash: string }> {
         const block = await this.Blocks.getBlock(this.config.finalizedBlockTag);
         return {
             height: block.number,
-            blockHash: block.hash
+            blockHash: block.hash!
         };
     }
 
+    /**
+     * @inheritDoc
+     */
     async txsTransfer(signer: string, token: string, amount: bigint, dstAddress: string, feeRate?: string): Promise<TransactionRequest[]> {
         return [await this.Tokens.Transfer(signer, token, amount, dstAddress, feeRate)];
     }
 
+    /**
+     * @inheritDoc
+     */
     async transfer(
         signer: EVMSigner,
         token: string,
@@ -191,6 +287,9 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
         return txId;
     }
 
+    /**
+     * @inheritDoc
+     */
     async wrapSigner(signer: Signer): Promise<EVMSigner> {
         const address = await signer.getAddress();
         if(signer instanceof JsonRpcSigner || signer.provider instanceof BrowserProvider) {

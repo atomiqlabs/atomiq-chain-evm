@@ -1,5 +1,8 @@
 import { EVMModule } from "../EVMModule";
 import { TransactionRequest } from "ethers";
+/**
+ * @category Internal/Chain
+ */
 export declare class EVMTokens extends EVMModule<any> {
     static readonly ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
     static readonly GasCosts: {
@@ -45,6 +48,7 @@ export declare class EVMTokens extends EVMModule<any> {
     Transfer(signer: string, token: string, amount: bigint, recipient: string, feeRate?: string): Promise<TransactionRequest>;
     /**
      * Creates transactions for approving spending of tokens
+     * Returns null for native token approval
      *
      * @param signer
      * @param token token to send
@@ -53,7 +57,7 @@ export declare class EVMTokens extends EVMModule<any> {
      * @param feeRate fee rate to use for the transactions
      * @private
      */
-    Approve(signer: string, token: string, amount: bigint, spender: string, feeRate?: string): Promise<TransactionRequest>;
+    Approve(signer: string, token: string, amount: bigint, spender: string, feeRate?: string): Promise<TransactionRequest | null>;
     /**
      * Checks whether an approve transaction is required for a given token and either returns the tx
      *  or null in case the approve is not required

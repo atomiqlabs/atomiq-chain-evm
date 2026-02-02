@@ -12,10 +12,13 @@ export type EVMBtcHeaderType = {
     hash?: Buffer;
 };
 
+/**
+ * @category BTC Relay
+ */
 export class EVMBtcHeader implements BtcHeader {
 
     version: number;
-    previousBlockhash: Buffer;
+    previousBlockhash?: Buffer;
     merkleRoot: Buffer;
     timestamp: number;
     nbits: number;
@@ -45,6 +48,7 @@ export class EVMBtcHeader implements BtcHeader {
     }
 
     getReversedPrevBlockhash(): Buffer {
+        if(this.previousBlockhash==null) throw new Error("Previous blockhash is not known from compact blockheader!");
         return this.previousBlockhash;
     }
 
@@ -71,6 +75,7 @@ export class EVMBtcHeader implements BtcHeader {
     }
 
     serialize(): Buffer {
+        if(this.previousBlockhash==null) throw new Error("Cannot serialize compact blockheader without previous blockhash!");
         const buffer = Buffer.alloc(80);
         buffer.writeUInt32LE(this.version, 0);
         this.previousBlockhash.copy(buffer, 4);

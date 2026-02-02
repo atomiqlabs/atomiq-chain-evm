@@ -3,6 +3,9 @@ import {BigIntBufferUtils} from "@atomiqlabs/base";
 import {EVMSwapData} from "../../EVMSwapData";
 import {EVMTx} from "../../../chain/modules/EVMTransactions";
 
+/**
+ * @category Internal/Handlers
+ */
 export class TimelockRefundHandler implements IHandler<bigint, never> {
 
     public readonly address: string;

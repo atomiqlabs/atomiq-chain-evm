@@ -45,14 +45,17 @@ export function unpackOwnerAndVaultId(data: string): [string, bigint] {
     return [getAddress(data.substring(0, 42)), BigInt("0x"+data.substring(42, 66))];
 }
 
+/**
+ * @category Swaps
+ */
 export class EVMSpvVaultContract<ChainId extends string>
     extends EVMContractBase<SpvVaultManager>
     implements SpvVaultContract<
         EVMTx,
         EVMSigner,
         ChainId,
-        EVMSpvVaultData,
-        EVMSpvWithdrawalData
+        EVMSpvWithdrawalData,
+        EVMSpvVaultData
     >
 {
     public static readonly GasCosts = {
@@ -88,6 +91,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         contractDeploymentHeight?: number
     ) {
         super(chainInterface, contractAddress, SpvVaultContractAbi, contractDeploymentHeight);
+        this.chainId = chainInterface.chainId;
         this.btcRelay = btcRelay;
         this.bitcoinRpc = bitcoinRpc;
     }
@@ -167,11 +171,17 @@ export class EVMSpvVaultContract<ChainId extends string>
         return tx;
     }
 
+    /**
+     * @inheritDoc
+     */
     async checkWithdrawalTx(tx: SpvWithdrawalTransactionData): Promise<void> {
         const result = await this.contract.parseBitcoinTx(Buffer.from(tx.btcTx.hex, "hex"));
         if(result==null) throw new Error("Failed to parse transaction!");
     }
 
+    /**
+     * @inheritDoc
+     */
     createVaultData(
         owner: string, vaultId: bigint, utxo: string, confirmations: number, tokenData: SpvVaultTokenData[]
     ): Promise<EVMSpvVaultData> {
@@ -204,12 +214,18 @@ export class EVMSpvVaultContract<ChainId extends string>
     }
 
     //Getters
+    /**
+     * @inheritDoc
+     */
     async getFronterAddress(owner: string, vaultId: bigint, withdrawal: EVMSpvWithdrawalData): Promise<string | null> {
         const frontingAddress = await this.contract.getFronterById(owner, vaultId, "0x"+withdrawal.getFrontingId());
         if(frontingAddress===ZeroAddress) return null;
         return frontingAddress;
     }
 
+    /**
+     * @inheritDoc
+     */
     async getFronterAddresses(withdrawals: {owner: string, vaultId: bigint, withdrawal: EVMSpvWithdrawalData}[]): Promise<{[btcTxId: string]: string | null}> {
         const result: {
             [btcTxId: string]: string | null
@@ -231,8 +247,13 @@ export class EVMSpvVaultContract<ChainId extends string>
 
     private vaultParamsCache: PromiseLruCache<string, SpvVaultParametersStructOutput> = new PromiseLruCache<string, SpvVaultParametersStructOutput>(5000);
 
-    async getVaultData(owner: string, vaultId: bigint): Promise<EVMSpvVaultData> {
+    /**
+     * @inheritDoc
+     */
+    async getVaultData(owner: string, vaultId: bigint): Promise<EVMSpvVaultData | null> {
         const vaultState = await this.contract.getVault(owner, vaultId);
+
+        if(vaultState.spvVaultParametersCommitment===ZeroHash) return null;
 
         const vaultParams = await this.vaultParamsCache.getOrComputeAsync(vaultState.spvVaultParametersCommitment, async () => {
             const blockheight = Number(vaultState.openBlockheight);
@@ -258,8 +279,11 @@ export class EVMSpvVaultContract<ChainId extends string>
         return new EVMSpvVaultData(owner, vaultId, vaultState, vaultParams);
     }
 
-    async getMultipleVaultData(vaults: {owner: string, vaultId: bigint}[]): Promise<{[owner: string]: {[vaultId: string]: EVMSpvVaultData}}> {
-        const result: {[owner: string]: {[vaultId: string]: EVMSpvVaultData}} = {};
+    /**
+     * @inheritDoc
+     */
+    async getMultipleVaultData(vaults: {owner: string, vaultId: bigint}[]): Promise<{[owner: string]: {[vaultId: string]: EVMSpvVaultData | null}}> {
+        const result: {[owner: string]: {[vaultId: string]: EVMSpvVaultData | null}} = {};
         let promises: Promise<void>[] = [];
         //TODO: We can upgrade this to use multicall
         for(let {owner, vaultId} of vaults) {
@@ -276,6 +300,9 @@ export class EVMSpvVaultContract<ChainId extends string>
         return result;
     }
 
+    /**
+     * @inheritDoc
+     */
     async getVaultLatestUtxo(owner: string, vaultId: bigint): Promise<string | null> {
         const vaultState = await this.contract.getVault(owner, vaultId);
         const utxo = getVaultUtxoFromState(vaultState);
@@ -283,6 +310,9 @@ export class EVMSpvVaultContract<ChainId extends string>
         return utxo;
     }
 
+    /**
+     * @inheritDoc
+     */
     async getVaultLatestUtxos(vaults: {owner: string, vaultId: bigint}[]): Promise<{[owner: string]: {[vaultId: string]: string | null}}> {
         const result: {[owner: string]: {[vaultId: string]: string | null}} = {};
         let promises: Promise<void>[] = [];
@@ -301,6 +331,9 @@ export class EVMSpvVaultContract<ChainId extends string>
         return result;
     }
 
+    /**
+     * @inheritDoc
+     */
     async getAllVaults(owner?: string): Promise<EVMSpvVaultData[]> {
         const openedVaults = new Map<string, SpvVaultParametersStructOutput>();
         await this.Events.findInContractEventsForward(
@@ -316,7 +349,7 @@ export class EVMSpvVaultContract<ChainId extends string>
                 } else {
                     openedVaults.delete(vaultIdentifier);
                 }
-                return null;
+                return Promise.resolve(null);
             }
         );
         const vaults: EVMSpvVaultData[] = [];
@@ -370,19 +403,21 @@ export class EVMSpvVaultContract<ChainId extends string>
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     async getWithdrawalState(withdrawalTx: EVMSpvWithdrawalData, scStartHeight?: number): Promise<SpvWithdrawalState> {
         const txHash = Buffer.from(withdrawalTx.getTxId(), "hex").reverse();
 
         const events: ["Fronted", "Claimed", "Closed"] = ["Fronted", "Claimed", "Closed"];
         const keys = [null, null, hexlify(txHash)];
 
-        let result: SpvWithdrawalState;
+        let result: SpvWithdrawalState | null;
         if(scStartHeight==null) {
             result = await this.Events.findInContractEvents(
                 events, keys,
                 async (event) => {
-                    const result = this.parseWithdrawalEvent(event);
-                    if(result!=null) return result;
+                    return this.parseWithdrawalEvent(event);
                 }
             );
         } else {
@@ -390,12 +425,12 @@ export class EVMSpvVaultContract<ChainId extends string>
                 events, keys,
                 async (event) => {
                     const result = this.parseWithdrawalEvent(event);
-                    if(result==null) return;
+                    if(result==null) return null;
                     if(result.type===SpvWithdrawalStateType.FRONTED) {
                         //Check if still fronted
                         const fronterAddress = await this.getFronterAddress(result.owner, result.vaultId, withdrawalTx);
                         //Not fronted now, there should be a claim/close event after the front event, continue
-                        if(fronterAddress==null) return;
+                        if(fronterAddress==null) return null;
                     }
                     return result;
                 },
@@ -408,6 +443,9 @@ export class EVMSpvVaultContract<ChainId extends string>
         return result;
     }
 
+    /**
+     * @inheritDoc
+     */
     async getWithdrawalStates(withdrawalTxs: {withdrawal: EVMSpvWithdrawalData, scStartBlockheight?: number}[]): Promise<{[btcTxId: string]: SpvWithdrawalState}> {
         const result: {[btcTxId: string]: SpvWithdrawalState} = {};
 
@@ -485,18 +523,24 @@ export class EVMSpvVaultContract<ChainId extends string>
         return result;
     }
 
+    /**
+     * @inheritDoc
+     */
     getWithdrawalData(btcTx: BtcTx): Promise<EVMSpvWithdrawalData> {
         return Promise.resolve(new EVMSpvWithdrawalData(btcTx));
     }
 
     //OP_RETURN data encoding/decoding
-    fromOpReturnData(data: Buffer): { recipient: string; rawAmounts: bigint[]; executionHash: string } {
+    /**
+     * @inheritDoc
+     */
+    fromOpReturnData(data: Buffer): { recipient: string; rawAmounts: bigint[]; executionHash?: string } {
         return EVMSpvVaultContract.fromOpReturnData(data);
     }
-    static fromOpReturnData(data: Buffer): { recipient: string; rawAmounts: bigint[]; executionHash: string } {
+    static fromOpReturnData(data: Buffer): { recipient: string; rawAmounts: bigint[]; executionHash?: string } {
         let rawAmount0: bigint = 0n;
         let rawAmount1: bigint = 0n;
-        let executionHash: string = null;
+        let executionHash: string | undefined;
         if(data.length===28) {
             rawAmount0 = data.readBigInt64BE(20).valueOf();
         } else if(data.length===36) {
@@ -519,6 +563,9 @@ export class EVMSpvVaultContract<ChainId extends string>
         return {executionHash, rawAmounts: [rawAmount0, rawAmount1], recipient: getAddress(recipient)};
     }
 
+    /**
+     * @inheritDoc
+     */
     toOpReturnData(recipient: string, rawAmounts: bigint[], executionHash?: string): Buffer {
         return EVMSpvVaultContract.toOpReturnData(recipient, rawAmounts, executionHash);
     }
@@ -548,24 +595,36 @@ export class EVMSpvVaultContract<ChainId extends string>
     }
 
     //Actions
+    /**
+     * @inheritDoc
+     */
     async claim(signer: EVMSigner, vault: EVMSpvVaultData, txs: {tx: EVMSpvWithdrawalData, storedHeader?: EVMBtcStoredHeader}[], synchronizer?: RelaySynchronizer<any, any, any>, initAta?: boolean, txOptions?: TransactionConfirmationOptions): Promise<string> {
         const result = await this.txsClaim(signer.getAddress(), vault, txs, synchronizer, initAta, txOptions?.feeRate);
         const [signature] = await this.Chain.sendAndConfirm(signer, result, txOptions?.waitForConfirmation, txOptions?.abortSignal);
         return signature;
     }
 
+    /**
+     * @inheritDoc
+     */
     async deposit(signer: EVMSigner, vault: EVMSpvVaultData, rawAmounts: bigint[], txOptions?: TransactionConfirmationOptions): Promise<string> {
         const result = await this.txsDeposit(signer.getAddress(), vault, rawAmounts, txOptions?.feeRate);
         const txHashes = await this.Chain.sendAndConfirm(signer, result, txOptions?.waitForConfirmation, txOptions?.abortSignal);
         return txHashes[txHashes.length - 1];
     }
 
+    /**
+     * @inheritDoc
+     */
     async frontLiquidity(signer: EVMSigner, vault: EVMSpvVaultData, realWithdrawalTx: EVMSpvWithdrawalData, withdrawSequence: number, txOptions?: TransactionConfirmationOptions): Promise<string> {
         const result = await this.txsFrontLiquidity(signer.getAddress(), vault, realWithdrawalTx, withdrawSequence, txOptions?.feeRate);
         const txHashes = await this.Chain.sendAndConfirm(signer, result, txOptions?.waitForConfirmation, txOptions?.abortSignal);
         return txHashes[txHashes.length - 1];
     }
 
+    /**
+     * @inheritDoc
+     */
     async open(signer: EVMSigner, vault: EVMSpvVaultData, txOptions?: TransactionConfirmationOptions): Promise<string> {
         const result = await this.txsOpen(signer.getAddress(), vault, txOptions?.feeRate);
         const [signature] = await this.Chain.sendAndConfirm(signer, result, txOptions?.waitForConfirmation, txOptions?.abortSignal);
@@ -573,6 +632,9 @@ export class EVMSpvVaultContract<ChainId extends string>
     }
 
     //Transactions
+    /**
+     * @inheritDoc
+     */
     async txsClaim(
         signer: string, vault: EVMSpvVaultData, txs: {
             tx: EVMSpvWithdrawalData,
@@ -592,7 +654,9 @@ export class EVMSpvVaultContract<ChainId extends string>
             storedHeader?: EVMBtcStoredHeader
         }[] = [];
         for(let tx of txs) {
+            if(tx.tx.btcTx.blockhash==null) throw new Error(`Transaction ${tx.tx.btcTx.txid} doesn't have any blockhash, unconfirmed?`);
             const merkleProof = await this.bitcoinRpc.getMerkleProof(tx.tx.btcTx.txid, tx.tx.btcTx.blockhash);
+            if(merkleProof==null) throw new Error(`Failed to get merkle proof for tx: ${tx.tx.btcTx.txid}!`);
             this.logger.debug("txsClaim(): merkle proof computed: ", merkleProof);
             txsWithMerkleProofs.push({
                 ...merkleProof,
@@ -601,10 +665,10 @@ export class EVMSpvVaultContract<ChainId extends string>
         }
 
         const evmTxs: EVMTx[] = [];
-        const storedHeaders: {[blockhash: string]: EVMBtcStoredHeader} = await EVMBtcRelay.getCommitedHeadersAndSynchronize(
+        const storedHeaders: {[blockhash: string]: EVMBtcStoredHeader} | null = await EVMBtcRelay.getCommitedHeadersAndSynchronize(
             signer, this.btcRelay, txsWithMerkleProofs.filter(tx => tx.storedHeader==null).map(tx => {
                 return {
-                    blockhash: tx.tx.btcTx.blockhash,
+                    blockhash: tx.tx.btcTx.blockhash!,
                     blockheight: tx.blockheight,
                     requiredConfirmations: vault.getConfirmations()
                 }
@@ -613,7 +677,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         if(storedHeaders==null) throw new Error("Cannot fetch committed header!");
 
         for(let tx of txsWithMerkleProofs) {
-            evmTxs.push(await this.Claim(signer, vault, tx.tx, tx.storedHeader ?? storedHeaders[tx.tx.btcTx.blockhash], tx.merkle, tx.pos, feeRate));
+            evmTxs.push(await this.Claim(signer, vault, tx.tx, tx.storedHeader ?? storedHeaders[tx.tx.btcTx.blockhash!], tx.merkle, tx.pos, feeRate));
         }
 
         this.logger.debug("txsClaim(): "+evmTxs.length+" claim TXs created claiming "+txs.length+" txs, owner: "+vault.getOwner()+
@@ -622,6 +686,9 @@ export class EVMSpvVaultContract<ChainId extends string>
         return evmTxs;
     }
 
+    /**
+     * @inheritDoc
+     */
     async txsDeposit(signer: string, vault: EVMSpvVaultData, rawAmounts: bigint[], feeRate?: string): Promise<EVMTx[]> {
         if(!vault.isOpened()) throw new Error("Cannot deposit to a closed vault!");
         feeRate ??= await this.Chain.Fees.getFeeRate();
@@ -661,6 +728,9 @@ export class EVMSpvVaultContract<ChainId extends string>
         return txs;
     }
 
+    /**
+     * @inheritDoc
+     */
     async txsFrontLiquidity(signer: string, vault: EVMSpvVaultData, realWithdrawalTx: EVMSpvWithdrawalData, withdrawSequence: number, feeRate?: string): Promise<EVMTx[]> {
         if(!vault.isOpened()) throw new Error("Cannot front on a closed vault!");
         feeRate ??= await this.Chain.Fees.getFeeRate();
@@ -702,6 +772,9 @@ export class EVMSpvVaultContract<ChainId extends string>
         return txs;
     }
 
+    /**
+     * @inheritDoc
+     */
     async txsOpen(signer: string, vault: EVMSpvVaultData, feeRate?: string): Promise<EVMTx[]> {
         if(vault.isOpened()) throw new Error("Cannot open an already opened vault!");
         feeRate ??= await this.Chain.Fees.getFeeRate();
@@ -714,7 +787,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         return [tx];
     }
 
-    getClaimGas(signer: string, vault: EVMSpvVaultData, data?: EVMSpvWithdrawalData): number {
+    getClaimGas(signer: string, vault?: EVMSpvVaultData, data?: EVMSpvWithdrawalData): number {
         let totalGas = EVMSpvVaultContract.GasCosts.CLAIM_BASE;
 
         if (data==null || (data.rawAmounts[0] != null && data.rawAmounts[0] > 0n)) {
@@ -752,11 +825,17 @@ export class EVMSpvVaultContract<ChainId extends string>
         return totalGas;
     }
 
-    async getClaimFee(signer: string, vault: EVMSpvVaultData, withdrawalData: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint> {
+    /**
+     * @inheritDoc
+     */
+    async getClaimFee(signer: string, vault?: EVMSpvVaultData, withdrawalData?: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint> {
         feeRate ??= await this.Chain.Fees.getFeeRate();
         return EVMFees.getGasFee(this.getClaimGas(signer, vault, withdrawalData), feeRate);
     }
 
+    /**
+     * @inheritDoc
+     */
     async getFrontFee(signer: string, vault?: EVMSpvVaultData, withdrawalData?: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint> {
         vault ??= EVMSpvVaultData.randomVault();
         feeRate ??= await this.Chain.Fees.getFeeRate();

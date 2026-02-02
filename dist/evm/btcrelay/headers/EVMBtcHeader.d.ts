@@ -11,9 +11,12 @@ export type EVMBtcHeaderType = {
     nonce: number;
     hash?: Buffer;
 };
+/**
+ * @category BTC Relay
+ */
 export declare class EVMBtcHeader implements BtcHeader {
     version: number;
-    previousBlockhash: Buffer;
+    previousBlockhash?: Buffer;
     merkleRoot: Buffer;
     timestamp: number;
     nbits: number;

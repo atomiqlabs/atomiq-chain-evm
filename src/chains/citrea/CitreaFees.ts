@@ -1,6 +1,9 @@
 import {EVMFees} from "../../evm/chain/modules/EVMFees";
 import {getLogger} from "../../utils/Utils";
 
+/**
+ * @category Networks/Citrea
+ */
 export class CitreaFees extends EVMFees {
 
     public static readonly StateDiffSize = {
@@ -9,10 +12,10 @@ export class CitreaFees extends EVMFees {
 
     protected readonly logger = getLogger("CitreaFees: ");
 
-    private _blockFeeCache: {
+    private _blockFeeCache?: {
         timestamp: number,
         feeRate: Promise<{baseFee: bigint, l1Fee: bigint}>
-    } = null;
+    };
 
     /**
      * Gets evm fee rate
@@ -37,15 +40,14 @@ export class CitreaFees extends EVMFees {
      */
     public async getFeeRate(): Promise<string> {
         if(this._blockFeeCache==null || Date.now() - this._blockFeeCache.timestamp > this.MAX_FEE_AGE) {
-            let obj = {
+            let obj: {timestamp: number, feeRate: Promise<{baseFee: bigint, l1Fee: bigint}>};
+            this._blockFeeCache = obj = {
                 timestamp: Date.now(),
-                feeRate: null
-            };
-            obj.feeRate = this.__getFeeRate().catch(e => {
-                if(this._blockFeeCache===obj) this._blockFeeCache=null;
-                throw e;
-            });
-            this._blockFeeCache = obj;
+                feeRate: this.__getFeeRate().catch(e => {
+                    if(this._blockFeeCache===obj) delete this._blockFeeCache;
+                    throw e;
+                })
+            }
         }
 
         let {baseFee, l1Fee} = await this._blockFeeCache.feeRate;

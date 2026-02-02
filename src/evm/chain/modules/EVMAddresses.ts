@@ -2,6 +2,9 @@ import {EVMModule} from "../EVMModule";
 import {Wallet, isAddress} from "ethers";
 
 
+/**
+ * @category Internal/Chain
+ */
 export class EVMAddresses extends EVMModule<any> {
 
     ///////////////////

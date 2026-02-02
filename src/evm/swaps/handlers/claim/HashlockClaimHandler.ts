@@ -6,6 +6,9 @@ import {EVMSwapData} from "../../EVMSwapData";
 import {EVMTx} from "../../../chain/modules/EVMTransactions";
 import {sha256} from "@noble/hashes/sha2";
 
+/**
+ * @category Internal/Handlers
+ */
 export class HashlockClaimHandler implements IClaimHandler<Buffer, string> {
 
     public readonly address: string;

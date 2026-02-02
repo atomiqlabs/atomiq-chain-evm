@@ -1,6 +1,9 @@
 import {EVMModule} from "../EVMModule";
 import {Log} from "ethers";
 
+/**
+ * @category Internal/Chain
+ */
 export class EVMEvents extends EVMModule<any> {
 
     /**
@@ -22,7 +25,7 @@ export class EVMEvents extends EVMModule<any> {
                 toBlock: endBlock,
                 topics
             });
-        } catch (e) {
+        } catch (e: any) {
             if(
                 (e.error?.code===-32602 && e.error?.message?.startsWith("query exceeds max results")) || //Query exceeds max results
                 e.error?.code===-32008 || //Response is too big
@@ -51,8 +54,14 @@ export class EVMEvents extends EVMModule<any> {
      * @param abortSignal
      */
     public async getBlockEvents(
-        contract: string, topics: (string[] | string | null)[], startBlock: number, endBlock: number = startBlock, abortSignal?: AbortSignal
+        contract: string,
+        topics: (string[] | string | null)[],
+        startBlock?: number,
+        endBlock?: number,
+        abortSignal?: AbortSignal
     ): Promise<Log[]> {
+        startBlock ??= 0;
+
         let events: Log[] = [];
 
         if(startBlock===endBlock) {
@@ -64,6 +73,7 @@ export class EVMEvents extends EVMModule<any> {
             });
         } else if(endBlock==null) {
             const safeBlock = await this.root.provider.getBlock(this.root.config.safeBlockTag);
+            if(safeBlock==null) throw new Error(`Cannot retrieve '${this.root.config.safeBlockTag}' block`);
             if(safeBlock.number - startBlock > this.root.config.maxLogsBlockRange) {
                 for(let i = startBlock + this.root.config.maxLogsBlockRange; i < safeBlock.number; i += this.root.config.maxLogsBlockRange) {
                     events.push(...await this.getLogs(contract, topics, i - this.root.config.maxLogsBlockRange, i));
@@ -97,14 +107,15 @@ export class EVMEvents extends EVMModule<any> {
      */
     public async findInEvents<T>(
         contract: string, topics: (string[] | string | null)[],
-        processor: (signatures: Log[]) => Promise<T>,
+        processor: (signatures: Log[]) => Promise<T | null>,
         abortSignal?: AbortSignal,
         genesisHeight?: number
-    ): Promise<T> {
-        const {number: latestBlockNumber} = await this.provider.getBlock(this.root.config.safeBlockTag);
+    ): Promise<T | null> {
+        const latestBlock = await this.provider.getBlock(this.root.config.safeBlockTag);
+        if(latestBlock==null) throw new Error(`Cannot find block ${this.root.config.safeBlockTag}`);
 
         let promises: Promise<Log[]>[] = [];
-        for(let blockNumber = latestBlockNumber; blockNumber >= (genesisHeight ?? 0); blockNumber-=this.root.config.maxLogsBlockRange) {
+        for(let blockNumber = latestBlock.number; blockNumber >= (genesisHeight ?? 0); blockNumber-=this.root.config.maxLogsBlockRange) {
             promises.push(this.getLogs(
                 contract,
                 topics,
@@ -119,7 +130,7 @@ export class EVMEvents extends EVMModule<any> {
                 promises = [];
                 if(abortSignal!=null) abortSignal.throwIfAborted();
 
-                const result: T = await processor(eventsResult);
+                const result = await processor(eventsResult);
                 if(result!=null) return result;
             }
         }
@@ -129,7 +140,7 @@ export class EVMEvents extends EVMModule<any> {
         ).flat();
         if(abortSignal!=null) abortSignal.throwIfAborted();
 
-        const result: T = await processor(eventsResult); //Oldest events first
+        const result = await processor(eventsResult); //Oldest events first
         if(result!=null) return result;
 
         return null;
@@ -147,26 +158,27 @@ export class EVMEvents extends EVMModule<any> {
      */
     public async findInEventsForward<T>(
         contract: string, topics: (string[] | string | null)[],
-        processor: (signatures: Log[]) => Promise<T>,
+        processor: (signatures: Log[]) => Promise<T | null>,
         abortSignal?: AbortSignal,
         startHeight?: number
-    ): Promise<T> {
-        const {number: latestBlockNumber} = await this.provider.getBlock(this.root.config.safeBlockTag);
+    ): Promise<T | null> {
+        const latestBlock = await this.provider.getBlock(this.root.config.safeBlockTag);
+        if(latestBlock==null) throw new Error(`Cannot find block ${this.root.config.safeBlockTag}`);
 
         let promises: Promise<Log[]>[] = [];
-        for(let blockNumber = startHeight ?? 0; blockNumber < latestBlockNumber; blockNumber += this.root.config.maxLogsBlockRange) {
+        for(let blockNumber = startHeight ?? 0; blockNumber < latestBlock.number; blockNumber += this.root.config.maxLogsBlockRange) {
             promises.push(this.getLogs(
                 contract,
                 topics,
                 blockNumber,
-                Math.min(blockNumber + this.root.config.maxLogsBlockRange, latestBlockNumber)
+                Math.min(blockNumber + this.root.config.maxLogsBlockRange, latestBlock.number)
             ));
             if(promises.length>=this.root.config.maxParallelLogRequests) {
                 const eventsResult = (await Promise.all(promises)).flat();
                 promises = [];
                 if(abortSignal!=null) abortSignal.throwIfAborted();
 
-                const result: T = await processor(eventsResult); //Oldest events first
+                const result = await processor(eventsResult); //Oldest events first
                 if(result!=null) return result;
             }
         }
@@ -174,7 +186,7 @@ export class EVMEvents extends EVMModule<any> {
         const eventsResult = (await Promise.all(promises)).flat();
         if(abortSignal!=null) abortSignal.throwIfAborted();
 
-        const result: T = await processor(eventsResult); //Oldest events first
+        const result = await processor(eventsResult); //Oldest events first
         if(result!=null) return result;
 
         return null;

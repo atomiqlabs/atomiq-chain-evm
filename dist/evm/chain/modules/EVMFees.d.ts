@@ -3,6 +3,9 @@ export type EVMFeeRate = {
     maxFeePerGas: bigint;
     maxPriorityFee: bigint;
 };
+/**
+ * @category Chain Interface
+ */
 export declare class EVMFees {
     protected MAX_FEE_AGE: number;
     protected readonly logger: import("../../../utils/Utils").LoggerType;
@@ -10,7 +13,7 @@ export declare class EVMFees {
     protected readonly maxFeeRatePerGas: bigint;
     protected readonly priorityFee: bigint;
     protected readonly feeMultiplierPPM: bigint;
-    private blockFeeCache;
+    private blockFeeCache?;
     constructor(provider: JsonRpcApiProvider, maxFeeRatePerGas?: bigint, priorityFee?: bigint, feeMultiplier?: number);
     /**
      * Gets evm fee rate
@@ -32,5 +35,5 @@ export declare class EVMFees {
      * @param feeRate
      */
     static getGasFee(gas: number, feeRate: string): bigint;
-    static applyFeeRate(tx: TransactionRequest, gas: number, feeRate: string): any;
+    static applyFeeRate(tx: TransactionRequest, gas: number | null, feeRate: string): void;
 }

@@ -18,12 +18,13 @@ import {TypedEventLog} from "../typechain/common";
 import {EscrowManager} from "../swaps/EscrowManagerTypechain";
 import {SpvVaultManager} from "../spv_swap/SpvVaultContractTypechain";
 import {EVMTxTrace} from "../chain/modules/EVMTransactions";
+import {TypedFunctionCall} from "../contract/EVMContractBase";
 
 const LOGS_SLIDING_WINDOW_LENGTH = 60;
 
 const PROCESSED_EVENTS_BACKLOG = 1000;
 
-export type EVMEventListenerState = {lastBlockNumber: number, lastEvent?: {blockHash: string, logIndex: number}};
+export type EVMEventListenerState = {lastBlockNumber: number, lastEvent?: {blockHash: string, logIndex: number}} | null;
 
 type AtomiqTypedEvent = (
     TypedEventLog<EscrowManager["filters"]["Initialize" | "Refund" | "Claim"]> |
@@ -35,7 +36,7 @@ type AtomiqTypedEvent = (
  *  out on some events if the network is unreliable, front-end systems should take this into consideration and not
  *  rely purely on events
  */
-export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
+export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventListenerState[]> {
 
     private eventsProcessing: {
         [signature: string]: Promise<void>
@@ -50,10 +51,10 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
     protected readonly evmSpvVaultContract: EVMSpvVaultContract<any>;
     protected readonly logger = getLogger("EVMChainEventsBrowser: ");
 
-    protected stopped: boolean;
+    protected stopped: boolean = true;
     protected pollIntervalSeconds: number;
 
-    private timeout: number;
+    private timeout?: any;
 
     //Websocket
     protected readonly spvVaultContractLogFilter: EventFilter;
@@ -92,10 +93,14 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         return this.processedEvents.includes(event.transactionHash+":"+event.index);
     }
 
-    findInitSwapData(call: EVMTxTrace, escrowHash: string, claimHandler: IClaimHandler<any, any>): EVMSwapData {
+    findInitSwapData(call: EVMTxTrace, escrowHash: string, claimHandler: IClaimHandler<any, any>): EVMSwapData | null {
         if(call.to.toLowerCase() === this.evmSwapContract.contractAddress.toLowerCase()) {
-            const result = this.evmSwapContract.parseCalldata<typeof this.evmSwapContract.contract.initialize>(call.input);
-            if(result!=null && result.name==="initialize") {
+            const _result = this.evmSwapContract.parseCalldata(call.input);
+            if(_result!=null && _result.name==="initialize") {
+                const result = _result as TypedFunctionCall<
+                    // @ts-ignore
+                    typeof this.evmSwapContract.contract.initialize
+                >;
                 //Found, check correct escrow hash
                 const [escrowData, signature, timeout, extraData] = result.args;
                 const escrow = EVMSwapData.deserializeFromStruct(escrowData, claimHandler);
@@ -121,12 +126,12 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
      * @param event
      * @param claimHandler
      * @private
-     * @returns {() => Promise<EVMSwapData>} getter to be passed to InitializeEvent constructor
+     * @returns {() => Promise<EVMSwapData | null>} getter to be passed to InitializeEvent constructor
      */
     private getSwapDataGetter(
         event: TypedEventLog<EscrowManager["filters"]["Initialize"]>,
         claimHandler: IClaimHandler<any, any>
-    ): () => Promise<EVMSwapData> {
+    ): () => Promise<EVMSwapData | null> {
         return async () => {
             const trace = await this.chainInterface.Transactions.traceTransaction(event.transactionHash);
             if(trace==null) return null;
@@ -136,7 +141,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
 
     protected parseInitializeEvent(
         event: TypedEventLog<EscrowManager["filters"]["Initialize"]>
-    ): InitializeEvent<EVMSwapData> {
+    ): InitializeEvent<EVMSwapData> | null {
         const escrowHash = event.args.escrowHash.substring(2);
         const claimHandlerHex = event.args.claimHandler;
         const claimHandler = this.evmSwapContract.claimHandlersByAddress[claimHandlerHex.toLowerCase()];
@@ -150,7 +155,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         return new InitializeEvent<EVMSwapData>(
             escrowHash,
             swapType,
-            onceAsync<EVMSwapData>(this.getSwapDataGetter(event, claimHandler))
+            onceAsync<EVMSwapData | null>(this.getSwapDataGetter(event, claimHandler))
         );
     }
 
@@ -164,7 +169,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
 
     protected parseClaimEvent(
         event: TypedEventLog<EscrowManager["filters"]["Claim"]>
-    ): ClaimEvent<EVMSwapData> {
+    ): ClaimEvent<EVMSwapData> | null {
         const escrowHash = event.args.escrowHash.substring(2);
         const claimHandlerHex = event.args.claimHandler;
         const claimHandler = this.evmSwapContract.claimHandlersByAddress[claimHandlerHex.toLowerCase()];
@@ -263,7 +268,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
                 continue;
             }
 
-            let parsedEvent: ChainEvent<EVMSwapData>;
+            let parsedEvent: ChainEvent<EVMSwapData> | null = null;
             switch(event.eventName) {
                 case "Claim":
                     parsedEvent = this.parseClaimEvent(event as any);
@@ -322,11 +327,15 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         }
     }
 
-    protected async checkEventsEcrowManager(currentBlock: Block, lastProcessedEvent?: {blockHash: string, logIndex: number}, lastBlockNumber?: number): Promise<[{blockHash: string, logIndex: number}, number]> {
+    protected async checkEventsEcrowManager(
+        currentBlock: Block,
+        lastEvent?: {blockHash: string, logIndex: number},
+        lastBlockNumber?: number
+    ): Promise<EVMEventListenerState> {
         lastBlockNumber ??= currentBlock.number;
         if(currentBlock.number < lastBlockNumber) {
             this.logger.warn(`checkEventsEscrowManager(): Sanity check triggered - not processing events, currentBlock: ${currentBlock.number}, lastBlock: ${lastBlockNumber}`);
-            return;
+            return {lastEvent, lastBlockNumber};
         }
         // this.logger.debug(`checkEvents(EscrowManager): Requesting logs: ${lastBlockNumber}...${currentBlock.number}`);
         let events = await this.evmSwapContract.Events.getContractBlockEvents(
@@ -335,8 +344,10 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
             lastBlockNumber,
             currentBlock.number
         );
-        if(lastProcessedEvent!=null) {
-            const latestProcessedEventIndex = events.findIndex(val => val.blockHash===lastProcessedEvent.blockHash && val.index===lastProcessedEvent.logIndex);
+        if(lastEvent!=null) {
+            const latestProcessedEventIndex = events.findIndex(
+                val => val.blockHash===lastEvent!.blockHash && val.index===lastEvent!.logIndex
+            );
             if(latestProcessedEventIndex!==-1) {
                 events.splice(0, latestProcessedEventIndex+1);
                 this.logger.debug("checkEvents(EscrowManager): Splicing processed events, resulting size: "+events.length);
@@ -345,23 +356,27 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         if(events.length>0) {
             await this.processEvents(events, currentBlock);
             const lastProcessed = events[events.length-1];
-            lastProcessedEvent = {
+            lastEvent = {
                 blockHash: lastProcessed.blockHash,
                 logIndex: lastProcessed.index
             }
             if(lastProcessed.blockNumber > lastBlockNumber) lastBlockNumber = lastProcessed.blockNumber;
         } else if(currentBlock.number - lastBlockNumber > LOGS_SLIDING_WINDOW_LENGTH) {
-            lastProcessedEvent = null;
+            lastEvent = undefined;
             lastBlockNumber = currentBlock.number - LOGS_SLIDING_WINDOW_LENGTH;
         }
-        return [lastProcessedEvent, lastBlockNumber];
+        return {lastEvent, lastBlockNumber};
     }
 
-    protected async checkEventsSpvVaults(currentBlock: Block, lastProcessedEvent?: {blockHash: string, logIndex: number}, lastBlockNumber?: number): Promise<[{blockHash: string, logIndex: number}, number]> {
+    protected async checkEventsSpvVaults(
+        currentBlock: Block,
+        lastEvent?: {blockHash: string, logIndex: number},
+        lastBlockNumber?: number
+    ): Promise<EVMEventListenerState> {
         lastBlockNumber ??= currentBlock.number;
         if(currentBlock.number < lastBlockNumber) {
             this.logger.warn(`checkEventsSpvVaults(): Sanity check triggered - not processing events, currentBlock: ${currentBlock.number}, lastBlock: ${lastBlockNumber}`);
-            return;
+            return {lastEvent, lastBlockNumber};
         }
         // this.logger.debug(`checkEvents(SpvVaults): Requesting logs: ${lastBlockNumber}...${currentBlock.number}`);
         let events = await this.evmSpvVaultContract.Events.getContractBlockEvents(
@@ -370,8 +385,10 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
             lastBlockNumber,
             currentBlock.number
         );
-        if(lastProcessedEvent!=null) {
-            const latestProcessedEventIndex = events.findIndex(val => val.blockHash===lastProcessedEvent.blockHash && val.index===lastProcessedEvent.logIndex);
+        if(lastEvent!=null) {
+            const latestProcessedEventIndex = events.findIndex(
+                val => val.blockHash===lastEvent!.blockHash && val.index===lastEvent!.logIndex
+            );
             if(latestProcessedEventIndex!==-1) {
                 events.splice(0, latestProcessedEventIndex+1);
                 this.logger.debug("checkEvents(SpvVaults): Splicing processed events, resulting size: "+events.length);
@@ -380,29 +397,33 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         if(events.length>0) {
             await this.processEvents(events, currentBlock);
             const lastProcessed = events[events.length-1];
-            lastProcessedEvent = {
+            lastEvent = {
                 blockHash: lastProcessed.blockHash,
                 logIndex: lastProcessed.index
             }
             if(lastProcessed.blockNumber > lastBlockNumber) lastBlockNumber = lastProcessed.blockNumber;
         } else if(currentBlock.number - lastBlockNumber > LOGS_SLIDING_WINDOW_LENGTH) {
-            lastProcessedEvent = null;
+            lastEvent = undefined;
             lastBlockNumber = currentBlock.number - LOGS_SLIDING_WINDOW_LENGTH;
         }
-        return [lastProcessedEvent, lastBlockNumber];
+        return {lastEvent, lastBlockNumber};
     }
 
-    protected async checkEvents(lastState: EVMEventListenerState[]): Promise<EVMEventListenerState[]> {
+    /**
+     * @inheritDoc
+     */
+    async poll(lastState?: EVMEventListenerState[]): Promise<EVMEventListenerState[]> {
         lastState ??= [];
 
         const currentBlock = await this.provider.getBlock(this.chainInterface.config.safeBlockTag, false);
+        if(currentBlock==null) throw new Error(`Cannot fetch '${this.chainInterface.config.safeBlockTag}' block!`);
 
-        const [lastEscrowEvent, lastEscrowHeight] = await this.checkEventsEcrowManager(currentBlock, lastState?.[0]?.lastEvent, lastState?.[0]?.lastBlockNumber);
-        const [lastSpvVaultEvent, lastSpvVaultHeight] = await this.checkEventsSpvVaults(currentBlock, lastState?.[1]?.lastEvent, lastState?.[1]?.lastBlockNumber);
+        const resultEscrow = await this.checkEventsEcrowManager(currentBlock, lastState?.[0]?.lastEvent, lastState?.[0]?.lastBlockNumber);
+        const resultSpvVault = await this.checkEventsSpvVaults(currentBlock, lastState?.[1]?.lastEvent, lastState?.[1]?.lastBlockNumber);
 
         lastState = [
-            {lastBlockNumber: lastEscrowHeight, lastEvent: lastEscrowEvent},
-            {lastBlockNumber: lastSpvVaultHeight, lastEvent: lastSpvVaultEvent}
+            resultEscrow,
+            resultSpvVault
         ];
 
         return lastState;
@@ -418,9 +439,9 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         saveLatestProcessedBlockNumber?: (newState: EVMEventListenerState[]) => Promise<void>
     ) {
         this.stopped = false;
-        let func;
+        let func: () => Promise<void>;
         func = async () => {
-            await this.checkEvents(lastState).then(newState => {
+            await this.poll(lastState).then(newState => {
                 lastState = newState;
                 if(saveLatestProcessedBlockNumber!=null) return saveLatestProcessedBlockNumber(newState);
             }).catch(e => {
@@ -434,33 +455,33 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
 
     //Websocket
 
-    protected handleWsEvents(
-        events : AtomiqTypedEvent[]
+    protected handleWsEvent(
+        event: AtomiqTypedEvent
     ): Promise<void> {
         if(this.chainInterface.config.safeBlockTag==="latest" || this.chainInterface.config.safeBlockTag==="pending") {
-            return this.processEvents(events);
+            return this.processEvents([event]);
         }
-        this.unconfirmedEventQueue.push(...events);
+        this.unconfirmedEventQueue.push(event);
         return this.addOrRemoveBlockListener();
     }
 
-    protected spvVaultContractListener: (log: Log) => void;
-    protected swapContractListener: (log: Log) => void;
-    protected blockListener: (blockNumber: number) => Promise<void>;
+    protected spvVaultContractListener?: (log: Log) => void;
+    protected swapContractListener?: (log: Log) => void;
+    protected blockListener?: (blockNumber: number) => Promise<void>;
     protected finalityCheckTimer: any;
     protected wsStarted: boolean = false;
 
     protected async checkUnconfirmedEventsFinality() {
         if(this.unconfirmedEventQueue.length>0) {
             const latestSafeBlock = await this.provider.getBlock(this.chainInterface.config.safeBlockTag);
+            if(latestSafeBlock==null) throw new Error(`Failed to fetch '${this.chainInterface.config.safeBlockTag}' block!`);
 
             const events = this.unconfirmedEventQueue.filter(event => {
                 return event.blockNumber <= latestSafeBlock.number;
             });
 
-            const blocks: {[blockNumber: number]: Block} = {};
             for(let event of events) {
-                const block = blocks[event.blockNumber] ?? (blocks[event.blockNumber] = await this.provider.getBlock(event.blockNumber));
+                const block = await this.chainInterface.Blocks.getBlock(event.blockNumber);
                 if(block.hash===event.blockHash) {
                     //Valid event
                     const index = this.unconfirmedEventQueue.indexOf(event);
@@ -480,10 +501,10 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
     }
 
     protected async addOrRemoveBlockListener() {
-        if(this.chainInterface.config.finalityCheckStrategy.type!=="blocks") return;
+        if(this.chainInterface.config.finalityCheckStrategy?.type!=="blocks") return;
         if(this.unconfirmedEventQueue.length>0 || this.confirmedEventQueue.length>0) {
             this.logger.debug(`addOrRemoveBlockListener(): Adding block listener, unconfirmed/confirmed event count: ${this.unconfirmedEventQueue.length + this.confirmedEventQueue.length}`);
-            await this.provider.on("block", this.blockListener);
+            await this.provider.on("block", this.blockListener!);
         } else {
             this.logger.debug(`addOrRemoveBlockListener(): Removing block listener, unconfirmed/confirmed event count: ${this.unconfirmedEventQueue.length + this.confirmedEventQueue.length}`);
             await this.provider.off("block", this.blockListener);
@@ -502,7 +523,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
                 }
             }
             if(!this.wsStarted) return;
-            this.finalityCheckTimer = setTimeout(check, this.chainInterface.config.finalityCheckStrategy.delayMs);
+            this.finalityCheckTimer = setTimeout(check, this.chainInterface.config.finalityCheckStrategy?.delayMs ?? 5*1000);
         };
         await check();
     }
@@ -525,23 +546,28 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         }
 
         if(this.chainInterface.config.safeBlockTag==="safe" || this.chainInterface.config.safeBlockTag==="finalized") {
-            if(this.chainInterface.config.finalityCheckStrategy.type==="timer") this.startFinalityCheckTimer();
+            if(this.chainInterface.config.finalityCheckStrategy?.type==="timer") this.startFinalityCheckTimer();
         }
 
         await this.provider.on(this.spvVaultContractLogFilter, this.spvVaultContractListener = (log) => {
-            let events = this.evmSpvVaultContract.Events.toTypedEvents([log]);
-            events = events.filter(val => !val.removed);
-            this.handleWsEvents(events);
+            let [event] = this.evmSpvVaultContract.Events.toTypedEvents([log]);
+            if(event==null || event.removed) return;
+            this.handleWsEvent(event);
         });
 
         await this.provider.on(this.swapContractLogFilter, this.swapContractListener = (log) => {
-            let events = this.evmSwapContract.Events.toTypedEvents([log]);
-            events = events.filter(val => !val.removed && (val.eventName==="Initialize" || val.eventName==="Refund" || val.eventName==="Claim"));
-            this.handleWsEvents(events);
+            let [event] = this.evmSwapContract.Events.toTypedEvents([log]);
+            if(event==null || event.removed) return;
+            if(event.eventName!=="Initialize" && event.eventName!=="Refund" && event.eventName!=="Claim") return;
+            this.handleWsEvent(event);
         });
     }
 
-    async init(): Promise<void> {
+    /**
+     * @inheritDoc
+     */
+    async init(noAutomaticPoll?: boolean): Promise<void> {
+        if(noAutomaticPoll) return Promise.resolve();
         if((this.provider as any).websocket!=null) {
             await this.setupWebsocket();
         } else {
@@ -551,6 +577,9 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         return Promise.resolve();
     }
 
+    /**
+     * @inheritDoc
+     */
     async stop(): Promise<void> {
         this.stopped = true;
         if(this.timeout!=null) clearTimeout(this.timeout);
@@ -563,10 +592,16 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData> {
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     registerListener(cbk: EventListener<EVMSwapData>): void {
         this.listeners.push(cbk);
     }
 
+    /**
+     * @inheritDoc
+     */
     unregisterListener(cbk: EventListener<EVMSwapData>): boolean {
         const index = this.listeners.indexOf(cbk);
         if(index>=0) {

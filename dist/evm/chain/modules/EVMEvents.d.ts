@@ -1,5 +1,8 @@
 import { EVMModule } from "../EVMModule";
 import { Log } from "ethers";
+/**
+ * @category Internal/Chain
+ */
 export declare class EVMEvents extends EVMModule<any> {
     /**
      * Wrapper for provider.getLogs(), automatically retries with smaller ranges if limits are reached
@@ -20,7 +23,7 @@ export declare class EVMEvents extends EVMModule<any> {
      * @param endBlock
      * @param abortSignal
      */
-    getBlockEvents(contract: string, topics: (string[] | string | null)[], startBlock: number, endBlock?: number, abortSignal?: AbortSignal): Promise<Log[]>;
+    getBlockEvents(contract: string, topics: (string[] | string | null)[], startBlock?: number, endBlock?: number, abortSignal?: AbortSignal): Promise<Log[]>;
     /**
      * Runs a search backwards in time, processing events from a specific contract and keys
      *
@@ -31,7 +34,7 @@ export declare class EVMEvents extends EVMModule<any> {
      * @param abortSignal
      * @param genesisHeight Height when the contract was deployed
      */
-    findInEvents<T>(contract: string, topics: (string[] | string | null)[], processor: (signatures: Log[]) => Promise<T>, abortSignal?: AbortSignal, genesisHeight?: number): Promise<T>;
+    findInEvents<T>(contract: string, topics: (string[] | string | null)[], processor: (signatures: Log[]) => Promise<T | null>, abortSignal?: AbortSignal, genesisHeight?: number): Promise<T | null>;
     /**
      * Runs a search forwards in time, processing events from a specific contract and keys
      *
@@ -42,5 +45,5 @@ export declare class EVMEvents extends EVMModule<any> {
      * @param abortSignal
      * @param startHeight Blockheight at which to start
      */
-    findInEventsForward<T>(contract: string, topics: (string[] | string | null)[], processor: (signatures: Log[]) => Promise<T>, abortSignal?: AbortSignal, startHeight?: number): Promise<T>;
+    findInEventsForward<T>(contract: string, topics: (string[] | string | null)[], processor: (signatures: Log[]) => Promise<T | null>, abortSignal?: AbortSignal, startHeight?: number): Promise<T | null>;
 }

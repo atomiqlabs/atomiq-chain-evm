@@ -12,7 +12,7 @@ import {EVMSpvWithdrawalData} from "../../evm/spv_swap/EVMSpvWithdrawalData";
 import {AlpenChainType} from "./AlpenChainType";
 
 const AlpenChainIds = {
-    MAINNET: null,
+    MAINNET: -1,
     TESTNET: 8150,
     TESTNET4: 8150
 };
@@ -77,7 +77,22 @@ const AlpenContractAddresses = {
     }
 };
 
+const chainTypeMapping: {[key in BitcoinNetwork]?: "MAINNET" | "TESTNET" | "TESTNET4"} = {
+    [BitcoinNetwork.MAINNET]: "MAINNET",
+    [BitcoinNetwork.TESTNET]: "TESTNET",
+    [BitcoinNetwork.TESTNET4]: "TESTNET4",
+};
+
+/**
+ * Token assets available on Alpen
+ * @category Networks/Alpen
+ */
 export type AlpenAssetsType = BaseTokenType<"BTC">;
+
+/**
+ * Default Alpen token assets configuration
+ * @category Networks/Alpen
+ */
 export const AlpenAssets: AlpenAssetsType = {
     BTC: {
         address: "0x0000000000000000000000000000000000000000",
@@ -86,6 +101,10 @@ export const AlpenAssets: AlpenAssetsType = {
     }
 } as const;
 
+/**
+ * Configuration options for initializing Alpen chain
+ * @category Networks/Alpen
+ */
 export type AlpenOptions = {
     rpcUrl: string | JsonRpcApiProvider,
     retryPolicy?: EVMRetryPolicy,
@@ -110,24 +129,17 @@ export type AlpenOptions = {
     evmConfig?: Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag">
 }
 
+/**
+ * Initialize Alpen chain integration
+ * @category Networks/Alpen
+ */
 export function initializeAlpen(
     options: AlpenOptions,
     bitcoinRpc: BitcoinRpc<any>,
     network: BitcoinNetwork
 ): ChainData<AlpenChainType> {
-    if(options.chainType==null) {
-        switch (network) {
-            case BitcoinNetwork.MAINNET:
-                options.chainType = "MAINNET";
-                break;
-            case BitcoinNetwork.TESTNET:
-                options.chainType = "TESTNET";
-                break;
-            case BitcoinNetwork.TESTNET4:
-                options.chainType = "TESTNET4";
-                break;
-        }
-    }
+    options.chainType ??= chainTypeMapping[network];
+    if(options.chainType==null) throw new Error("Please specify chainType in options!");
 
     const defaultContractAddresses = AlpenContractAddresses[options.chainType];
     const chainId = AlpenChainIds[options.chainType];
@@ -191,11 +203,20 @@ export function initializeAlpen(
     }
 };
 
+/**
+ * Type definition for the Alpen chain initializer
+ * @category Networks/Alpen
+ */
 export type AlpenInitializerType = ChainInitializer<AlpenOptions, AlpenChainType, AlpenAssetsType>;
+
+/**
+ * Alpen chain initializer instance
+ * @category Networks/Alpen
+ */
 export const AlpenInitializer: AlpenInitializerType = {
     chainId: "ALPEN",
-    chainType: null as AlpenChainType,
+    chainType: null as unknown as AlpenChainType,
     initializer: initializeAlpen,
     tokens: AlpenAssets,
-    options: null as AlpenOptions
+    options: null as unknown as AlpenOptions
 } as const;

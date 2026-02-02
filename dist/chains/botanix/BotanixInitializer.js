@@ -56,6 +56,14 @@ const BotanixContractAddresses = {
         }
     }
 };
+const chainTypeMapping = {
+    [base_1.BitcoinNetwork.MAINNET]: "MAINNET",
+    [base_1.BitcoinNetwork.TESTNET]: "TESTNET",
+};
+/**
+ * Default Botanix token assets configuration
+ * @category Networks/Botanix
+ */
 exports.BotanixAssets = {
     BTC: {
         address: "0x0000000000000000000000000000000000000000",
@@ -63,17 +71,14 @@ exports.BotanixAssets = {
         displayDecimals: 8
     }
 };
+/**
+ * Initialize Botanix chain integration
+ * @category Networks/Botanix
+ */
 function initializeBotanix(options, bitcoinRpc, network) {
-    if (options.chainType == null) {
-        switch (network) {
-            case base_1.BitcoinNetwork.MAINNET:
-                options.chainType = "MAINNET";
-                break;
-            case base_1.BitcoinNetwork.TESTNET:
-                options.chainType = "TESTNET";
-                break;
-        }
-    }
+    options.chainType ?? (options.chainType = chainTypeMapping[network]);
+    if (options.chainType == null)
+        throw new Error("Please specify chainType in options!");
     const defaultContractAddresses = BotanixContractAddresses[options.chainType];
     const chainId = BotanixChainIds[options.chainType];
     const provider = typeof (options.rpcUrl) === "string" ?
@@ -123,6 +128,10 @@ function initializeBotanix(options, bitcoinRpc, network) {
 }
 exports.initializeBotanix = initializeBotanix;
 ;
+/**
+ * Botanix chain initializer instance
+ * @category Networks/Botanix
+ */
 exports.BotanixInitializer = {
     chainId: "BOTANIX",
     chainType: null,

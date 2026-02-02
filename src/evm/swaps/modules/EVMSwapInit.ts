@@ -5,10 +5,9 @@ import {keccak256, TransactionRequest, ZeroHash} from "ethers";
 import {EVMFees} from "../../chain/modules/EVMFees";
 import {EVMSigner} from "../../wallet/EVMSigner";
 import {EVMTx} from "../../chain/modules/EVMTransactions";
-import {tryWithRetries} from "../../../utils/Utils";
 
 export type EVMPreFetchVerification = {
-    safeBlockTime?: number
+    safeBlockTime: number
 };
 
 const Initialize = [
@@ -218,7 +217,7 @@ export class EVMSwapInit extends EVMSwapModule {
         if(preFetchData==null || preFetchData.safeBlockTime==null) {
             preFetchData = await this.preFetchForInitSignatureVerification();
         }
-        return preFetchData.safeBlockTime > parseInt(timeout);
+        return preFetchData!.safeBlockTime > parseInt(timeout);
     }
 
     /**
@@ -248,11 +247,10 @@ export class EVMSwapInit extends EVMSwapModule {
 
         if(!skipChecks) {
             const [_, payStatus] = await Promise.all([
-                swapData.isOfferer(sender) && !swapData.reputation ? Promise.resolve() : tryWithRetries(
-                    () => this.isSignatureValid(sender, swapData, timeout, prefix, signature),
-                    this.retryPolicy, (e) => e instanceof SignatureVerificationError
-                ),
-                tryWithRetries(() => this.contract.getCommitStatus(sender, swapData), this.retryPolicy)
+                swapData.isOfferer(sender) && !swapData.reputation
+                    ? Promise.resolve()
+                    : this.isSignatureValid(sender, swapData, timeout, prefix, signature),
+                this.contract.getCommitStatus(sender, swapData)
             ]);
             if(payStatus.type!==SwapCommitStateType.NOT_COMMITED) throw new SwapDataVerificationError("Invoice already being paid for or paid");
         }

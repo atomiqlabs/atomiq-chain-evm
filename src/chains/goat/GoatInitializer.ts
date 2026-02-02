@@ -77,7 +77,22 @@ const GoatContractAddresses = {
     }
 };
 
+const chainTypeMapping: {[key in BitcoinNetwork]?: "MAINNET" | "TESTNET" | "TESTNET4"} = {
+    [BitcoinNetwork.MAINNET]: "MAINNET",
+    [BitcoinNetwork.TESTNET]: "TESTNET",
+    [BitcoinNetwork.TESTNET4]: "TESTNET4",
+};
+
+/**
+ * Token assets available on GOAT Network
+ * @category Networks/GOAT
+ */
 export type GoatAssetsType = BaseTokenType<"BTC" | "PBTC" | "_PBTC_DEV">;
+
+/**
+ * Default GOAT Network token assets configuration
+ * @category Networks/GOAT
+ */
 export const GoatAssets: GoatAssetsType = {
     BTC: {
         address: "0x0000000000000000000000000000000000000000",
@@ -96,6 +111,10 @@ export const GoatAssets: GoatAssetsType = {
     }
 } as const;
 
+/**
+ * Configuration options for initializing GOAT Network chain
+ * @category Networks/GOAT
+ */
 export type GoatOptions = {
     rpcUrl: string | JsonRpcApiProvider,
     retryPolicy?: EVMRetryPolicy,
@@ -120,24 +139,17 @@ export type GoatOptions = {
     evmConfig?: Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag">
 }
 
+/**
+ * Initialize GOAT Network chain integration
+ * @category Networks/GOAT
+ */
 export function initializeGoat(
     options: GoatOptions,
     bitcoinRpc: BitcoinRpc<any>,
     network: BitcoinNetwork
 ): ChainData<GoatChainType> {
-    if(options.chainType==null) {
-        switch (network) {
-            case BitcoinNetwork.MAINNET:
-                options.chainType = "MAINNET";
-                break;
-            case BitcoinNetwork.TESTNET:
-                options.chainType = "TESTNET";
-                break;
-            case BitcoinNetwork.TESTNET4:
-                options.chainType = "TESTNET4";
-                break;
-        }
-    }
+    options.chainType ??= chainTypeMapping[network];
+    if(options.chainType==null) throw new Error("Please specify chainType in options!");
 
     const defaultContractAddresses = GoatContractAddresses[options.chainType];
     const chainId = GoatChainIds[options.chainType];
@@ -201,11 +213,20 @@ export function initializeGoat(
     }
 };
 
+/**
+ * Type definition for the GOAT Network chain initializer
+ * @category Networks/GOAT
+ */
 export type GoatInitializerType = ChainInitializer<GoatOptions, GoatChainType, GoatAssetsType>;
+
+/**
+ * GOAT Network chain initializer instance
+ * @category Networks/GOAT
+ */
 export const GoatInitializer: GoatInitializerType = {
     chainId: "GOAT",
-    chainType: null as GoatChainType,
+    chainType: null as unknown as GoatChainType,
     initializer: initializeGoat,
     tokens: GoatAssets,
-    options: null as GoatOptions
+    options: null as unknown  as GoatOptions
 } as const;

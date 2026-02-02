@@ -1,6 +1,9 @@
 import { EVMModule } from "../EVMModule";
 import { Block } from "ethers";
 export type EVMBlockTag = "safe" | "pending" | "latest" | "finalized";
+/**
+ * @category Internal/Chain
+ */
 export declare class EVMBlocks extends EVMModule<any> {
     private BLOCK_CACHE_TIME;
     private blockCache;

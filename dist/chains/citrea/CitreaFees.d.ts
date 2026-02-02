@@ -1,10 +1,13 @@
 import { EVMFees } from "../../evm/chain/modules/EVMFees";
+/**
+ * @category Networks/Citrea
+ */
 export declare class CitreaFees extends EVMFees {
     static readonly StateDiffSize: {
         APPROVE_DIFF_SIZE: number;
     };
     protected readonly logger: import("../../utils/Utils").LoggerType;
-    private _blockFeeCache;
+    private _blockFeeCache?;
     /**
      * Gets evm fee rate
      *

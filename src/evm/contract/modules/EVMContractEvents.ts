@@ -15,15 +15,15 @@ export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
         this.baseContract = contract.contract;
     }
 
-    public toTypedEvents<TEventName extends keyof T["filters"]>(blockEvents: Log[]): TypedEventLog<T["filters"][TEventName]>[] {
+    public toTypedEvents<TEventName extends keyof T["filters"]>(blockEvents: Log[]): (TypedEventLog<T["filters"][TEventName]> | null)[] {
         return blockEvents.map(log => this.contract.toTypedEvent<TEventName>(log));
     }
 
     private toFilter<TEventName extends keyof T["filters"]>(
         events: TEventName[],
-        keys: (string | string[])[],
-    ): (string | string[])[] {
-        const filterArray: (string | string[])[] = [];
+        keys: null | (null | string | string[])[],
+    ): (null | string | string[])[] {
+        const filterArray: (null | string | string[])[] = [];
         filterArray.push(events.map(name => {
             return this.baseContract.getEvent(name as string).fragment.topicHash;
         }));
@@ -42,12 +42,14 @@ export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
      */
     public async getContractBlockEvents<TEventName extends keyof T["filters"]>(
         events: TEventName[],
-        keys: string[],
+        keys: (string | null)[],
         startBlockHeight?: number,
-        endBlockHeight: number = startBlockHeight
+        endBlockHeight?: number
     ): Promise<TypedEventLog<T["filters"][TEventName]>[]> {
+        endBlockHeight ??= startBlockHeight;
         const blockEvents = await super.getBlockEvents(await this.baseContract.getAddress(), this.toFilter(events, keys), startBlockHeight, endBlockHeight);
-        return this.toTypedEvents<TEventName>(blockEvents);
+        return this.toTypedEvents<TEventName>(blockEvents)
+            .filter(val => val!=null) as TypedEventLog<T["filters"][TEventName]>[];
     }
 
     /**
@@ -61,16 +63,18 @@ export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
      */
     public async findInContractEvents<TResult, TEventName extends keyof T["filters"]>(
         events: TEventName[],
-        keys: (string | string[])[],
-        processor: (event: TypedEventLog<T["filters"][TEventName]>) => Promise<TResult>,
+        keys: null | (null | string | string[])[],
+        processor: (event: TypedEventLog<T["filters"][TEventName]>) => Promise<TResult | null>,
         abortSignal?: AbortSignal
-    ): Promise<TResult> {
+    ): Promise<TResult | null> {
         return this.findInEvents<TResult>(await this.baseContract.getAddress(), this.toFilter(events, keys), async (events: Log[]) => {
             const parsedEvents = this.toTypedEvents<TEventName>(events);
             for(let event of parsedEvents) {
-                const result: TResult = await processor(event);
+                if(event==null) continue;
+                const result = await processor(event);
                 if(result!=null) return result;
             }
+            return null;
         }, abortSignal, this.contract.contractDeploymentHeight);
     }
 
@@ -86,18 +90,20 @@ export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
      */
     public async findInContractEventsForward<TResult, TEventName extends keyof T["filters"]>(
         events: TEventName[],
-        keys: (string | string[])[],
-        processor: (event: TypedEventLog<T["filters"][TEventName]>) => Promise<TResult>,
+        keys: null | (null | string | string[])[],
+        processor: (event: TypedEventLog<T["filters"][TEventName]>) => Promise<TResult | null>,
         startHeight?: number,
         abortSignal?: AbortSignal
-    ): Promise<TResult> {
+    ): Promise<TResult | null> {
         return this.findInEventsForward<TResult>(await this.baseContract.getAddress(), this.toFilter(events, keys), async (events: Log[]) => {
             const parsedEvents = this.toTypedEvents<TEventName>(events);
             for(let event of parsedEvents) {
-                const result: TResult = await processor(event);
+                if(event==null) continue;
+                const result = await processor(event);
                 if(result!=null) return result;
             }
-        }, abortSignal, Math.max(this.contract.contractDeploymentHeight, startHeight ?? 0));
+            return null;
+        }, abortSignal, Math.max(this.contract.contractDeploymentHeight ?? 0, startHeight ?? 0));
     }
 
 }

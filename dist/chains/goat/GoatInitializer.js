@@ -76,6 +76,15 @@ const GoatContractAddresses = {
         }
     }
 };
+const chainTypeMapping = {
+    [base_1.BitcoinNetwork.MAINNET]: "MAINNET",
+    [base_1.BitcoinNetwork.TESTNET]: "TESTNET",
+    [base_1.BitcoinNetwork.TESTNET4]: "TESTNET4",
+};
+/**
+ * Default GOAT Network token assets configuration
+ * @category Networks/GOAT
+ */
 exports.GoatAssets = {
     BTC: {
         address: "0x0000000000000000000000000000000000000000",
@@ -93,20 +102,14 @@ exports.GoatAssets = {
         displayDecimals: 8
     }
 };
+/**
+ * Initialize GOAT Network chain integration
+ * @category Networks/GOAT
+ */
 function initializeGoat(options, bitcoinRpc, network) {
-    if (options.chainType == null) {
-        switch (network) {
-            case base_1.BitcoinNetwork.MAINNET:
-                options.chainType = "MAINNET";
-                break;
-            case base_1.BitcoinNetwork.TESTNET:
-                options.chainType = "TESTNET";
-                break;
-            case base_1.BitcoinNetwork.TESTNET4:
-                options.chainType = "TESTNET4";
-                break;
-        }
-    }
+    options.chainType ?? (options.chainType = chainTypeMapping[network]);
+    if (options.chainType == null)
+        throw new Error("Please specify chainType in options!");
     const defaultContractAddresses = GoatContractAddresses[options.chainType];
     const chainId = GoatChainIds[options.chainType];
     const provider = typeof (options.rpcUrl) === "string" ?
@@ -152,6 +155,10 @@ function initializeGoat(options, bitcoinRpc, network) {
 }
 exports.initializeGoat = initializeGoat;
 ;
+/**
+ * GOAT Network chain initializer instance
+ * @category Networks/GOAT
+ */
 exports.GoatInitializer = {
     chainId: "GOAT",
     chainType: null,

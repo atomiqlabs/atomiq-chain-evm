@@ -1,6 +1,6 @@
 import {ChainType} from "@atomiqlabs/base";
 import {EVMPreFetchVerification} from "../../evm/swaps/modules/EVMSwapInit";
-import {EVMTx} from "../../evm/chain/modules/EVMTransactions";
+import {EVMTx, SignedEVMTx} from "../../evm/chain/modules/EVMTransactions";
 import {EVMSigner} from "../../evm/wallet/EVMSigner";
 import {EVMSwapData} from "../../evm/swaps/EVMSwapData";
 import {EVMChainInterface} from "../../evm/chain/EVMChainInterface";
@@ -12,11 +12,16 @@ import {EVMBtcRelay} from "../../evm/btcrelay/EVMBtcRelay";
 import {EVMSpvVaultContract} from "../../evm/spv_swap/EVMSpvVaultContract";
 import {Signer} from "ethers";
 
+/**
+ * Type definition for the GOAT Network chain implementation
+ * @category Networks/GOAT
+ */
 export type GoatChainType = ChainType<
     "GOAT",
     never,
     EVMPreFetchVerification,
     EVMTx,
+    SignedEVMTx,
     EVMSigner,
     Signer,
     EVMSwapData,
@@ -24,7 +29,7 @@ export type GoatChainType = ChainType<
     EVMChainInterface<"GOAT">,
     EVMChainEventsBrowser,
     EVMBtcRelay<any>,
-    EVMSpvVaultData,
     EVMSpvWithdrawalData,
+    EVMSpvVaultData,
     EVMSpvVaultContract<"GOAT">
 >;

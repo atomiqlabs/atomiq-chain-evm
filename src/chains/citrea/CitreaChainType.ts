@@ -1,6 +1,6 @@
 import {ChainType} from "@atomiqlabs/base";
 import {EVMPreFetchVerification} from "../../evm/swaps/modules/EVMSwapInit";
-import {EVMTx} from "../../evm/chain/modules/EVMTransactions";
+import {EVMTx, SignedEVMTx} from "../../evm/chain/modules/EVMTransactions";
 import {EVMSigner} from "../../evm/wallet/EVMSigner";
 import {EVMSwapData} from "../../evm/swaps/EVMSwapData";
 import {EVMChainInterface} from "../../evm/chain/EVMChainInterface";
@@ -12,11 +12,16 @@ import {CitreaBtcRelay} from "./CitreaBtcRelay";
 import {CitreaSpvVaultContract} from "./CitreaSpvVaultContract";
 import {Signer} from "ethers";
 
+/**
+ * Type definition for the Citrea chain implementation
+ * @category Networks/Citrea
+ */
 export type CitreaChainType = ChainType<
     "CITREA",
     never,
     EVMPreFetchVerification,
     EVMTx,
+    SignedEVMTx,
     EVMSigner,
     Signer,
     EVMSwapData,
@@ -24,7 +29,7 @@ export type CitreaChainType = ChainType<
     EVMChainInterface<"CITREA">,
     EVMChainEventsBrowser,
     CitreaBtcRelay<any>,
-    EVMSpvVaultData,
     EVMSpvWithdrawalData,
+    EVMSpvVaultData,
     CitreaSpvVaultContract
 >;
