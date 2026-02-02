@@ -17,8 +17,8 @@ export class EVMBrowserSigner extends EVMSigner {
         try {
             return await super.sendTransaction(transaction, onBeforePublish);
         } catch (e: any) {
-            if(e.message!=null && (e.message as string).includes("ACTION_REJECTED"))
-                throw new Error("User refused to authorize the transaction");
+            if(e?.message?.includes("ACTION_REJECTED") || e?.message?.includes("User rejected"))
+                e.message = "User refused to sign the transaction";
             throw e;
         }
     }

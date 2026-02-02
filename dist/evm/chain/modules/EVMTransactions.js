@@ -211,12 +211,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
             for (let i = 0; i < txs.length; i++) {
                 let tx;
                 if (signer.signTransaction == null) {
-                    tx = await signer.sendTransaction(txs[i], onBeforePublish)
-                        .catch(e => {
-                        if (e?.message?.includes("User rejected"))
-                            e.message = "User refused to sign the transaction";
-                        throw e;
-                    });
+                    tx = await signer.sendTransaction(txs[i], onBeforePublish);
                 }
                 else {
                     const signedTx = signedTxs[i];
@@ -246,12 +241,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
             for (let i = 0; i < txs.length; i++) {
                 let tx;
                 if (signer.signTransaction == null) {
-                    tx = await signer.sendTransaction(txs[i], onBeforePublish)
-                        .catch(e => {
-                        if (e?.message?.includes("User rejected"))
-                            e.message = "User refused to sign the transaction";
-                        throw e;
-                    });
+                    tx = await signer.sendTransaction(txs[i], onBeforePublish);
                 }
                 else {
                     const signedTx = signedTxs[i];
