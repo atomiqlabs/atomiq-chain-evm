@@ -264,7 +264,7 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
                 const [ownerFront, vaultIdFront] = unpackOwnerAndVaultId(frontedEvent.args.ownerAndVaultId);
                 return {
                     type: base_1.SpvWithdrawalStateType.FRONTED,
-                    txId: event.transactionHash,
+                    txId: buffer_1.Buffer.from(frontedEvent.args.btcTxHash.substring(2), "hex").reverse().toString("hex"),
                     owner: ownerFront,
                     vaultId: vaultIdFront,
                     recipient: frontedEvent.args.recipient,
@@ -275,7 +275,7 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
                 const [ownerClaim, vaultIdClaim] = unpackOwnerAndVaultId(claimedEvent.args.ownerAndVaultId);
                 return {
                     type: base_1.SpvWithdrawalStateType.CLAIMED,
-                    txId: event.transactionHash,
+                    txId: buffer_1.Buffer.from(claimedEvent.args.btcTxHash.substring(2), "hex").reverse().toString("hex"),
                     owner: ownerClaim,
                     vaultId: vaultIdClaim,
                     recipient: claimedEvent.args.recipient,
@@ -286,7 +286,7 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
                 const closedEvent = event;
                 return {
                     type: base_1.SpvWithdrawalStateType.CLOSED,
-                    txId: event.transactionHash,
+                    txId: buffer_1.Buffer.from(closedEvent.args.btcTxHash.substring(2), "hex").reverse().toString("hex"),
                     owner: closedEvent.args.owner,
                     vaultId: closedEvent.args.vaultId,
                     error: closedEvent.args.error
