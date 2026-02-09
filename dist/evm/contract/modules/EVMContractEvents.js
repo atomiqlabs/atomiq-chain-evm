@@ -2,6 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVMContractEvents = void 0;
 const EVMEvents_1 = require("../../chain/modules/EVMEvents");
+function normalizeTopic(topic) {
+    if (topic.length !== 66) {
+        return "0x" + topic.substring(2).padStart(64, "0");
+    }
+    return topic;
+}
 class EVMContractEvents extends EVMEvents_1.EVMEvents {
     constructor(chainInterface, contract) {
         super(chainInterface);
@@ -17,7 +23,7 @@ class EVMContractEvents extends EVMEvents_1.EVMEvents {
             return this.baseContract.getEvent(name).fragment.topicHash;
         }));
         if (keys != null)
-            keys.forEach(key => filterArray.push(typeof (key) === "string" ? [key] : key));
+            keys.forEach(key => filterArray.push(typeof (key) === "string" ? [normalizeTopic(key)] : Array.isArray(key) ? key.map(normalizeTopic) : key));
         return filterArray;
     }
     /**
