@@ -376,12 +376,12 @@ export class EVMSpvVaultContract<ChainId extends string>
                 const [ownerFront, vaultIdFront] = unpackOwnerAndVaultId(frontedEvent.args.ownerAndVaultId);
                 return {
                     type: SpvWithdrawalStateType.FRONTED,
-                    txId: Buffer.from(frontedEvent.args.btcTxHash.substring(2), "hex").reverse().toString("hex"),
+                    btcTxId: Buffer.from(frontedEvent.args.btcTxHash.substring(2), "hex").reverse().toString("hex"),
                     owner: ownerFront,
                     vaultId: vaultIdFront,
                     recipient: frontedEvent.args.recipient,
                     fronter: frontedEvent.args.caller,
-                    getFrontTxId: () => Promise.resolve(event.transactionHash),
+                    txId: event.transactionHash,
                     getTxBlock: async () => ({
                         blockHeight: event.blockNumber,
                         blockTime: await this.Chain.Blocks.getBlockTime(event.blockNumber)
@@ -392,13 +392,13 @@ export class EVMSpvVaultContract<ChainId extends string>
                 const [ownerClaim, vaultIdClaim] = unpackOwnerAndVaultId(claimedEvent.args.ownerAndVaultId);
                 return {
                     type: SpvWithdrawalStateType.CLAIMED,
-                    txId: Buffer.from(claimedEvent.args.btcTxHash.substring(2), "hex").reverse().toString("hex"),
+                    btcTxId: Buffer.from(claimedEvent.args.btcTxHash.substring(2), "hex").reverse().toString("hex"),
                     owner: ownerClaim,
                     vaultId: vaultIdClaim,
                     recipient: claimedEvent.args.recipient,
                     claimer: claimedEvent.args.caller,
                     fronter: claimedEvent.args.frontingAddress,
-                    getClaimTxId: () => Promise.resolve(event.transactionHash),
+                    txId: event.transactionHash,
                     getTxBlock: async () => ({
                         blockHeight: event.blockNumber,
                         blockTime: await this.Chain.Blocks.getBlockTime(event.blockNumber)
@@ -408,11 +408,11 @@ export class EVMSpvVaultContract<ChainId extends string>
                 const closedEvent = event as TypedEventLog<SpvVaultManager["filters"]["Closed"]>;
                 return {
                     type: SpvWithdrawalStateType.CLOSED,
-                    txId: Buffer.from(closedEvent.args.btcTxHash.substring(2), "hex").reverse().toString("hex"),
+                    btcTxId: Buffer.from(closedEvent.args.btcTxHash.substring(2), "hex").reverse().toString("hex"),
                     owner: closedEvent.args.owner,
                     vaultId: closedEvent.args.vaultId,
                     error: closedEvent.args.error,
-                    getClosedTxId: () => Promise.resolve(event.transactionHash),
+                    txId: event.transactionHash,
                     getTxBlock: async () => ({
                         blockHeight: event.blockNumber,
                         blockTime: await this.Chain.Blocks.getBlockTime(event.blockNumber)
