@@ -50,7 +50,7 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
         claim: {
             [type in ChainSwapType]: string;
         };
-    });
+    }, contractDeploymentHeight?: number);
     /**
      * @inheritDoc
      */

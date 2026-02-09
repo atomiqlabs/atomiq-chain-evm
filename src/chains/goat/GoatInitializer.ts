@@ -21,6 +21,7 @@ const GoatContractAddresses = {
     MAINNET: {
         executionContract: "",
         swapContract: "",
+        swapContractDeploymentHeight: 0,
         btcRelayContract: "",
         btcRelayDeploymentHeight: 0,
         spvVaultContract: "",
@@ -40,6 +41,7 @@ const GoatContractAddresses = {
     TESTNET: {
         executionContract: "0xe8be24CF21341c9567664009a8a82C9Dc1eE90D6",
         swapContract: "0xe510D5781C6C849284Fb25Dc20b1684cEC445C8B",
+        swapContractDeploymentHeight: 9368978,
         btcRelayContract: "0x3887B02217726bB36958Dd595e57293fB63D5082",
         btcRelayDeploymentHeight: 9368975,
         spvVaultContract: "0x71Bc44F3F7203fC1279107D924e418F02b0d4029",
@@ -59,6 +61,7 @@ const GoatContractAddresses = {
     TESTNET4: {
         executionContract: "0x4f7d86C870F28ac30C8fa864Ee04264D7dD03847",
         swapContract: "0x3FbbA0eb82cf1247cbf92B3D51641226310F0Ca5",
+        swapContractDeploymentHeight: 10240371,
         btcRelayContract: "0xEeD58871C24d24C49554aF8B65Dd86eD8ed778D3",
         btcRelayDeploymentHeight: 10240368,
         spvVaultContract: "0x8a80A68f8bA1732015A821b5260fEF8040a844b7",
@@ -121,6 +124,7 @@ export type GoatOptions = {
     chainType?: "MAINNET" | "TESTNET" | "TESTNET4",
 
     swapContract?: string,
+    swapContractDeploymentHeight?: number,
     btcRelayContract?: string,
     btcRelayDeploymentHeight?: number,
     spvVaultContract?: string,
@@ -190,7 +194,8 @@ export function initializeGoat(
                 ...defaultContractAddresses.handlerContracts.claim,
                 ...options?.handlerContracts?.claim
             }
-        }
+        },
+      options.swapContractDeploymentHeight?? defaultContractAddresses.swapContractDeploymentHeight
     );
 
     const spvVaultContract = new EVMSpvVaultContract(

@@ -23,8 +23,8 @@ const logger = (0, Utils_1.getLogger)("EVMSwapContract: ");
  * @category Swaps
  */
 class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
-    constructor(chainInterface, btcRelay, contractAddress, handlerAddresses) {
-        super(chainInterface, contractAddress, EscrowManagerAbi_1.EscrowManagerAbi);
+    constructor(chainInterface, btcRelay, contractAddress, handlerAddresses, contractDeploymentHeight) {
+        super(chainInterface, contractAddress, EscrowManagerAbi_1.EscrowManagerAbi, contractDeploymentHeight);
         this.supportsInitWithoutClaimer = true;
         ////////////////////////
         //// Timeouts

@@ -21,6 +21,7 @@ const AlpenContractAddresses = {
     MAINNET: {
         executionContract: "",
         swapContract: "",
+        swapContractDeploymentHeight: 0,
         btcRelayContract: "",
         btcRelayDeploymentHeight: 0,
         spvVaultContract: "",
@@ -40,6 +41,7 @@ const AlpenContractAddresses = {
     TESTNET: {
         executionContract: "0x32EB4DbDdC31e19ba908fecc7cae03F0d04F01Fa",
         swapContract: "0x2920EE496693A5027249a027A6FD3F643E743745",
+        swapContractDeploymentHeight: 532614,
         btcRelayContract: "0x59A54378B6bA9C21ba66487C6A701D702baDEabE",
         btcRelayDeploymentHeight: 532610,
         spvVaultContract: "0xaB2D14745362B26a732dD8B7F95daAE3D2914bBF",
@@ -59,6 +61,7 @@ const AlpenContractAddresses = {
     TESTNET4: {
         executionContract: "0xa2698D2fBE3f7c74cCca428a5fd968411644C641",
         swapContract: "0xb0226bAC3BD30179fb66A43cEA212AbBC988e004",
+        swapContractDeploymentHeight: 843614,
         btcRelayContract: "0xfFA842529977a40A3fdb988cdDC9CB5c39bAcF26",
         btcRelayDeploymentHeight: 843611,
         spvVaultContract: "0x62a718348081F9CF9a8E3dF4B4EA6d6349991ad9",
@@ -128,7 +131,7 @@ function initializeAlpen(options, bitcoinRpc, network) {
             ...defaultContractAddresses.handlerContracts.claim,
             ...options?.handlerContracts?.claim
         }
-    });
+    }, options.swapContractDeploymentHeight ?? defaultContractAddresses.swapContractDeploymentHeight);
     const spvVaultContract = new EVMSpvVaultContract_1.EVMSpvVaultContract(chainInterface, btcRelay, bitcoinRpc, options.spvVaultContract ?? defaultContractAddresses.spvVaultContract, options.spvVaultDeploymentHeight ?? defaultContractAddresses.spvVaultDeploymentHeight);
     const chainEvents = new EVMChainEventsBrowser_1.EVMChainEventsBrowser(chainInterface, swapContract, spvVaultContract);
     return {

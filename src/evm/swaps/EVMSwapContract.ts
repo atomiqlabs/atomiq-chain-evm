@@ -92,9 +92,10 @@ export class EVMSwapContract<ChainId extends string = string>
             claim: {
                 [type in ChainSwapType]: string
             }
-        }
+        },
+        contractDeploymentHeight?: number
     ) {
-        super(chainInterface, contractAddress, EscrowManagerAbi);
+        super(chainInterface, contractAddress, EscrowManagerAbi, contractDeploymentHeight);
         this.chainId = chainInterface.chainId;
         this.Init = new EVMSwapInit(chainInterface, this);
         this.Refund = new EVMSwapRefund(chainInterface, this);
