@@ -380,7 +380,12 @@ export class EVMSpvVaultContract<ChainId extends string>
                     owner: ownerFront,
                     vaultId: vaultIdFront,
                     recipient: frontedEvent.args.recipient,
-                    fronter: frontedEvent.args.caller
+                    fronter: frontedEvent.args.caller,
+                    getFrontTxId: () => Promise.resolve(event.transactionHash),
+                    getTxBlock: async () => ({
+                        blockHeight: event.blockNumber,
+                        blockTime: await this.Chain.Blocks.getBlockTime(event.blockNumber)
+                    })
                 };
             case "Claimed":
                 const claimedEvent = event as TypedEventLog<SpvVaultManager["filters"]["Claimed"]>;
@@ -392,7 +397,12 @@ export class EVMSpvVaultContract<ChainId extends string>
                     vaultId: vaultIdClaim,
                     recipient: claimedEvent.args.recipient,
                     claimer: claimedEvent.args.caller,
-                    fronter: claimedEvent.args.frontingAddress
+                    fronter: claimedEvent.args.frontingAddress,
+                    getClaimTxId: () => Promise.resolve(event.transactionHash),
+                    getTxBlock: async () => ({
+                        blockHeight: event.blockNumber,
+                        blockTime: await this.Chain.Blocks.getBlockTime(event.blockNumber)
+                    })
                 };
             case "Closed":
                 const closedEvent = event as TypedEventLog<SpvVaultManager["filters"]["Closed"]>;
@@ -401,7 +411,12 @@ export class EVMSpvVaultContract<ChainId extends string>
                     txId: Buffer.from(closedEvent.args.btcTxHash.substring(2), "hex").reverse().toString("hex"),
                     owner: closedEvent.args.owner,
                     vaultId: closedEvent.args.vaultId,
-                    error: closedEvent.args.error
+                    error: closedEvent.args.error,
+                    getClosedTxId: () => Promise.resolve(event.transactionHash),
+                    getTxBlock: async () => ({
+                        blockHeight: event.blockNumber,
+                        blockTime: await this.Chain.Blocks.getBlockTime(event.blockNumber)
+                    })
                 };
             default:
                 return null;
