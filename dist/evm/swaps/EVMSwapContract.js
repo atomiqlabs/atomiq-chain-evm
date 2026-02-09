@@ -14,9 +14,11 @@ const EVMLpVault_1 = require("./modules/EVMLpVault");
 const EVMSwapInit_1 = require("./modules/EVMSwapInit");
 const EVMSwapRefund_1 = require("./modules/EVMSwapRefund");
 const EVMSwapClaim_1 = require("./modules/EVMSwapClaim");
+const Utils_1 = require("../../utils/Utils");
 const ESCROW_STATE_COMMITTED = 1;
 const ESCROW_STATE_CLAIMED = 2;
 const ESCROW_STATE_REFUNDED = 3;
+const logger = (0, Utils_1.getLogger)("EVMSwapContract: ");
 /**
  * @category Swaps
  */
@@ -299,6 +301,96 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
         await Promise.all(promises);
         return result;
     }
+    async getHistoricalSwaps(signer, startBlockheight) {
+        const { height: latestBlockheight } = await this.Chain.getFinalizedBlock();
+        const swapsOpened = {};
+        const resultingSwaps = {};
+        const processor = async (_event) => {
+            const escrowHash = _event.args.escrowHash.substring(2);
+            if (_event.eventName === "Initialize") {
+                const event = _event;
+                const claimHandlerHex = event.args.claimHandler;
+                const claimHandler = this.claimHandlersByAddress[claimHandlerHex.toLowerCase()];
+                if (claimHandler == null) {
+                    logger.warn(`getHistoricalSwaps(): Unknown claim handler in tx ${event.transactionHash} with claim handler: ` + claimHandlerHex);
+                    return null;
+                }
+                const txTrace = await this.Chain.Transactions.traceTransaction(event.transactionHash);
+                const data = this.findInitSwapData(txTrace, event.args.escrowHash, claimHandler);
+                if (data == null) {
+                    logger.warn(`getHistoricalSwaps(): Cannot parse swap data from tx ${event.transactionHash} with escrow hash: ` + escrowHash);
+                    return null;
+                }
+                swapsOpened[escrowHash] = {
+                    data,
+                    getInitTxId: () => Promise.resolve(event.transactionHash),
+                    getTxBlock: async () => {
+                        return {
+                            blockHeight: event.blockNumber,
+                            blockTime: await this.Chain.Blocks.getBlockTime(event.blockNumber)
+                        };
+                    }
+                };
+            }
+            if (_event.eventName === "Claim") {
+                const event = _event;
+                const foundSwapData = swapsOpened[escrowHash];
+                delete swapsOpened[escrowHash];
+                resultingSwaps[escrowHash] = {
+                    init: foundSwapData,
+                    state: {
+                        type: base_1.SwapCommitStateType.PAID,
+                        getClaimTxId: () => Promise.resolve(event.transactionHash),
+                        getClaimResult: () => Promise.resolve(event.args.witnessResult.substring(2)),
+                        getTxBlock: async () => {
+                            return {
+                                blockHeight: event.blockNumber,
+                                blockTime: await this.Chain.Blocks.getBlockTime(event.blockNumber)
+                            };
+                        }
+                    }
+                };
+            }
+            if (_event.eventName === "Refund") {
+                const event = _event;
+                const foundSwapData = swapsOpened[escrowHash];
+                delete swapsOpened[escrowHash];
+                const isExpired = foundSwapData != null && await this.isExpired(signer, foundSwapData.data);
+                resultingSwaps[escrowHash] = {
+                    init: foundSwapData,
+                    state: {
+                        type: isExpired ? base_1.SwapCommitStateType.EXPIRED : base_1.SwapCommitStateType.NOT_COMMITED,
+                        getRefundTxId: () => Promise.resolve(event.transactionHash),
+                        getTxBlock: async () => {
+                            return {
+                                blockHeight: event.blockNumber,
+                                blockTime: await this.Chain.Blocks.getBlockTime(event.blockNumber)
+                            };
+                        }
+                    }
+                };
+            }
+        };
+        //We have to fetch separately the different directions
+        await this.Events.findInContractEventsForward(["Initialize", "Claim", "Refund"], [signer, null], processor, startBlockheight);
+        await this.Events.findInContractEventsForward(["Initialize", "Claim", "Refund"], [null, signer], processor, startBlockheight);
+        logger.debug(`getHistoricalSwaps(): Found ${Object.keys(resultingSwaps).length} settled swaps!`);
+        logger.debug(`getHistoricalSwaps(): Found ${Object.keys(swapsOpened).length} unsettled swaps!`);
+        for (let escrowHash in swapsOpened) {
+            const foundSwapData = swapsOpened[escrowHash];
+            const isExpired = await this.isExpired(signer, foundSwapData.data);
+            resultingSwaps[escrowHash] = {
+                init: foundSwapData,
+                state: foundSwapData.data.isOfferer(signer) && isExpired
+                    ? { type: base_1.SwapCommitStateType.REFUNDABLE }
+                    : { type: base_1.SwapCommitStateType.COMMITED }
+            };
+        }
+        return {
+            swaps: resultingSwaps,
+            latestBlockheight: latestBlockheight ?? startBlockheight
+        };
+    }
     ////////////////////////////////////////////
     //// Swap data initializer
     /**
@@ -310,6 +402,30 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
             throw new Error(`Claim handler unknown for swap type: ${base_1.ChainSwapType[type]}!`);
         return Promise.resolve(new EVMSwapData_1.EVMSwapData(offerer, claimer, token, this.timelockRefundHandler.address, claimHandler.address, payOut, payIn, payIn, //For now track reputation for all payIn swaps
         sequence, "0x" + paymentHash, (0, ethers_1.hexlify)(base_1.BigIntBufferUtils.toBuffer(expiry, "be", 32)), amount, depositToken, securityDeposit, claimerBounty, type));
+    }
+    findInitSwapData(call, escrowHash, claimHandler) {
+        if (call.to.toLowerCase() === this.contractAddress.toLowerCase()) {
+            const _result = this.parseCalldata(call.input);
+            if (_result != null && _result.name === "initialize") {
+                const result = _result;
+                //Found, check correct escrow hash
+                const [escrowData, signature, timeout, extraData] = result.args;
+                const escrow = EVMSwapData_1.EVMSwapData.deserializeFromStruct(escrowData, claimHandler);
+                if ("0x" + escrow.getEscrowHash() === escrowHash) {
+                    const extraDataHex = (0, ethers_1.hexlify)(extraData);
+                    if (extraDataHex.length > 2) {
+                        escrow.setExtraData(extraDataHex.substring(2));
+                    }
+                    return escrow;
+                }
+            }
+        }
+        for (let _call of call.calls) {
+            const found = this.findInitSwapData(_call, escrowHash, claimHandler);
+            if (found != null)
+                return found;
+        }
+        return null;
     }
     ////////////////////////////////////////////
     //// Utils

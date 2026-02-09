@@ -93,33 +93,6 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventL
         return this.processedEvents.includes(event.transactionHash+":"+event.index);
     }
 
-    findInitSwapData(call: EVMTxTrace, escrowHash: string, claimHandler: IClaimHandler<any, any>): EVMSwapData | null {
-        if(call.to.toLowerCase() === this.evmSwapContract.contractAddress.toLowerCase()) {
-            const _result = this.evmSwapContract.parseCalldata(call.input);
-            if(_result!=null && _result.name==="initialize") {
-                const result = _result as TypedFunctionCall<
-                    // @ts-ignore
-                    typeof this.evmSwapContract.contract.initialize
-                >;
-                //Found, check correct escrow hash
-                const [escrowData, signature, timeout, extraData] = result.args;
-                const escrow = EVMSwapData.deserializeFromStruct(escrowData, claimHandler);
-                if("0x"+escrow.getEscrowHash()===escrowHash) {
-                    const extraDataHex = hexlify(extraData);
-                    if(extraDataHex.length>2) {
-                        escrow.setExtraData(extraDataHex.substring(2));
-                    }
-                    return escrow;
-                }
-            }
-        }
-        for(let _call of call.calls) {
-            const found = this.findInitSwapData(_call, escrowHash, claimHandler);
-            if(found!=null) return found;
-        }
-        return null;
-    }
-
     /**
      * Returns async getter for fetching on-demand initialize event swap data
      *
@@ -135,7 +108,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventL
         return async () => {
             const trace = await this.chainInterface.Transactions.traceTransaction(event.transactionHash);
             if(trace==null) return null;
-            return this.findInitSwapData(trace, event.args.escrowHash, claimHandler);
+            return this.evmSwapContract.findInitSwapData(trace, event.args.escrowHash, claimHandler);
         }
     }
 

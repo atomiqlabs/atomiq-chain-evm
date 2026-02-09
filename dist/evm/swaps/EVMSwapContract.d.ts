@@ -7,7 +7,7 @@ import { IHandler } from "./handlers/IHandler";
 import { EVMContractBase } from "../contract/EVMContractBase";
 import { EscrowManager } from "./EscrowManagerTypechain";
 import { EVMSwapData } from "./EVMSwapData";
-import { EVMTx } from "../chain/modules/EVMTransactions";
+import { EVMTx, EVMTxTrace } from "../chain/modules/EVMTransactions";
 import { EVMSigner } from "../wallet/EVMSigner";
 import { EVMChainInterface } from "../chain/EVMChainInterface";
 import { EVMBtcRelay } from "../btcrelay/EVMBtcRelay";
@@ -136,10 +136,27 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
     }[]): Promise<{
         [p: string]: SwapCommitState;
     }>;
+    getHistoricalSwaps(signer: string, startBlockheight?: number): Promise<{
+        swaps: {
+            [escrowHash: string]: {
+                init?: {
+                    data: EVMSwapData;
+                    getInitTxId: () => Promise<string>;
+                    getTxBlock: () => Promise<{
+                        blockTime: number;
+                        blockHeight: number;
+                    }>;
+                };
+                state: SwapCommitState;
+            };
+        };
+        latestBlockheight?: number;
+    }>;
     /**
      * @inheritDoc
      */
     createSwapData(type: ChainSwapType, offerer: string, claimer: string, token: string, amount: bigint, paymentHash: string, sequence: bigint, expiry: bigint, payIn: boolean, payOut: boolean, securityDeposit: bigint, claimerBounty: bigint, depositToken?: string): Promise<EVMSwapData>;
+    findInitSwapData(call: EVMTxTrace, escrowHash: string, claimHandler: IClaimHandler<any, any>): EVMSwapData | null;
     /**
      * @inheritDoc
      */

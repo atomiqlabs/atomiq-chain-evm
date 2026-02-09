@@ -2,8 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVMChainEventsBrowser = void 0;
 const base_1 = require("@atomiqlabs/base");
-const EVMSwapData_1 = require("../swaps/EVMSwapData");
-const ethers_1 = require("ethers");
 const Utils_1 = require("../../utils/Utils");
 const EVMSpvVaultContract_1 = require("../spv_swap/EVMSpvVaultContract");
 const LOGS_SLIDING_WINDOW_LENGTH = 60;
@@ -45,30 +43,6 @@ class EVMChainEventsBrowser {
     isEventProcessed(event) {
         return this.processedEvents.includes(event.transactionHash + ":" + event.index);
     }
-    findInitSwapData(call, escrowHash, claimHandler) {
-        if (call.to.toLowerCase() === this.evmSwapContract.contractAddress.toLowerCase()) {
-            const _result = this.evmSwapContract.parseCalldata(call.input);
-            if (_result != null && _result.name === "initialize") {
-                const result = _result;
-                //Found, check correct escrow hash
-                const [escrowData, signature, timeout, extraData] = result.args;
-                const escrow = EVMSwapData_1.EVMSwapData.deserializeFromStruct(escrowData, claimHandler);
-                if ("0x" + escrow.getEscrowHash() === escrowHash) {
-                    const extraDataHex = (0, ethers_1.hexlify)(extraData);
-                    if (extraDataHex.length > 2) {
-                        escrow.setExtraData(extraDataHex.substring(2));
-                    }
-                    return escrow;
-                }
-            }
-        }
-        for (let _call of call.calls) {
-            const found = this.findInitSwapData(_call, escrowHash, claimHandler);
-            if (found != null)
-                return found;
-        }
-        return null;
-    }
     /**
      * Returns async getter for fetching on-demand initialize event swap data
      *
@@ -82,7 +56,7 @@ class EVMChainEventsBrowser {
             const trace = await this.chainInterface.Transactions.traceTransaction(event.transactionHash);
             if (trace == null)
                 return null;
-            return this.findInitSwapData(trace, event.args.escrowHash, claimHandler);
+            return this.evmSwapContract.findInitSwapData(trace, event.args.escrowHash, claimHandler);
         };
     }
     parseInitializeEvent(event) {

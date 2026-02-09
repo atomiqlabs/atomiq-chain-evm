@@ -1,6 +1,6 @@
 /// <reference types="node" />
 /// <reference types="node" />
-import { BitcoinRpc, BtcTx, RelaySynchronizer, SpvVaultContract, SpvVaultTokenData, SpvWithdrawalState, SpvWithdrawalTransactionData, TransactionConfirmationOptions } from "@atomiqlabs/base";
+import { BitcoinRpc, BtcTx, RelaySynchronizer, SpvVaultContract, SpvVaultTokenData, SpvWithdrawalClaimedState, SpvWithdrawalFrontedState, SpvWithdrawalState, SpvWithdrawalTransactionData, TransactionConfirmationOptions } from "@atomiqlabs/base";
 import { Buffer } from "buffer";
 import { EVMTx } from "../chain/modules/EVMTransactions";
 import { EVMContractBase } from "../contract/EVMContractBase";
@@ -111,6 +111,12 @@ export declare class EVMSpvVaultContract<ChainId extends string> extends EVMCont
         scStartBlockheight?: number;
     }[]): Promise<{
         [btcTxId: string]: SpvWithdrawalState;
+    }>;
+    getHistoricalWithdrawalStates(recipient: string, startBlockheight?: number): Promise<{
+        withdrawals: {
+            [btcTxId: string]: SpvWithdrawalClaimedState | SpvWithdrawalFrontedState;
+        };
+        latestBlockheight?: number;
     }>;
     /**
      * @inheritDoc

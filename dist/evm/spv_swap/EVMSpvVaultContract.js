@@ -398,6 +398,20 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         }
         return result;
     }
+    async getHistoricalWithdrawalStates(recipient, startBlockheight) {
+        const { height: latestBlockheight } = await this.Chain.getFinalizedBlock();
+        const withdrawals = {};
+        await this.Events.findInContractEventsForward(["Claimed", "Fronted"], [null, recipient], async (_event) => {
+            const eventResult = this.parseWithdrawalEvent(_event);
+            if (eventResult == null || eventResult.type === base_1.SpvWithdrawalStateType.CLOSED)
+                return null;
+            withdrawals[eventResult.txId] = eventResult;
+        }, startBlockheight);
+        return {
+            withdrawals,
+            latestBlockheight
+        };
+    }
     /**
      * @inheritDoc
      */

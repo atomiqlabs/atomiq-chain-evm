@@ -5,6 +5,9 @@ import {
     RelaySynchronizer,
     SpvVaultContract,
     SpvVaultTokenData,
+    SpvWithdrawalClaimedState,
+    SpvWithdrawalClosedState,
+    SpvWithdrawalFrontedState,
     SpvWithdrawalState,
     SpvWithdrawalStateType,
     SpvWithdrawalTransactionData,
@@ -364,7 +367,9 @@ export class EVMSpvVaultContract<ChainId extends string>
         return vaults;
     }
 
-    private parseWithdrawalEvent(event: TypedEventLog<SpvVaultManager["filters"][keyof SpvVaultManager["filters"]]>): SpvWithdrawalState | null {
+    private parseWithdrawalEvent(
+        event: TypedEventLog<SpvVaultManager["filters"][keyof SpvVaultManager["filters"]]>
+    ): SpvWithdrawalFrontedState | SpvWithdrawalClaimedState | SpvWithdrawalClosedState | null {
         switch(event.eventName) {
             case "Fronted":
                 const frontedEvent = event as TypedEventLog<SpvVaultManager["filters"]["Fronted"]>;
@@ -521,6 +526,30 @@ export class EVMSpvVaultContract<ChainId extends string>
         }
 
         return result;
+    }
+
+    async getHistoricalWithdrawalStates(recipient: string, startBlockheight?: number): Promise<{
+        withdrawals: { [btcTxId: string]: SpvWithdrawalClaimedState | SpvWithdrawalFrontedState };
+        latestBlockheight?: number
+    }> {
+        const {height: latestBlockheight} = await this.Chain.getFinalizedBlock();
+        const withdrawals: { [btcTxId: string]: SpvWithdrawalClaimedState | SpvWithdrawalFrontedState } = {};
+
+        await this.Events.findInContractEventsForward(
+            ["Claimed", "Fronted"],
+            [null, recipient],
+            async (_event) => {
+                const eventResult = this.parseWithdrawalEvent(_event);
+                if(eventResult==null || eventResult.type===SpvWithdrawalStateType.CLOSED) return null;
+                withdrawals[eventResult.txId] = eventResult;
+            },
+            startBlockheight
+        );
+
+        return {
+            withdrawals,
+            latestBlockheight
+        }
     }
 
     /**
