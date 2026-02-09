@@ -17,7 +17,7 @@ class EVMContractEvents extends EVMEvents_1.EVMEvents {
             return this.baseContract.getEvent(name).fragment.topicHash;
         }));
         if (keys != null)
-            keys.forEach(key => filterArray.push(key));
+            keys.forEach(key => filterArray.push(typeof (key) === "string" ? [key] : key));
         return filterArray;
     }
     /**

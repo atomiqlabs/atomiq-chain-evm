@@ -22,12 +22,12 @@ export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
     private toFilter<TEventName extends keyof T["filters"]>(
         events: TEventName[],
         keys: null | (null | string | string[])[],
-    ): (null | string | string[])[] {
-        const filterArray: (null | string | string[])[] = [];
+    ): (null | string[])[] {
+        const filterArray: (null | string[])[] = [];
         filterArray.push(events.map(name => {
             return this.baseContract.getEvent(name as string).fragment.topicHash;
         }));
-        if(keys!=null) keys.forEach(key => filterArray.push(key));
+        if(keys!=null) keys.forEach(key => filterArray.push(typeof(key)==="string" ? [key] : key));
         return filterArray;
     }
 
