@@ -378,10 +378,9 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
         logger.debug(`getHistoricalSwaps(): Found ${Object.keys(swapsOpened).length} unsettled swaps!`);
         for (let escrowHash in swapsOpened) {
             const foundSwapData = swapsOpened[escrowHash];
-            const isExpired = await this.isExpired(signer, foundSwapData.data);
             resultingSwaps[escrowHash] = {
                 init: foundSwapData,
-                state: foundSwapData.data.isOfferer(signer) && isExpired
+                state: foundSwapData.data.isOfferer(signer) && await this.isExpired(signer, foundSwapData.data)
                     ? { type: base_1.SwapCommitStateType.REFUNDABLE }
                     : { type: base_1.SwapCommitStateType.COMMITED }
             };

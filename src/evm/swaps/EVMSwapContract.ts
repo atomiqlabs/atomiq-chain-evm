@@ -508,10 +508,9 @@ export class EVMSwapContract<ChainId extends string = string>
 
         for(let escrowHash in swapsOpened) {
             const foundSwapData = swapsOpened[escrowHash];
-            const isExpired = await this.isExpired(signer, foundSwapData.data);
             resultingSwaps[escrowHash] = {
                 init: foundSwapData,
-                state: foundSwapData.data.isOfferer(signer) && isExpired
+                state: foundSwapData.data.isOfferer(signer) && await this.isExpired(signer, foundSwapData.data)
                     ? {type: SwapCommitStateType.REFUNDABLE}
                     : {type: SwapCommitStateType.COMMITED}
             }
