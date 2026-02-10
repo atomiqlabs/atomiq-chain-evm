@@ -369,7 +369,7 @@ export class EVMSpvVaultContract<ChainId extends string>
 
     private parseWithdrawalEvent(
         event: TypedEventLog<SpvVaultManager["filters"][keyof SpvVaultManager["filters"]]>
-    ): SpvWithdrawalFrontedState | SpvWithdrawalClaimedState | SpvWithdrawalClosedState | null {
+    ): ((SpvWithdrawalFrontedState | SpvWithdrawalClaimedState | SpvWithdrawalClosedState) & {btcTxId: string}) | null {
         switch(event.eventName) {
             case "Fronted":
                 const frontedEvent = event as TypedEventLog<SpvVaultManager["filters"]["Fronted"]>;
@@ -556,7 +556,7 @@ export class EVMSpvVaultContract<ChainId extends string>
             async (_event) => {
                 const eventResult = this.parseWithdrawalEvent(_event);
                 if(eventResult==null || eventResult.type===SpvWithdrawalStateType.CLOSED) return null;
-                withdrawals[eventResult.txId] = eventResult;
+                withdrawals[eventResult.btcTxId] = eventResult;
             },
             startBlockheight
         );
