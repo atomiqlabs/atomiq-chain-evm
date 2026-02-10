@@ -22,6 +22,7 @@ export type CitreaOptions = {
     retryPolicy?: EVMRetryPolicy;
     chainType?: "MAINNET" | "TESTNET4";
     swapContract?: string;
+    swapContractDeploymentHeight?: number;
     btcRelayContract?: string;
     btcRelayDeploymentHeight?: number;
     spvVaultContract?: string;

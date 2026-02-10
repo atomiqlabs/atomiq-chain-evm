@@ -21,6 +21,7 @@ const CitreaContractAddresses = {
     MAINNET: {
         executionContract: "0x6a373b6Adad83964727bA0fa15E22Be05173fc12",
         swapContract: "0xc98Ef084d3911C8447DBbE4dDa18bC2c9bB0584e",
+        swapContractDeploymentHeight: 2452632,
         btcRelayContract: "0x11ac854A68830d61af975063c91602f878C36fA6",
         btcRelayDeploymentHeight: 2452629,
         spvVaultContract: "0x5bb0C725939cB825d1322A99a3FeB570097628c3",
@@ -40,6 +41,7 @@ const CitreaContractAddresses = {
     TESTNET4: {
         executionContract: "0x9e289512965A0842b342A6BB3F3c41F22a555Cfe",
         swapContract: "0xBbf7755b674dD107d59F0650D1A3fA9C60bf6Fe6",
+        swapContractDeploymentHeight: 12346224,
         btcRelayContract: "0x00D122E9f9766cd81a38D2dd44f9AFfb94c67Af7",
         btcRelayDeploymentHeight: 12346223,
         spvVaultContract: "0x9Bf990C6088F716279797a602b05941c40591533",
@@ -101,6 +103,7 @@ export type CitreaOptions = {
     chainType?: "MAINNET" | "TESTNET4",
 
     swapContract?: string,
+    swapContractDeploymentHeight?: number,
     btcRelayContract?: string,
     btcRelayDeploymentHeight?: number,
     spvVaultContract?: string,
@@ -172,7 +175,8 @@ export function initializeCitrea(
                 ...defaultContractAddresses.handlerContracts.claim,
                 ...options?.handlerContracts?.claim
             }
-        }
+        },
+        options.swapContractDeploymentHeight ?? defaultContractAddresses.swapContractDeploymentHeight
     );
 
     const spvVaultContract = new CitreaSpvVaultContract(

@@ -1,5 +1,4 @@
 import { ChainEvents, ClaimEvent, EventListener, InitializeEvent, RefundEvent, SpvVaultClaimEvent, SpvVaultCloseEvent, SpvVaultDepositEvent, SpvVaultFrontEvent, SpvVaultOpenEvent } from "@atomiqlabs/base";
-import { IClaimHandler } from "../swaps/handlers/claim/ClaimHandlers";
 import { EVMSwapData } from "../swaps/EVMSwapData";
 import { Block, JsonRpcApiProvider, EventFilter, Log } from "ethers";
 import { EVMSwapContract } from "../swaps/EVMSwapContract";
@@ -8,7 +7,6 @@ import { EVMChainInterface } from "../chain/EVMChainInterface";
 import { TypedEventLog } from "../typechain/common";
 import { EscrowManager } from "../swaps/EscrowManagerTypechain";
 import { SpvVaultManager } from "../spv_swap/SpvVaultContractTypechain";
-import { EVMTxTrace } from "../chain/modules/EVMTransactions";
 export type EVMEventListenerState = {
     lastBlockNumber: number;
     lastEvent?: {
@@ -45,7 +43,6 @@ export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, E
     constructor(chainInterface: EVMChainInterface, evmSwapContract: EVMSwapContract, evmSpvVaultContract: EVMSpvVaultContract<any>, pollIntervalSeconds?: number);
     private addProcessedEvent;
     private isEventProcessed;
-    findInitSwapData(call: EVMTxTrace, escrowHash: string, claimHandler: IClaimHandler<any, any>): EVMSwapData | null;
     /**
      * Returns async getter for fetching on-demand initialize event swap data
      *

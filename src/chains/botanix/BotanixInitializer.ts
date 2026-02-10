@@ -20,6 +20,7 @@ const BotanixContractAddresses = {
     MAINNET: {
         executionContract: "0x71Bc44F3F7203fC1279107D924e418F02b0d4029",
         swapContract: "0x9a027B5Bf43382Cc4A5134d9EFD389f61ece27B9",
+        swapContractDeploymentHeight: 2320403,
         btcRelayContract: "0xe8be24CF21341c9567664009a8a82C9Dc1eE90D6",
         btcRelayDeploymentHeight: 2320400,
         spvVaultContract: "0xe510D5781C6C849284Fb25Dc20b1684cEC445C8B",
@@ -39,6 +40,7 @@ const BotanixContractAddresses = {
     TESTNET: {
         executionContract: "0xe510D5781C6C849284Fb25Dc20b1684cEC445C8B",
         swapContract: "0xfFA842529977a40A3fdb988cdDC9CB5c39bAcF26",
+        swapContractDeploymentHeight: 4173454,
         btcRelayContract: "0xba7E78011909e3501027FBc226a04DCC837a555D",
         btcRelayDeploymentHeight: 3462466,
         spvVaultContract: "0x9a027B5Bf43382Cc4A5134d9EFD389f61ece27B9",
@@ -90,6 +92,7 @@ export type BotanixOptions = {
     chainType?: "MAINNET" | "TESTNET",
 
     swapContract?: string,
+    swapContractDeploymentHeight?: number,
     btcRelayContract?: string,
     btcRelayDeploymentHeight?: number,
     spvVaultContract?: string,
@@ -163,7 +166,8 @@ export function initializeBotanix(
                 ...defaultContractAddresses.handlerContracts.claim,
                 ...options?.handlerContracts?.claim
             }
-        }
+        },
+        options.swapContractDeploymentHeight ?? defaultContractAddresses.swapContractDeploymentHeight
     );
 
     const spvVaultContract = new EVMSpvVaultContract(

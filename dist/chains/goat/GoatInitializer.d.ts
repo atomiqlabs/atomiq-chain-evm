@@ -22,6 +22,7 @@ export type GoatOptions = {
     retryPolicy?: EVMRetryPolicy;
     chainType?: "MAINNET" | "TESTNET" | "TESTNET4";
     swapContract?: string;
+    swapContractDeploymentHeight?: number;
     btcRelayContract?: string;
     btcRelayDeploymentHeight?: number;
     spvVaultContract?: string;

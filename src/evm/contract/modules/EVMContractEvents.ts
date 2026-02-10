@@ -4,6 +4,14 @@ import {EVMContractBase} from "../EVMContractBase";
 import {EVMChainInterface} from "../../chain/EVMChainInterface";
 import {TypedEventLog} from "../../typechain/common";
 
+function normalizeTopic(topic: string) {
+    if(topic.length!==66) {
+        return "0x"+topic.substring(2).padStart(64, "0");
+    }
+    return topic;
+}
+
+
 export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
 
     readonly contract: EVMContractBase<T>;
@@ -22,12 +30,12 @@ export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
     private toFilter<TEventName extends keyof T["filters"]>(
         events: TEventName[],
         keys: null | (null | string | string[])[],
-    ): (null | string | string[])[] {
-        const filterArray: (null | string | string[])[] = [];
+    ): (null | string[])[] {
+        const filterArray: (null | string[])[] = [];
         filterArray.push(events.map(name => {
             return this.baseContract.getEvent(name as string).fragment.topicHash;
         }));
-        if(keys!=null) keys.forEach(key => filterArray.push(key));
+        if(keys!=null) keys.forEach(key => filterArray.push(typeof(key)==="string" ? [normalizeTopic(key)] : Array.isArray(key) ? key.map(normalizeTopic) : key));
         return filterArray;
     }
 

@@ -22,6 +22,7 @@ export type BotanixOptions = {
     retryPolicy?: EVMRetryPolicy;
     chainType?: "MAINNET" | "TESTNET";
     swapContract?: string;
+    swapContractDeploymentHeight?: number;
     btcRelayContract?: string;
     btcRelayDeploymentHeight?: number;
     spvVaultContract?: string;

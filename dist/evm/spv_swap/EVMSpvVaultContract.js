@@ -264,32 +264,47 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
                 const [ownerFront, vaultIdFront] = unpackOwnerAndVaultId(frontedEvent.args.ownerAndVaultId);
                 return {
                     type: base_1.SpvWithdrawalStateType.FRONTED,
-                    txId: event.transactionHash,
+                    btcTxId: buffer_1.Buffer.from(frontedEvent.args.btcTxHash.substring(2), "hex").reverse().toString("hex"),
                     owner: ownerFront,
                     vaultId: vaultIdFront,
                     recipient: frontedEvent.args.recipient,
-                    fronter: frontedEvent.args.caller
+                    fronter: frontedEvent.args.caller,
+                    txId: event.transactionHash,
+                    getTxBlock: async () => ({
+                        blockHeight: event.blockNumber,
+                        blockTime: await this.Chain.Blocks.getBlockTime(event.blockNumber)
+                    })
                 };
             case "Claimed":
                 const claimedEvent = event;
                 const [ownerClaim, vaultIdClaim] = unpackOwnerAndVaultId(claimedEvent.args.ownerAndVaultId);
                 return {
                     type: base_1.SpvWithdrawalStateType.CLAIMED,
-                    txId: event.transactionHash,
+                    btcTxId: buffer_1.Buffer.from(claimedEvent.args.btcTxHash.substring(2), "hex").reverse().toString("hex"),
                     owner: ownerClaim,
                     vaultId: vaultIdClaim,
                     recipient: claimedEvent.args.recipient,
                     claimer: claimedEvent.args.caller,
-                    fronter: claimedEvent.args.frontingAddress
+                    fronter: claimedEvent.args.frontingAddress,
+                    txId: event.transactionHash,
+                    getTxBlock: async () => ({
+                        blockHeight: event.blockNumber,
+                        blockTime: await this.Chain.Blocks.getBlockTime(event.blockNumber)
+                    })
                 };
             case "Closed":
                 const closedEvent = event;
                 return {
                     type: base_1.SpvWithdrawalStateType.CLOSED,
-                    txId: event.transactionHash,
+                    btcTxId: buffer_1.Buffer.from(closedEvent.args.btcTxHash.substring(2), "hex").reverse().toString("hex"),
                     owner: closedEvent.args.owner,
                     vaultId: closedEvent.args.vaultId,
-                    error: closedEvent.args.error
+                    error: closedEvent.args.error,
+                    txId: event.transactionHash,
+                    getTxBlock: async () => ({
+                        blockHeight: event.blockNumber,
+                        blockTime: await this.Chain.Blocks.getBlockTime(event.blockNumber)
+                    })
                 };
             default:
                 return null;
@@ -397,6 +412,20 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
             });
         }
         return result;
+    }
+    async getHistoricalWithdrawalStates(recipient, startBlockheight) {
+        const { height: latestBlockheight } = await this.Chain.getFinalizedBlock();
+        const withdrawals = {};
+        await this.Events.findInContractEventsForward(["Claimed", "Fronted"], [null, recipient], async (_event) => {
+            const eventResult = this.parseWithdrawalEvent(_event);
+            if (eventResult == null || eventResult.type === base_1.SpvWithdrawalStateType.CLOSED)
+                return null;
+            withdrawals[eventResult.btcTxId] = eventResult;
+        }, startBlockheight);
+        return {
+            withdrawals,
+            latestBlockheight
+        };
     }
     /**
      * @inheritDoc
