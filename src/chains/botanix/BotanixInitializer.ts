@@ -108,7 +108,7 @@ export type BotanixOptions = {
 
     fees?: EVMFees,
 
-    evmConfig?: Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag">
+    evmConfig?: Partial<Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag" | "finalityCheckStrategy">>
 }
 
 /**

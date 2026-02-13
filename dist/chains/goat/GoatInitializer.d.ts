@@ -36,7 +36,7 @@ export type GoatOptions = {
         };
     };
     fees?: EVMFees;
-    evmConfig?: Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag">;
+    evmConfig?: Partial<Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag" | "finalityCheckStrategy">>;
 };
 /**
  * Initialize GOAT Network chain integration
