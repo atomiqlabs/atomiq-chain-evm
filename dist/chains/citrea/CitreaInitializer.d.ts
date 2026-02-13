@@ -36,7 +36,7 @@ export type CitreaOptions = {
         };
     };
     fees?: CitreaFees;
-    evmConfig?: Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag">;
+    evmConfig?: Partial<Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag" | "finalityCheckStrategy">>;
 };
 /**
  * Initialize Citrea chain integration
