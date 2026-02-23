@@ -248,13 +248,20 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
             return Promise.resolve(null);
         });
         const vaults = [];
+        let promises = [];
         for (let [identifier, vaultParams] of openedVaults.entries()) {
             const [owner, vaultIdStr] = identifier.split(":");
-            const vaultState = await this.contract.getVault(owner, BigInt(vaultIdStr));
-            if (vaultState.spvVaultParametersCommitment === (0, EVMSpvVaultData_1.getVaultParamsCommitment)(vaultParams)) {
-                vaults.push(new EVMSpvVaultData_1.EVMSpvVaultData(owner, BigInt(vaultIdStr), vaultState, vaultParams));
+            promises.push(this.contract.getVault(owner, BigInt(vaultIdStr)).then(vaultState => {
+                if (vaultState.spvVaultParametersCommitment === (0, EVMSpvVaultData_1.getVaultParamsCommitment)(vaultParams)) {
+                    vaults.push(new EVMSpvVaultData_1.EVMSpvVaultData(owner, BigInt(vaultIdStr), vaultState, vaultParams));
+                }
+            }));
+            if (promises.length >= this.Chain.config.maxParallelCalls) {
+                await Promise.all(promises);
+                promises = [];
             }
         }
+        await Promise.all(promises);
         return vaults;
     }
     parseWithdrawalEvent(event) {

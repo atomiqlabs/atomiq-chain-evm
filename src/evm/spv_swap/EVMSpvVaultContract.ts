@@ -356,14 +356,22 @@ export class EVMSpvVaultContract<ChainId extends string>
             }
         );
         const vaults: EVMSpvVaultData[] = [];
+        let promises: Promise<void>[] = [];
         for(let [identifier, vaultParams] of openedVaults.entries()) {
             const [owner, vaultIdStr] = identifier.split(":");
 
-            const vaultState = await this.contract.getVault(owner, BigInt(vaultIdStr));
-            if(vaultState.spvVaultParametersCommitment === getVaultParamsCommitment(vaultParams)) {
-                vaults.push(new EVMSpvVaultData(owner, BigInt(vaultIdStr), vaultState, vaultParams))
+            promises.push(this.contract.getVault(owner, BigInt(vaultIdStr)).then(vaultState => {
+                if(vaultState.spvVaultParametersCommitment === getVaultParamsCommitment(vaultParams)) {
+                    vaults.push(new EVMSpvVaultData(owner, BigInt(vaultIdStr), vaultState, vaultParams))
+                }
+            }))
+
+            if(promises.length>=this.Chain.config.maxParallelCalls) {
+                await Promise.all(promises);
+                promises = [];
             }
         }
+        await Promise.all(promises);
         return vaults;
     }
 
