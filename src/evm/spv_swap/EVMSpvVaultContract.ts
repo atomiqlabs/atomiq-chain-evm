@@ -358,6 +358,8 @@ export class EVMSpvVaultContract<ChainId extends string>
         const vaults: EVMSpvVaultData[] = [];
         let promises: Promise<void>[] = [];
         for(let [identifier, vaultParams] of openedVaults.entries()) {
+            if(vaultParams.btcRelayContract.toLowerCase()!==this.btcRelay.contractAddress.toLowerCase()) continue;
+
             const [owner, vaultIdStr] = identifier.split(":");
 
             promises.push(this.contract.getVault(owner, BigInt(vaultIdStr)).then(vaultState => {

@@ -250,6 +250,8 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         const vaults = [];
         let promises = [];
         for (let [identifier, vaultParams] of openedVaults.entries()) {
+            if (vaultParams.btcRelayContract.toLowerCase() !== this.btcRelay.contractAddress.toLowerCase())
+                continue;
             const [owner, vaultIdStr] = identifier.split(":");
             promises.push(this.contract.getVault(owner, BigInt(vaultIdStr)).then(vaultState => {
                 if (vaultState.spvVaultParametersCommitment === (0, EVMSpvVaultData_1.getVaultParamsCommitment)(vaultParams)) {
