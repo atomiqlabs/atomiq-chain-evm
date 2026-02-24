@@ -9,9 +9,9 @@ import {EVMSigner} from "./EVMSigner";
  * @category Wallets
  */
 export const EVM_REPRODUCIBLE_ENTROPY_MESSAGE =
-    `Signing this messages generates a reproducible secret to be used on %APPNAME%.\n\nPLEASE DOUBLE CHECK THAT YOU
-    ARE ON THE %APPNAME% WEBSITE BEFORE SIGNING THE MESSAGE, SIGNING THIS MESSAGE ON ANY OTHER WEBSITE MIGHT LEAD TO
-    LOSS OF FUNDS!`;
+"Signing this messages generates a reproducible secret to be used on %APPNAME%.\n\nPLEASE DOUBLE CHECK THAT YOU"+
+" ARE ON THE %APPNAME% WEBSITE BEFORE SIGNING THE MESSAGE, SIGNING THIS MESSAGE ON ANY OTHER WEBSITE MIGHT LEAD TO"+
+" LOSS OF FUNDS!";
 
 /**
  * Browser-based EVM signer for external wallet integration
@@ -38,7 +38,7 @@ export class EVMBrowserSigner extends EVMSigner {
             this.getReproducibleEntropy = async (appName: string) => {
                 if(this.usesECDSADN===false) throw new Error("This wallet doesn't support generating recoverable entropy!");
 
-                const message = EVM_REPRODUCIBLE_ENTROPY_MESSAGE.replace("%APPNAME%", appName);
+                const message = EVM_REPRODUCIBLE_ENTROPY_MESSAGE.replace(new RegExp("%APPNAME%", 'g'), appName);
                 const signature = await account.signMessage(message);
                 if(this.usesECDSADN!==true) {
                     const secondSignature = await account.signMessage(message);

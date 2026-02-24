@@ -9,7 +9,7 @@ import { EVMSigner } from "./EVMSigner";
  *
  * @category Wallets
  */
-export declare const EVM_REPRODUCIBLE_ENTROPY_MESSAGE = "Signing this messages generates a reproducible secret to be used on %APPNAME%.\n\nPLEASE DOUBLE CHECK THAT YOU\n    ARE ON THE %APPNAME% WEBSITE BEFORE SIGNING THE MESSAGE, SIGNING THIS MESSAGE ON ANY OTHER WEBSITE MIGHT LEAD TO\n    LOSS OF FUNDS!";
+export declare const EVM_REPRODUCIBLE_ENTROPY_MESSAGE: string;
 /**
  * Browser-based EVM signer for external wallet integration
  * @category Wallets
