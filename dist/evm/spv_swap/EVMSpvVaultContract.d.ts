@@ -12,9 +12,21 @@ import { TransactionRequest } from "ethers";
 import { EVMSpvVaultData } from "./EVMSpvVaultData";
 import { EVMSpvWithdrawalData } from "./EVMSpvWithdrawalData";
 import { EVMBtcStoredHeader } from "../btcrelay/headers/EVMBtcStoredHeader";
+/**
+ * Packs vault owner and vault id into compact `owner+vaultId` event key format.
+ *
+ * @category Swaps
+ */
 export declare function packOwnerAndVaultId(owner: string, vaultId: bigint): string;
+/**
+ * Unpacks compact `owner+vaultId` event key format into owner and vault id.
+ *
+ * @category Swaps
+ */
 export declare function unpackOwnerAndVaultId(data: string): [string, bigint];
 /**
+ * EVM SPV vault (UTXO-controlled vault) contract representation.
+ *
  * @category Swaps
  */
 export declare class EVMSpvVaultContract<ChainId extends string> extends EVMContractBase<SpvVaultManager> implements SpvVaultContract<EVMTx, EVMSigner, ChainId, EVMSpvWithdrawalData, EVMSpvVaultData> {

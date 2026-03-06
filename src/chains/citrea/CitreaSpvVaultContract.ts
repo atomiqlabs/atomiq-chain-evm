@@ -6,6 +6,11 @@ import {CitreaFees} from "./CitreaFees";
 import {EVMAddresses} from "../../evm/chain/modules/EVMAddresses";
 
 
+/**
+ * Citrea SPV vault wrapper with fee estimation adjusted by expected state-diff size.
+ *
+ * @category Networks/Citrea
+ */
 export class CitreaSpvVaultContract extends EVMSpvVaultContract<"CITREA"> {
 
     public static readonly StateDiffSize = {

@@ -4,6 +4,11 @@ exports.ReconnectingWebSocketProvider = void 0;
 const SocketProvider_1 = require("./SocketProvider");
 const Utils_1 = require("../../utils/Utils");
 const logger = (0, Utils_1.getLogger)("ReconnectingWebSocketProvider: ");
+/**
+ * WebSocket RPC provider with automatic reconnect, heartbeat ping and connection timeout handling.
+ *
+ * @category Providers
+ */
 class ReconnectingWebSocketProvider extends SocketProvider_1.SocketProvider {
     constructor(url, network, options) {
         super(network, options);

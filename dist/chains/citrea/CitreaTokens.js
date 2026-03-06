@@ -3,6 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CitreaTokens = void 0;
 const EVMTokens_1 = require("../../evm/chain/modules/EVMTokens");
 const CitreaFees_1 = require("./CitreaFees");
+/**
+ * Citrea-specific token module that augments fee estimation with state-diff costs.
+ *
+ * @category Networks/Citrea
+ */
 class CitreaTokens extends EVMTokens_1.EVMTokens {
     async getApproveFee(feeRate) {
         feeRate ?? (feeRate = await this.root.Fees.getFeeRate());

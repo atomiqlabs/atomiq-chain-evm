@@ -4,6 +4,11 @@ import {TransactionRequest} from "ethers";
 import {EVMFees} from "../../chain/modules/EVMFees";
 import {EVMTx} from "../../chain/modules/EVMTransactions";
 
+/**
+ * LP vault helper for intermediary balances, reputation and LP deposit/withdraw transactions.
+ *
+ * @category Internal/Swaps
+ */
 export class EVMLpVault extends EVMSwapModule {
 
     private static readonly GasCosts = {

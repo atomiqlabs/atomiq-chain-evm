@@ -2,6 +2,11 @@ import {EVMTokens} from "../../evm/chain/modules/EVMTokens";
 import {CitreaFees} from "./CitreaFees";
 
 
+/**
+ * Citrea-specific token module that augments fee estimation with state-diff costs.
+ *
+ * @category Networks/Citrea
+ */
 export class CitreaTokens extends EVMTokens {
 
     public static readonly StateDiffSize = {

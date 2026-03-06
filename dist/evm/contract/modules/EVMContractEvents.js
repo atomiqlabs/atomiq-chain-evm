@@ -8,6 +8,11 @@ function normalizeTopic(topic) {
     }
     return topic;
 }
+/**
+ * Typed contract event utilities built on top of generic EVM log querying helpers.
+ *
+ * @category Internal/Contracts
+ */
 class EVMContractEvents extends EVMEvents_1.EVMEvents {
     constructor(chainInterface, contract) {
         super(chainInterface);

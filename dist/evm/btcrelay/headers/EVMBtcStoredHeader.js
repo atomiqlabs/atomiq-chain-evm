@@ -6,6 +6,8 @@ const EVMBtcHeader_1 = require("./EVMBtcHeader");
 const buffer_1 = require("buffer");
 const ethers_1 = require("ethers");
 /**
+ * Represents a bitcoin header already committed inside EVM BTC relay contract state.
+ *
  * @category BTC Relay
  */
 class EVMBtcStoredHeader {
@@ -17,21 +19,39 @@ class EVMBtcStoredHeader {
         this.lastDiffAdjustment = obj.lastDiffAdjustment;
         this.prevBlockTimestamps = obj.prevBlockTimestamps;
     }
+    /**
+     * @inheritDoc
+     */
     getBlockheight() {
         return this.blockHeight;
     }
+    /**
+     * @inheritDoc
+     */
     getChainWork() {
         return buffer_1.Buffer.from(this.chainWork.toString(16).padStart(64, "0"), "hex");
     }
+    /**
+     * @inheritDoc
+     */
     getHeader() {
         return this.blockheader;
     }
+    /**
+     * @inheritDoc
+     */
     getLastDiffAdjustment() {
         return this.lastDiffAdjustment;
     }
+    /**
+     * @inheritDoc
+     */
     getPrevBlockTimestamps() {
         return this.prevBlockTimestamps;
     }
+    /**
+     * @inheritDoc
+     */
     getBlockHash() {
         return buffer_1.Buffer.from([...this.blockHash]).reverse();
     }
@@ -72,6 +92,9 @@ class EVMBtcStoredHeader {
         }
         return lastDiffAdjustment;
     }
+    /**
+     * @inheritDoc
+     */
     computeNext(header) {
         header.previousBlockhash = this.blockHash;
         return new EVMBtcStoredHeader({

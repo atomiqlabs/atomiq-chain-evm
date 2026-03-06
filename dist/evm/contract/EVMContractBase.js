@@ -4,7 +4,9 @@ exports.EVMContractBase = void 0;
 const ethers_1 = require("ethers");
 const EVMContractEvents_1 = require("./modules/EVMContractEvents");
 /**
- * Base class providing program specific utilities
+ * Base contract wrapper providing typed event and calldata parsing helpers.
+ *
+ * @category Internal/Contracts
  */
 class EVMContractBase {
     constructor(chainInterface, contractAddress, contractAbi, contractDeploymentHeight) {

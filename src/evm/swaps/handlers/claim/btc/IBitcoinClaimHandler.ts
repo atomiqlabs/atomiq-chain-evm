@@ -8,11 +8,21 @@ import {keccak256} from "ethers";
 import {Buffer} from "buffer";
 import {EVMSwapData} from "../../../EVMSwapData";
 
+/**
+ * Common commitment fields used by all bitcoin-based claim handlers.
+ *
+ * @category Internal/Handlers
+ */
 export type BitcoinCommitmentData = {
     btcRelay: EVMBtcRelay<any>,
     confirmations: number
 }
 
+/**
+ * Common witness input for bitcoin-based claim handlers.
+ *
+ * @category Internal/Handlers
+ */
 export type BitcoinWitnessData = {
     tx: { blockhash: string, confirmations: number, txid: string, hex: string, height: number },
     requiredConfirmations: number,
@@ -23,6 +33,11 @@ export type BitcoinWitnessData = {
 
 const logger = getLogger("IBitcoinClaimHandler: ");
 
+/**
+ * Shared base implementation for bitcoin-backed claim handlers.
+ *
+ * @category Internal/Handlers
+ */
 export abstract class IBitcoinClaimHandler<C, W extends BitcoinWitnessData> implements IClaimHandler<C & BitcoinCommitmentData, W> {
 
     public readonly address: string;

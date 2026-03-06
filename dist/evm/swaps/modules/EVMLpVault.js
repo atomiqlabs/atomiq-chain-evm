@@ -3,6 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVMLpVault = void 0;
 const EVMSwapModule_1 = require("../EVMSwapModule");
 const EVMFees_1 = require("../../chain/modules/EVMFees");
+/**
+ * LP vault helper for intermediary balances, reputation and LP deposit/withdraw transactions.
+ *
+ * @category Internal/Swaps
+ */
 class EVMLpVault extends EVMSwapModule_1.EVMSwapModule {
     /**
      * Action for withdrawing funds from the LP vault

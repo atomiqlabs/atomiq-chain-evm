@@ -10,9 +10,25 @@ import {timeoutPromise} from "../../../utils/Utils";
 import {EVMSigner} from "../../wallet/EVMSigner";
 import {TransactionRevertedError} from "@atomiqlabs/base";
 
+/**
+ * Unsigned EVM transaction type used by chain modules.
+ *
+ * @category Chain Interface
+ */
 export type EVMTx = TransactionRequest;
+
+/**
+ * Signed EVM transaction type as produced by ethers.
+ *
+ * @category Chain Interface
+ */
 export type SignedEVMTx = Transaction;
 
+/**
+ * Simplified call-trace structure returned by `debug_traceTransaction` with `callTracer`.
+ *
+ * @category Internal/Chain
+ */
 export type EVMTxTrace = {
     from: string,
     gas: string,
@@ -29,6 +45,8 @@ export type EVMTxTrace = {
 const MAX_UNCONFIRMED_TXNS = 10;
 
 /**
+ * Transaction service for preparing, signing, broadcasting and confirming EVM transactions.
+ *
  * @category Internal/Chain
  */
 export class EVMTransactions extends EVMModule<any> {
@@ -140,7 +158,8 @@ export class EVMTransactions extends EVMModule<any> {
     }
 
     /**
-     * Prepares starknet transactions, checks if the account is deployed, assigns nonces if needed & calls beforeTxSigned callback
+     * Prepares EVM transactions, assigns nonces when needed, and optionally applies access lists
+     * before signing.
      *
      * @param signer
      * @param txs
@@ -415,7 +434,7 @@ export class EVMTransactions extends EVMModule<any> {
     }
 
     /**
-     * Gets the status of the raw starknet transaction
+     * Gets the status of a raw signed EVM transaction.
      *
      * @param tx
      */

@@ -9,6 +9,8 @@ const FLAG_PAY_IN: bigint = 0x02n;
 const FLAG_REPUTATION: bigint = 0x04n;
 
 /**
+ * Represents swap data for executing PrTLC (on-chain) or HTLC (lightning) based swaps.
+ *
  * @category Swaps
  */
 export class EVMSwapData extends SwapData {

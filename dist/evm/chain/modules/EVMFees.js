@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVMFees = void 0;
 const Utils_1 = require("../../../utils/Utils");
 /**
+ * Fee estimation service for EVM chains.
+ *
  * @category Chain Interface
  */
 class EVMFees {

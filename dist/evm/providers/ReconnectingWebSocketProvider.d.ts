@@ -1,6 +1,11 @@
 import { JsonRpcApiProviderOptions } from "ethers";
 import type { Networkish, WebSocketLike } from "ethers";
 import { SocketProvider } from "./SocketProvider";
+/**
+ * WebSocket RPC provider with automatic reconnect, heartbeat ping and connection timeout handling.
+ *
+ * @category Providers
+ */
 export declare class ReconnectingWebSocketProvider extends SocketProvider {
     requestTimeoutSeconds: number;
     reconnectSeconds: number;

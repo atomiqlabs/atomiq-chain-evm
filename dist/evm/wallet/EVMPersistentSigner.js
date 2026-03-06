@@ -10,6 +10,12 @@ const fs = require("fs/promises");
 const WAIT_BEFORE_BUMP = 15 * 1000;
 const MIN_FEE_INCREASE_ABSOLUTE = 1n * 1000000000n; //1GWei
 const MIN_FEE_INCREASE_PPM = 100000n; // +10%
+/**
+ * A robust EVM signer implementation with internal nonce management, automatic rebroadcasting and fee bumping.
+ * Uses Node.js `fs` to persist transaction data across restarts, so it is intended for backend runtimes.
+ *
+ * @category Wallets
+ */
 class EVMPersistentSigner extends EVMSigner_1.EVMSigner {
     constructor(account, address, chainInterface, directory, minFeeIncreaseAbsolute, minFeeIncreasePpm, waitBeforeBumpMillis) {
         super(account, address, true);
@@ -179,6 +185,9 @@ class EVMPersistentSigner extends EVMSigner_1.EVMSigner {
             this.save();
         }
     }
+    /**
+     * @inheritDoc
+     */
     async init() {
         try {
             await fs.mkdir(this.directory);
@@ -190,6 +199,9 @@ class EVMPersistentSigner extends EVMSigner_1.EVMSigner {
         await this.load();
         this.startFeeBumper();
     }
+    /**
+     * @inheritDoc
+     */
     stop() {
         this.stopped = true;
         if (this.feeBumper != null) {

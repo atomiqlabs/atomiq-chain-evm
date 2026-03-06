@@ -23,6 +23,8 @@ function serializeBlockHeader(e) {
 }
 const logger = (0, Utils_1.getLogger)("EVMBtcRelay: ");
 /**
+ * EVM BTC Relay bitcoin light client contract representation.
+ *
  * @category BTC Relay
  */
 class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
@@ -63,8 +65,8 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         this.bitcoinRpc = bitcoinRpc;
     }
     /**
-     * Computes subsequent commited headers as they will appear on the blockchain when transactions
-     *  are submitted & confirmed
+     * Computes subsequent committed headers as they will appear on-chain once transactions
+     * are submitted and confirmed.
      *
      * @param initialStoredHeader
      * @param syncedHeaders
@@ -363,8 +365,8 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
      * @param signer
      * @param btcRelay
      * @param btcTxs
-     * @param txs solana transaction array, in case we need to synchronize the btc relay ourselves the synchronization
-     *  txns are added here
+     * @param txs EVM transaction array. If BTC relay synchronization is needed, synchronization
+     * transactions are appended here.
      * @param synchronizer optional synchronizer to use to synchronize the btc relay in case it is not yet synchronized
      *  to the required blockheight
      * @param feeRate Fee rate to use for synchronization transactions

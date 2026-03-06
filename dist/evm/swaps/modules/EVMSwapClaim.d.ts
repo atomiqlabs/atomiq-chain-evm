@@ -3,6 +3,11 @@ import { EVMSwapModule } from "../EVMSwapModule";
 import { EVMSwapData } from "../EVMSwapData";
 import { EVMTx } from "../../chain/modules/EVMTransactions";
 import { EVMBtcStoredHeader } from "../../btcrelay/headers/EVMBtcStoredHeader";
+/**
+ * Swap claim helper for HTLC and BTC on-chain claim paths.
+ *
+ * @category Internal/Swaps
+ */
 export declare class EVMSwapClaim extends EVMSwapModule {
     private static readonly GasCosts;
     /**
@@ -35,7 +40,7 @@ export declare class EVMSwapClaim extends EVMSwapModule {
      * @param tx bitcoin transaction that satisfies the swap condition
      * @param requiredConfirmations
      * @param vout vout of the bitcoin transaction that satisfies the swap condition
-     * @param commitedHeader commited header data from btc relay (fetched internally if null)
+     * @param commitedHeader committed header data from BTC relay (fetched internally if null)
      * @param synchronizer optional synchronizer to use in case we need to sync up the btc relay ourselves
      * @param feeRate fee rate to be used for the transactions
      */
@@ -48,7 +53,7 @@ export declare class EVMSwapClaim extends EVMSwapModule {
     }, requiredConfirmations: number, vout: number, commitedHeader?: EVMBtcStoredHeader, synchronizer?: RelaySynchronizer<EVMBtcStoredHeader, EVMTx, any>, feeRate?: string): Promise<EVMTx[]>;
     getClaimGas(swapData: EVMSwapData): number;
     /**
-     * Get the estimated starknet transaction fee of the claim transaction
+     * Returns the estimated fee of the claim transaction.
      */
     getClaimFee(swapData: EVMSwapData, feeRate?: string): Promise<bigint>;
 }

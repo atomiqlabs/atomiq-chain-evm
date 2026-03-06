@@ -7,6 +7,8 @@ const Utils_1 = require("../../../utils/Utils");
 const base_1 = require("@atomiqlabs/base");
 const MAX_UNCONFIRMED_TXNS = 10;
 /**
+ * Transaction service for preparing, signing, broadcasting and confirming EVM transactions.
+ *
  * @category Internal/Chain
  */
 class EVMTransactions extends EVMModule_1.EVMModule {
@@ -112,7 +114,8 @@ class EVMTransactions extends EVMModule_1.EVMModule {
             tx.accessList = accessListResponse.accessList;
     }
     /**
-     * Prepares starknet transactions, checks if the account is deployed, assigns nonces if needed & calls beforeTxSigned callback
+     * Prepares EVM transactions, assigns nonces when needed, and optionally applies access lists
+     * before signing.
      *
      * @param signer
      * @param txs
@@ -361,7 +364,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
         return ethers_1.Transaction.from(signedTxData);
     }
     /**
-     * Gets the status of the raw starknet transaction
+     * Gets the status of a raw signed EVM transaction.
      *
      * @param tx
      */

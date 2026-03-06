@@ -39,16 +39,28 @@ function decodeUtxo(utxo: string): {txHash: string, vout: bigint} {
     }
 }
 
+/**
+ * Packs vault owner and vault id into compact `owner+vaultId` event key format.
+ *
+ * @category Swaps
+ */
 export function packOwnerAndVaultId(owner: string, vaultId: bigint): string {
     if(owner.length!==42) throw new Error("Invalid owner address");
     return owner.toLowerCase() + BigIntBufferUtils.toBuffer(vaultId, "be", 12).toString("hex");
 }
 
+/**
+ * Unpacks compact `owner+vaultId` event key format into owner and vault id.
+ *
+ * @category Swaps
+ */
 export function unpackOwnerAndVaultId(data: string): [string, bigint] {
     return [getAddress(data.substring(0, 42)), BigInt("0x"+data.substring(42, 66))];
 }
 
 /**
+ * EVM SPV vault (UTXO-controlled vault) contract representation.
+ *
  * @category Swaps
  */
 export class EVMSpvVaultContract<ChainId extends string>

@@ -5,6 +5,11 @@ const EVMBtcRelay_1 = require("../../evm/btcrelay/EVMBtcRelay");
 const Utils_1 = require("../../utils/Utils");
 const CitreaFees_1 = require("./CitreaFees");
 const logger = (0, Utils_1.getLogger)("CitreaBtcRelay: ");
+/**
+ * Citrea BTC relay wrapper with fee estimation that includes Citrea state-diff costs.
+ *
+ * @category Networks/Citrea
+ */
 class CitreaBtcRelay extends EVMBtcRelay_1.EVMBtcRelay {
     /**
      * Estimate required synchronization fee (worst case) to synchronize btc relay to the required blockheight

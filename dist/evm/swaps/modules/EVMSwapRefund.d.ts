@@ -2,6 +2,11 @@ import { EVMSwapModule } from "../EVMSwapModule";
 import { EVMSwapData } from "../EVMSwapData";
 import { EVMSigner } from "../../wallet/EVMSigner";
 import { EVMTx } from "../../chain/modules/EVMTransactions";
+/**
+ * Swap refund helper for timeout and cooperative refund flows.
+ *
+ * @category Internal/Swaps
+ */
 export declare class EVMSwapRefund extends EVMSwapModule {
     private static readonly GasCosts;
     /**

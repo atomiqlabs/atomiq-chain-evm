@@ -7,6 +7,12 @@ import { EVMChainInterface } from "../chain/EVMChainInterface";
 import { TypedEventLog } from "../typechain/common";
 import { EscrowManager } from "../swaps/EscrowManagerTypechain";
 import { SpvVaultManager } from "../spv_swap/SpvVaultContractTypechain";
+/**
+ * Current state of the EVM event listener, containing the last processed block number
+ *  and event position.
+ *
+ * @category Events
+ */
 export type EVMEventListenerState = {
     lastBlockNumber: number;
     lastEvent?: {

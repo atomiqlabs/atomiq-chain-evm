@@ -6,6 +6,11 @@ const EVMSpvVaultData_1 = require("../../evm/spv_swap/EVMSpvVaultData");
 const ethers_1 = require("ethers");
 const CitreaFees_1 = require("./CitreaFees");
 const EVMAddresses_1 = require("../../evm/chain/modules/EVMAddresses");
+/**
+ * Citrea SPV vault wrapper with fee estimation adjusted by expected state-diff size.
+ *
+ * @category Networks/Citrea
+ */
 class CitreaSpvVaultContract extends EVMSpvVaultContract_1.EVMSpvVaultContract {
     calculateStateDiff(signer, tokenStateChanges) {
         let stateDiffSize = 0;

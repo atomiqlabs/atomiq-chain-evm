@@ -6,6 +6,9 @@ const buffer_1 = require("buffer");
 const EVMSpvVaultContract_1 = require("./EVMSpvVaultContract");
 const ethers_1 = require("ethers");
 /**
+ * Represents parsed withdrawal data used for claiming assets from the EVM SPV vault
+ *  (UTXO-controlled vault).
+ *
  * @category Swaps
  */
 class EVMSpvWithdrawalData extends base_1.SpvWithdrawalTransactionData {
@@ -33,9 +36,15 @@ class EVMSpvWithdrawalData extends base_1.SpvWithdrawalTransactionData {
         const txDataHash = (0, ethers_1.keccak256)(ethers_1.AbiCoder.defaultAbiCoder().encode(["address", "uint64", "uint64", "uint64", "uint64", "uint64", "uint64", "uint64", "bytes32", "uint256"], [this.recipient, this.rawAmounts[0], this.rawAmounts[1], callerFee[0], callerFee[1], frontingFee[0], frontingFee[1], this.getExecutionFee()[0], this.getExecutionHashWith0x(), this.executionExpiry]));
         return (0, ethers_1.keccak256)(ethers_1.AbiCoder.defaultAbiCoder().encode(["bytes32", "bytes32"], [txDataHash, this.getTxHash()])).substring(2);
     }
+    /**
+     * @inheritDoc
+     */
     getTxHash() {
         return "0x" + buffer_1.Buffer.from(this.btcTx.txid, "hex").reverse().toString("hex");
     }
+    /**
+     * @inheritDoc
+     */
     getFrontingAmount() {
         return [this.rawAmounts[0] + this.getExecutionFee()[0], this.rawAmounts[1]];
     }

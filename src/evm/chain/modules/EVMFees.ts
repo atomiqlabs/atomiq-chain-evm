@@ -1,12 +1,19 @@
 import { getLogger } from "../../../utils/Utils";
 import {JsonRpcApiProvider, TransactionRequest} from "ethers";
 
+/**
+ * Parsed EIP-1559 fee rate components.
+ *
+ * @category Chain Interface
+ */
 export type EVMFeeRate = {
     maxFeePerGas: bigint;
     maxPriorityFee: bigint;
 };
 
 /**
+ * Fee estimation service for EVM chains.
+ *
  * @category Chain Interface
  */
 export class EVMFees {

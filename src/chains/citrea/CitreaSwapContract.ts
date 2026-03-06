@@ -2,6 +2,11 @@ import {EVMSwapContract} from "../../evm/swaps/EVMSwapContract";
 import {EVMSwapData} from "../../evm/swaps/EVMSwapData";
 import {CitreaFees} from "./CitreaFees";
 
+/**
+ * Citrea swap contract wrapper with fee estimation adjusted by expected state-diff size.
+ *
+ * @category Networks/Citrea
+ */
 export class CitreaSwapContract extends EVMSwapContract<"CITREA"> {
 
     public static readonly StateDiffSize = {
@@ -27,7 +32,7 @@ export class CitreaSwapContract extends EVMSwapContract<"CITREA"> {
     }
 
     /**
-     * Get the estimated solana fee of the commit transaction
+     * Returns estimated fee of the commit transaction, including Citrea state-diff overhead.
      */
     async getCommitFee(signer: string, swapData: EVMSwapData, feeRate?: string): Promise<bigint> {
         feeRate ??= await this.Chain.Fees.getFeeRate();
@@ -74,7 +79,7 @@ export class CitreaSwapContract extends EVMSwapContract<"CITREA"> {
     }
 
     /**
-     * Get the estimated solana transaction fee of the refund transaction
+     * Returns estimated fee of the refund transaction, including Citrea state-diff overhead.
      */
     async getRefundFee(signer: string, swapData: EVMSwapData, feeRate?: string): Promise<bigint> {
         feeRate ??= await this.Chain.Fees.getFeeRate();

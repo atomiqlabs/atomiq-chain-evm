@@ -3,7 +3,12 @@ import {EVMBtcHeader, EVMBtcHeaderType} from "./EVMBtcHeader";
 import {Buffer} from "buffer";
 import {keccak256} from "ethers";
 
-export type StarknetBtcStoredHeaderType = {
+/**
+ * Constructor payload for a stored bitcoin header committed in EVM BTC relay contract state.
+ *
+ * @category BTC Relay
+ */
+export type EVMBtcStoredHeaderType = {
     blockheader: EVMBtcHeader | EVMBtcHeaderType,
     blockHash: Buffer,
     chainWork: bigint,
@@ -13,6 +18,8 @@ export type StarknetBtcStoredHeaderType = {
 }
 
 /**
+ * Represents a bitcoin header already committed inside EVM BTC relay contract state.
+ *
  * @category BTC Relay
  */
 export class EVMBtcStoredHeader implements BtcStoredHeader<EVMBtcHeader> {
@@ -24,7 +31,7 @@ export class EVMBtcStoredHeader implements BtcStoredHeader<EVMBtcHeader> {
     lastDiffAdjustment: number;
     prevBlockTimestamps: number[];
 
-    constructor(obj: StarknetBtcStoredHeaderType) {
+    constructor(obj: EVMBtcStoredHeaderType) {
         this.blockheader = obj.blockheader instanceof EVMBtcHeader ? obj.blockheader : new EVMBtcHeader(obj.blockheader);
         this.blockHash = obj.blockHash;
         this.chainWork = obj.chainWork;
@@ -33,26 +40,44 @@ export class EVMBtcStoredHeader implements BtcStoredHeader<EVMBtcHeader> {
         this.prevBlockTimestamps = obj.prevBlockTimestamps;
     }
 
+    /**
+     * @inheritDoc
+     */
     getBlockheight(): number {
         return this.blockHeight;
     }
 
+    /**
+     * @inheritDoc
+     */
     getChainWork(): Buffer {
         return Buffer.from(this.chainWork.toString(16).padStart(64, "0"), "hex");
     }
 
+    /**
+     * @inheritDoc
+     */
     getHeader(): EVMBtcHeader {
         return this.blockheader;
     }
 
+    /**
+     * @inheritDoc
+     */
     getLastDiffAdjustment(): number {
         return this.lastDiffAdjustment;
     }
 
+    /**
+     * @inheritDoc
+     */
     getPrevBlockTimestamps(): number[] {
         return this.prevBlockTimestamps;
     }
 
+    /**
+     * @inheritDoc
+     */
     getBlockHash(): Buffer {
         return Buffer.from([...this.blockHash]).reverse();
     }
@@ -99,6 +124,9 @@ export class EVMBtcStoredHeader implements BtcStoredHeader<EVMBtcHeader> {
         return lastDiffAdjustment;
     }
 
+    /**
+     * @inheritDoc
+     */
     computeNext(header: EVMBtcHeader): EVMBtcStoredHeader {
         header.previousBlockhash = this.blockHash;
         return new EVMBtcStoredHeader({

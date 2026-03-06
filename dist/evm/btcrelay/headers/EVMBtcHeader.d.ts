@@ -2,6 +2,11 @@
 /// <reference types="node" />
 import { BtcHeader } from "@atomiqlabs/base";
 import { Buffer } from "buffer";
+/**
+ * Constructor payload for EVM bitcoin blockheader representation.
+ *
+ * @category BTC Relay
+ */
 export type EVMBtcHeaderType = {
     version: number;
     previousBlockhash?: Buffer;
@@ -12,6 +17,8 @@ export type EVMBtcHeaderType = {
     hash?: Buffer;
 };
 /**
+ * Representation of a bitcoin blockheader submitted to EVM BTC relay contracts.
+ *
  * @category BTC Relay
  */
 export declare class EVMBtcHeader implements BtcHeader {
@@ -23,12 +30,33 @@ export declare class EVMBtcHeader implements BtcHeader {
     nonce: number;
     hash?: Buffer;
     constructor(data: EVMBtcHeaderType);
+    /**
+     * @inheritDoc
+     */
     getMerkleRoot(): Buffer;
+    /**
+     * @inheritDoc
+     */
     getNbits(): number;
+    /**
+     * @inheritDoc
+     */
     getNonce(): number;
+    /**
+     * @inheritDoc
+     */
     getReversedPrevBlockhash(): Buffer;
+    /**
+     * @inheritDoc
+     */
     getTimestamp(): number;
+    /**
+     * @inheritDoc
+     */
     getVersion(): number;
+    /**
+     * @inheritDoc
+     */
     getHash(): Buffer;
     serializeCompact(): Buffer;
     serialize(): Buffer;

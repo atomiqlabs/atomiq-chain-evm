@@ -4,6 +4,11 @@ exports.EVMChainEvents = void 0;
 //@ts-ignore
 const fs = require("fs/promises");
 const EVMChainEventsBrowser_1 = require("./EVMChainEventsBrowser");
+/**
+ * Backend event listener with persisted polling cursor stored on filesystem.
+ *
+ * @category Events
+ */
 class EVMChainEvents extends EVMChainEventsBrowser_1.EVMChainEventsBrowser {
     constructor(directory, chainInterface, evmSwapContract, evmSpvVaultContract, pollIntervalSeconds) {
         super(chainInterface, evmSwapContract, evmSpvVaultContract, pollIntervalSeconds);

@@ -5,6 +5,11 @@ import {CitreaFees} from "./CitreaFees";
 
 const logger = getLogger("CitreaBtcRelay: ");
 
+/**
+ * Citrea BTC relay wrapper with fee estimation that includes Citrea state-diff costs.
+ *
+ * @category Networks/Citrea
+ */
 export class CitreaBtcRelay<B extends BtcBlock> extends EVMBtcRelay<B> {
 
     public static StateDiffSize = {

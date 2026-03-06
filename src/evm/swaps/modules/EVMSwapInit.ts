@@ -6,6 +6,11 @@ import {EVMFees} from "../../chain/modules/EVMFees";
 import {EVMSigner} from "../../wallet/EVMSigner";
 import {EVMTx} from "../../chain/modules/EVMTransactions";
 
+/**
+ * Prefetched values used for initialization signature verification.
+ *
+ * @category Internal/Swaps
+ */
 export type EVMPreFetchVerification = {
     safeBlockTime: number
 };
@@ -31,6 +36,11 @@ const Initialize = [
     { name: "extraDataHash", type: "bytes32" }
 ];
 
+/**
+ * Swap initialization helper handling authorization signatures and init transaction construction.
+ *
+ * @category Internal/Swaps
+ */
 export class EVMSwapInit extends EVMSwapModule {
 
     private static readonly GasCosts = {

@@ -13,6 +13,11 @@ const Refund = [
     { name: "timeout", type: "uint256" }
 ];
 
+/**
+ * Swap refund helper for timeout and cooperative refund flows.
+ *
+ * @category Internal/Swaps
+ */
 export class EVMSwapRefund extends EVMSwapModule {
 
     private static readonly GasCosts = {

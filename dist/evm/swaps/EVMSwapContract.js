@@ -20,6 +20,9 @@ const ESCROW_STATE_CLAIMED = 2;
 const ESCROW_STATE_REFUNDED = 3;
 const logger = (0, Utils_1.getLogger)("EVMSwapContract: ");
 /**
+ * EVM swap contract (escrow manager) representation handling PrTLC (on-chain) and HTLC (lightning)
+ *  based swaps.
+ *
  * @category Swaps
  */
 class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
@@ -301,6 +304,9 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
         await Promise.all(promises);
         return result;
     }
+    /**
+     * @inheritDoc
+     */
     async getHistoricalSwaps(signer, startBlockheight) {
         const { height: latestBlockheight } = await this.Chain.getFinalizedBlock();
         const swapsOpened = {};

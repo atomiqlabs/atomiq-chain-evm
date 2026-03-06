@@ -14,7 +14,9 @@ exports.EVM_REPRODUCIBLE_ENTROPY_MESSAGE = "Signing this messages generates a re
     " ARE ON THE %APPNAME% WEBSITE BEFORE SIGNING THE MESSAGE, SIGNING THIS MESSAGE ON ANY OTHER WEBSITE MIGHT LEAD TO" +
     " LOSS OF FUNDS!";
 /**
- * Browser-based EVM signer for external wallet integration
+ * Browser-based EVM signer, intended for injected/external wallets. This ensures no explicit
+ *  `signTransaction()` flow is required and transaction submission goes through `sendTransaction()`.
+ *
  * @category Wallets
  */
 class EVMBrowserSigner extends EVMSigner_1.EVMSigner {

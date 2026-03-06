@@ -5,6 +5,11 @@ import {getLogger} from "../../utils/Utils";
 
 const logger = getLogger("ReconnectingWebSocketProvider: ");
 
+/**
+ * WebSocket RPC provider with automatic reconnect, heartbeat ping and connection timeout handling.
+ *
+ * @category Providers
+ */
 export class ReconnectingWebSocketProvider extends SocketProvider {
 
     requestTimeoutSeconds: number = 10;

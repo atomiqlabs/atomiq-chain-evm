@@ -2,9 +2,19 @@ import { EVMSwapModule } from "../EVMSwapModule";
 import { EVMSwapData } from "../EVMSwapData";
 import { EVMSigner } from "../../wallet/EVMSigner";
 import { EVMTx } from "../../chain/modules/EVMTransactions";
+/**
+ * Prefetched values used for initialization signature verification.
+ *
+ * @category Internal/Swaps
+ */
 export type EVMPreFetchVerification = {
     safeBlockTime: number;
 };
+/**
+ * Swap initialization helper handling authorization signatures and init transaction construction.
+ *
+ * @category Internal/Swaps
+ */
 export declare class EVMSwapInit extends EVMSwapModule {
     private static readonly GasCosts;
     /**

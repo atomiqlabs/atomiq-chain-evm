@@ -36,6 +36,9 @@ const ESCROW_STATE_REFUNDED = 3;
 const logger = getLogger("EVMSwapContract: ");
 
 /**
+ * EVM swap contract (escrow manager) representation handling PrTLC (on-chain) and HTLC (lightning)
+ *  based swaps.
+ *
  * @category Swaps
  */
 export class EVMSwapContract<ChainId extends string = string>
@@ -383,6 +386,9 @@ export class EVMSwapContract<ChainId extends string = string>
         return result;
     }
 
+    /**
+     * @inheritDoc
+     */
     async getHistoricalSwaps(signer: string, startBlockheight?: number): Promise<{
         swaps: {
             [escrowHash: string]: {

@@ -25,6 +25,11 @@ const Initialize = [
     { name: "deadline", type: "uint256" },
     { name: "extraDataHash", type: "bytes32" }
 ];
+/**
+ * Swap initialization helper handling authorization signatures and init transaction construction.
+ *
+ * @category Internal/Swaps
+ */
 class EVMSwapInit extends EVMSwapModule_1.EVMSwapModule {
     /**
      * bare Init action based on the data passed in swapData

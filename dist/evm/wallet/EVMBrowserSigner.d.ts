@@ -11,7 +11,9 @@ import { EVMSigner } from "./EVMSigner";
  */
 export declare const EVM_REPRODUCIBLE_ENTROPY_MESSAGE: string;
 /**
- * Browser-based EVM signer for external wallet integration
+ * Browser-based EVM signer, intended for injected/external wallets. This ensures no explicit
+ *  `signTransaction()` flow is required and transaction submission goes through `sendTransaction()`.
+ *
  * @category Wallets
  */
 export declare class EVMBrowserSigner extends EVMSigner {

@@ -24,6 +24,12 @@ const LOGS_SLIDING_WINDOW_LENGTH = 60;
 
 const PROCESSED_EVENTS_BACKLOG = 1000;
 
+/**
+ * Current state of the EVM event listener, containing the last processed block number
+ *  and event position.
+ *
+ * @category Events
+ */
 export type EVMEventListenerState = {lastBlockNumber: number, lastEvent?: {blockHash: string, logIndex: number}} | null;
 
 type AtomiqTypedEvent = (

@@ -1,5 +1,10 @@
 import { EVMBtcRelay } from "../../evm/btcrelay/EVMBtcRelay";
 import { BtcBlock } from "@atomiqlabs/base";
+/**
+ * Citrea BTC relay wrapper with fee estimation that includes Citrea state-diff costs.
+ *
+ * @category Networks/Citrea
+ */
 export declare class CitreaBtcRelay<B extends BtcBlock> extends EVMBtcRelay<B> {
     static StateDiffSize: {
         STATE_DIFF_PER_BLOCKHEADER: number;

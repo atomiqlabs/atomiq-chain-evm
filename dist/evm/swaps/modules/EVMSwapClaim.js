@@ -4,6 +4,11 @@ exports.EVMSwapClaim = void 0;
 const base_1 = require("@atomiqlabs/base");
 const EVMSwapModule_1 = require("../EVMSwapModule");
 const EVMFees_1 = require("../../chain/modules/EVMFees");
+/**
+ * Swap claim helper for HTLC and BTC on-chain claim paths.
+ *
+ * @category Internal/Swaps
+ */
 class EVMSwapClaim extends EVMSwapModule_1.EVMSwapModule {
     /**
      * Claim action which uses the provided witness for claiming the swap
@@ -57,7 +62,7 @@ class EVMSwapClaim extends EVMSwapModule_1.EVMSwapModule {
      * @param tx bitcoin transaction that satisfies the swap condition
      * @param requiredConfirmations
      * @param vout vout of the bitcoin transaction that satisfies the swap condition
-     * @param commitedHeader commited header data from btc relay (fetched internally if null)
+     * @param commitedHeader committed header data from BTC relay (fetched internally if null)
      * @param synchronizer optional synchronizer to use in case we need to sync up the btc relay ourselves
      * @param feeRate fee rate to be used for the transactions
      */
@@ -115,7 +120,7 @@ class EVMSwapClaim extends EVMSwapModule_1.EVMSwapModule {
         return totalGas;
     }
     /**
-     * Get the estimated starknet transaction fee of the claim transaction
+     * Returns the estimated fee of the claim transaction.
      */
     async getClaimFee(swapData, feeRate) {
         feeRate ?? (feeRate = await this.root.Fees.getFeeRate());

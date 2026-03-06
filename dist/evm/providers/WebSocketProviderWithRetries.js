@@ -4,9 +4,18 @@ exports.WebSocketProviderWithRetries = void 0;
 const Utils_1 = require("../../utils/Utils");
 const ReconnectingWebSocketProvider_1 = require("./ReconnectingWebSocketProvider");
 /**
+ * WebSocket RPC provider with reconnect support and retry logic for transient RPC failures.
+ *
  * @category Providers
  */
 class WebSocketProviderWithRetries extends ReconnectingWebSocketProvider_1.ReconnectingWebSocketProvider {
+    /**
+     * Creates a new WebSocket provider which retries RPC calls based on the provided policy.
+     *
+     * @param url
+     * @param network
+     * @param options
+     */
     constructor(url, network, options) {
         super(url, network, options);
         this.retryPolicy = options;

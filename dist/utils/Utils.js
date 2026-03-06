@@ -1,6 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.allowedEthersErrorMessages = exports.allowedEthersErrorNumbers = exports.allowedEthersErrorCodes = exports.bigIntMax = exports.uint32ReverseEndianness = exports.tryWithRetries = exports.getLogger = exports.onceAsync = exports.timeoutPromise = void 0;
+/**
+ * Returns a promise that resolves after `timeoutMillis` unless aborted first.
+ *
+ * @category Internal/Utils
+ */
 function timeoutPromise(timeoutMillis, abortSignal) {
     return new Promise((resolve, reject) => {
         const timeout = setTimeout(resolve, timeoutMillis);
@@ -12,6 +17,11 @@ function timeoutPromise(timeoutMillis, abortSignal) {
     });
 }
 exports.timeoutPromise = timeoutPromise;
+/**
+ * Wraps an async executor so it runs once at a time and reuses the same promise.
+ *
+ * @category Internal/Utils
+ */
 function onceAsync(executor) {
     let promise;
     return () => {
@@ -25,6 +35,11 @@ function onceAsync(executor) {
     };
 }
 exports.onceAsync = onceAsync;
+/**
+ * Creates a prefixed logger that honors the global `atomiqLogLevel`.
+ *
+ * @category Internal/Utils
+ */
 function getLogger(prefix) {
     return {
         debug: (msg, ...args) => global.atomiqLogLevel >= 3 && console.debug(prefix + msg, ...args),
@@ -35,6 +50,11 @@ function getLogger(prefix) {
 }
 exports.getLogger = getLogger;
 const logger = getLogger("Utils: ");
+/**
+ * Retries an async function using the provided retry policy.
+ *
+ * @category Internal/Utils
+ */
 async function tryWithRetries(func, retryPolicy, errorAllowed, abortSignal) {
     retryPolicy = retryPolicy || {};
     retryPolicy.maxRetries = retryPolicy.maxRetries || 5;
@@ -61,6 +81,11 @@ async function tryWithRetries(func, retryPolicy, errorAllowed, abortSignal) {
     throw err;
 }
 exports.tryWithRetries = tryWithRetries;
+/**
+ * Reverses byte order of a 32-bit unsigned integer.
+ *
+ * @category Internal/Utils
+ */
 function uint32ReverseEndianness(value) {
     const valueBN = BigInt(value);
     return Number(((valueBN & 0xffn) << 24n) |
@@ -69,16 +94,31 @@ function uint32ReverseEndianness(value) {
         ((valueBN >> 24n) & 0xffn));
 }
 exports.uint32ReverseEndianness = uint32ReverseEndianness;
+/**
+ * Returns the greater of two bigint values.
+ *
+ * @category Internal/Utils
+ */
 function bigIntMax(a, b) {
     return a > b ? a : b;
 }
 exports.bigIntMax = bigIntMax;
+/**
+ * Ethers.js error codes considered recoverable for retry logic.
+ *
+ * @category Internal/Utils
+ */
 exports.allowedEthersErrorCodes = new Set([
     "NOT_IMPLEMENTED", "UNSUPPORTED_OPERATION", "BAD_DATA",
     "NUMERIC_FAULT",
     "INVALID_ARGUMENT", "MISSING_ARGUMENT", "UNEXPECTED_ARGUMENT", "VALUE_MISMATCH",
     "CALL_EXCEPTION", "NONCE_EXPIRED", "REPLACEMENT_UNDERPRICED", "TRANSACTION_REPLACED", "UNCONFIGURED_NAME", "OFFCHAIN_FAULT", "ACTION_REJECTED"
 ]);
+/**
+ * JSON-RPC error numbers considered recoverable for retry logic.
+ *
+ * @category Internal/Utils
+ */
 exports.allowedEthersErrorNumbers = new Set([
     3,
     -32700,
@@ -94,6 +134,11 @@ exports.allowedEthersErrorNumbers = new Set([
     // -32005, //Limit exceeded
     -32006 //JSON-RPC version not supported
 ]);
+/**
+ * RPC error messages considered recoverable for retry logic.
+ *
+ * @category Internal/Utils
+ */
 exports.allowedEthersErrorMessages = new Set([
     "already known"
 ]);

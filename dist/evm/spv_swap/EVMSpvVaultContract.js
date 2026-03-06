@@ -20,17 +20,29 @@ function decodeUtxo(utxo) {
         vout: BigInt(vout)
     };
 }
+/**
+ * Packs vault owner and vault id into compact `owner+vaultId` event key format.
+ *
+ * @category Swaps
+ */
 function packOwnerAndVaultId(owner, vaultId) {
     if (owner.length !== 42)
         throw new Error("Invalid owner address");
     return owner.toLowerCase() + base_1.BigIntBufferUtils.toBuffer(vaultId, "be", 12).toString("hex");
 }
 exports.packOwnerAndVaultId = packOwnerAndVaultId;
+/**
+ * Unpacks compact `owner+vaultId` event key format into owner and vault id.
+ *
+ * @category Swaps
+ */
 function unpackOwnerAndVaultId(data) {
     return [(0, ethers_1.getAddress)(data.substring(0, 42)), BigInt("0x" + data.substring(42, 66))];
 }
 exports.unpackOwnerAndVaultId = unpackOwnerAndVaultId;
 /**
+ * EVM SPV vault (UTXO-controlled vault) contract representation.
+ *
  * @category Swaps
  */
 class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {

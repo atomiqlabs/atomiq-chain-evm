@@ -8,6 +8,8 @@ import {
 } from "../../utils/Utils";
 
 /**
+ * JSON-RPC provider with built-in retry functionality for transient RPC failures.
+ *
  * @category Providers
  */
 export class JsonRpcProviderWithRetries extends JsonRpcProvider {
@@ -16,6 +18,13 @@ export class JsonRpcProviderWithRetries extends JsonRpcProvider {
         maxRetries?: number, delay?: number, exponential?: boolean
     };
 
+    /**
+     * Creates a new JSON-RPC provider which retries RPC calls based on the provided policy.
+     *
+     * @param url
+     * @param network
+     * @param options
+     */
     constructor(url: string | FetchRequest, network?: Networkish, options?: JsonRpcApiProviderOptions & {
         maxRetries?: number, delay?: number, exponential?: boolean, timeout?: number
     }) {

@@ -7,6 +7,11 @@ import {keccak256, solidityPackedKeccak256} from "ethers";
 import {EVMSwapData} from "../../../EVMSwapData";
 import {EVMTx} from "../../../../chain/modules/EVMTransactions";
 
+/**
+ * Commitment payload for nonced output-script bitcoin claims.
+ *
+ * @category Internal/Handlers
+ */
 export type BitcoinNoncedOutputCommitmentData = {
     output: Buffer,
     amount: bigint,

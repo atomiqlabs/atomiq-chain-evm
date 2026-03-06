@@ -8,6 +8,11 @@ const Refund = [
     { name: "swapHash", type: "bytes32" },
     { name: "timeout", type: "uint256" }
 ];
+/**
+ * Swap refund helper for timeout and cooperative refund flows.
+ *
+ * @category Internal/Swaps
+ */
 class EVMSwapRefund extends EVMSwapModule_1.EVMSwapModule {
     /**
      * Action for generic Refund instruction

@@ -2,6 +2,12 @@ import { Signer, TransactionRequest, TransactionResponse } from "ethers";
 import { EVMBlockTag } from "../chain/modules/EVMBlocks";
 import { EVMChainInterface } from "../chain/EVMChainInterface";
 import { EVMSigner } from "./EVMSigner";
+/**
+ * A robust EVM signer implementation with internal nonce management, automatic rebroadcasting and fee bumping.
+ * Uses Node.js `fs` to persist transaction data across restarts, so it is intended for backend runtimes.
+ *
+ * @category Wallets
+ */
 export declare class EVMPersistentSigner extends EVMSigner {
     readonly safeBlockTag: EVMBlockTag;
     private pendingTxs;
@@ -23,7 +29,13 @@ export declare class EVMPersistentSigner extends EVMSigner {
     private checkPastTransactions;
     private startFeeBumper;
     private syncNonceFromChain;
+    /**
+     * @inheritDoc
+     */
     init(): Promise<void>;
+    /**
+     * @inheritDoc
+     */
     stop(): Promise<void>;
     private readonly sendTransactionQueue;
     sendTransaction(transaction: TransactionRequest, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>): Promise<TransactionResponse>;

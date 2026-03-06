@@ -6,6 +6,11 @@ import {EVMSwapContract} from "../swaps/EVMSwapContract";
 import {EVMSpvVaultContract} from "../spv_swap/EVMSpvVaultContract";
 
 
+/**
+ * Backend event listener with persisted polling cursor stored on filesystem.
+ *
+ * @category Events
+ */
 export class EVMChainEvents extends EVMChainEventsBrowser {
 
     private readonly directory: string;

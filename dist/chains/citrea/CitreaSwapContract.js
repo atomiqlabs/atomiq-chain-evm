@@ -3,6 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CitreaSwapContract = void 0;
 const EVMSwapContract_1 = require("../../evm/swaps/EVMSwapContract");
 const CitreaFees_1 = require("./CitreaFees");
+/**
+ * Citrea swap contract wrapper with fee estimation adjusted by expected state-diff size.
+ *
+ * @category Networks/Citrea
+ */
 class CitreaSwapContract extends EVMSwapContract_1.EVMSwapContract {
     calculateStateDiff(signer, tokenStateChanges) {
         let stateDiffSize = 0;
@@ -18,7 +23,7 @@ class CitreaSwapContract extends EVMSwapContract_1.EVMSwapContract {
         return stateDiffSize;
     }
     /**
-     * Get the estimated solana fee of the commit transaction
+     * Returns estimated fee of the commit transaction, including Citrea state-diff overhead.
      */
     async getCommitFee(signer, swapData, feeRate) {
         feeRate ?? (feeRate = await this.Chain.Fees.getFeeRate());
@@ -60,7 +65,7 @@ class CitreaSwapContract extends EVMSwapContract_1.EVMSwapContract {
         return gasFee + CitreaFees_1.CitreaFees.getGasFee(0, feeRate, diffSize);
     }
     /**
-     * Get the estimated solana transaction fee of the refund transaction
+     * Returns estimated fee of the refund transaction, including Citrea state-diff overhead.
      */
     async getRefundFee(signer, swapData, feeRate) {
         feeRate ?? (feeRate = await this.Chain.Fees.getFeeRate());

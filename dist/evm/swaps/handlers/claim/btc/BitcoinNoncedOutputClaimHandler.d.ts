@@ -6,6 +6,11 @@ import { BitcoinOutputWitnessData } from "./BitcoinOutputClaimHandler";
 import { Buffer } from "buffer";
 import { EVMSwapData } from "../../../EVMSwapData";
 import { EVMTx } from "../../../../chain/modules/EVMTransactions";
+/**
+ * Commitment payload for nonced output-script bitcoin claims.
+ *
+ * @category Internal/Handlers
+ */
 export type BitcoinNoncedOutputCommitmentData = {
     output: Buffer;
     amount: bigint;

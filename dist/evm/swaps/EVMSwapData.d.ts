@@ -2,6 +2,8 @@ import { SwapData, ChainSwapType } from "@atomiqlabs/base";
 import { EscrowDataStruct } from "./EscrowManagerTypechain";
 import { IClaimHandler } from "./handlers/claim/ClaimHandlers";
 /**
+ * Represents swap data for executing PrTLC (on-chain) or HTLC (lightning) based swaps.
+ *
  * @category Swaps
  */
 export declare class EVMSwapData extends SwapData {

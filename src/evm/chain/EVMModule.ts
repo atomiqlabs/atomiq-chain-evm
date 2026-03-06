@@ -2,6 +2,11 @@ import {getLogger} from "../../utils/Utils";
 import {JsonRpcApiProvider} from "ethers";
 import {EVMChainInterface, EVMRetryPolicy} from "./EVMChainInterface";
 
+/**
+ * Base module class shared by EVM chain submodules.
+ *
+ * @category Internal/Chain
+ */
 export class EVMModule<ChainId extends string = string> {
 
     protected readonly provider: JsonRpcApiProvider;

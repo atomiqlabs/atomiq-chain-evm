@@ -7,6 +7,11 @@ const Utils_1 = require("../../../../../utils/Utils");
 const ethers_1 = require("ethers");
 const buffer_1 = require("buffer");
 const logger = (0, Utils_1.getLogger)("IBitcoinClaimHandler: ");
+/**
+ * Shared base implementation for bitcoin-backed claim handlers.
+ *
+ * @category Internal/Handlers
+ */
 class IBitcoinClaimHandler {
     constructor(address) {
         this.address = address;

@@ -17,6 +17,9 @@ import { EVMPreFetchVerification, EVMSwapInit } from "./modules/EVMSwapInit";
 import { EVMSwapRefund } from "./modules/EVMSwapRefund";
 import { EVMSwapClaim } from "./modules/EVMSwapClaim";
 /**
+ * EVM swap contract (escrow manager) representation handling PrTLC (on-chain) and HTLC (lightning)
+ *  based swaps.
+ *
  * @category Swaps
  */
 export declare class EVMSwapContract<ChainId extends string = string> extends EVMContractBase<EscrowManager> implements SwapContract<EVMSwapData, EVMTx, never, EVMPreFetchVerification, EVMSigner, ChainId> {
@@ -136,6 +139,9 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
     }[]): Promise<{
         [p: string]: SwapCommitState;
     }>;
+    /**
+     * @inheritDoc
+     */
     getHistoricalSwaps(signer: string, startBlockheight?: number): Promise<{
         swaps: {
             [escrowHash: string]: {

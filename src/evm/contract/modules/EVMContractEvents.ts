@@ -12,6 +12,11 @@ function normalizeTopic(topic: string) {
 }
 
 
+/**
+ * Typed contract event utilities built on top of generic EVM log querying helpers.
+ *
+ * @category Internal/Contracts
+ */
 export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
 
     readonly contract: EVMContractBase<T>;

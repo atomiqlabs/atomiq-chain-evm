@@ -4,6 +4,8 @@ exports.EVMBtcHeader = void 0;
 const buffer_1 = require("buffer");
 const sha2_1 = require("@noble/hashes/sha2");
 /**
+ * Representation of a bitcoin blockheader submitted to EVM BTC relay contracts.
+ *
  * @category BTC Relay
  */
 class EVMBtcHeader {
@@ -16,26 +18,47 @@ class EVMBtcHeader {
         this.nonce = data.nonce;
         this.hash = data.hash;
     }
+    /**
+     * @inheritDoc
+     */
     getMerkleRoot() {
         return this.merkleRoot;
     }
+    /**
+     * @inheritDoc
+     */
     getNbits() {
         return this.nbits;
     }
+    /**
+     * @inheritDoc
+     */
     getNonce() {
         return this.nonce;
     }
+    /**
+     * @inheritDoc
+     */
     getReversedPrevBlockhash() {
         if (this.previousBlockhash == null)
             throw new Error("Previous blockhash is not known from compact blockheader!");
         return this.previousBlockhash;
     }
+    /**
+     * @inheritDoc
+     */
     getTimestamp() {
         return this.timestamp;
     }
+    /**
+     * @inheritDoc
+     */
     getVersion() {
         return this.version;
     }
+    /**
+     * @inheritDoc
+     */
     getHash() {
         return buffer_1.Buffer.from((0, sha2_1.sha256)((0, sha2_1.sha256)(this.serialize())));
     }

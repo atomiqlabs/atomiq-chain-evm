@@ -2,6 +2,11 @@ import {BtcHeader} from "@atomiqlabs/base";
 import {Buffer} from "buffer";
 import {sha256} from "@noble/hashes/sha2";
 
+/**
+ * Constructor payload for EVM bitcoin blockheader representation.
+ *
+ * @category BTC Relay
+ */
 export type EVMBtcHeaderType = {
     version: number;
     previousBlockhash?: Buffer;
@@ -13,6 +18,8 @@ export type EVMBtcHeaderType = {
 };
 
 /**
+ * Representation of a bitcoin blockheader submitted to EVM BTC relay contracts.
+ *
  * @category BTC Relay
  */
 export class EVMBtcHeader implements BtcHeader {
@@ -35,31 +42,52 @@ export class EVMBtcHeader implements BtcHeader {
         this.hash = data.hash;
     }
 
+    /**
+     * @inheritDoc
+     */
     getMerkleRoot(): Buffer {
         return this.merkleRoot;
     }
 
+    /**
+     * @inheritDoc
+     */
     getNbits(): number {
         return this.nbits;
     }
 
+    /**
+     * @inheritDoc
+     */
     getNonce(): number {
         return this.nonce;
     }
 
+    /**
+     * @inheritDoc
+     */
     getReversedPrevBlockhash(): Buffer {
         if(this.previousBlockhash==null) throw new Error("Previous blockhash is not known from compact blockheader!");
         return this.previousBlockhash;
     }
 
+    /**
+     * @inheritDoc
+     */
     getTimestamp(): number {
         return this.timestamp;
     }
 
+    /**
+     * @inheritDoc
+     */
     getVersion(): number {
         return this.version;
     }
 
+    /**
+     * @inheritDoc
+     */
     getHash(): Buffer {
         return Buffer.from(sha256(sha256(this.serialize())));
     }
