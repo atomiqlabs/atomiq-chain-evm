@@ -57,6 +57,13 @@ export class EVMBrowserSigner extends EVMSigner {
         }
     }
 
+    /**
+     * Signs and sends the provided EVM transaction.
+     * Maps common wallet rejection errors to a consistent user-facing message.
+     *
+     * @param transaction A transaction to sign and send
+     * @param onBeforePublish Optional callback called after signing and before broadcast when available
+     */
     async sendTransaction(transaction: TransactionRequest, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>): Promise<TransactionResponse> {
         try {
             return await super.sendTransaction(transaction, onBeforePublish);

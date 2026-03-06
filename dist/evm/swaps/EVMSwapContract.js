@@ -408,6 +408,15 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
         return Promise.resolve(new EVMSwapData_1.EVMSwapData(offerer, claimer, token, this.timelockRefundHandler.address, claimHandler.address, payOut, payIn, payIn, //For now track reputation for all payIn swaps
         sequence, "0x" + paymentHash, (0, ethers_1.hexlify)(base_1.BigIntBufferUtils.toBuffer(expiry, "be", 32)), amount, depositToken, securityDeposit, claimerBounty, type));
     }
+    /**
+     * Recursively scans call traces and extracts swap data from `initialize(...)` calldata
+     * for the specified escrow hash.
+     *
+     * @param call Trace call node to inspect
+     * @param escrowHash Escrow hash to match
+     * @param claimHandler Claim handler used to deserialize claim-specific fields
+     * @private
+     */
     findInitSwapData(call, escrowHash, claimHandler) {
         if (call.to.toLowerCase() === this.contractAddress.toLowerCase()) {
             const _result = this.parseCalldata(call.input);

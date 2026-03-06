@@ -96,6 +96,10 @@ export class EVMBtcHeader implements BtcHeader {
         return Buffer.from(sha256(sha256(this.serialize())));
     }
 
+    /**
+     * Serializes the bitcoin blockheader into compact 48-byte representation
+     * (without previous blockhash).
+     */
     serializeCompact(): Buffer {
         const buffer = Buffer.alloc(48);
         buffer.writeUInt32LE(this.version, 0);
@@ -106,6 +110,9 @@ export class EVMBtcHeader implements BtcHeader {
         return buffer;
     }
 
+    /**
+     * Serializes the bitcoin blockheader into full 80-byte representation.
+     */
     serialize(): Buffer {
         if(this._previousBlockhash==null) throw new Error("Cannot serialize compact blockheader without previous blockhash!");
         const buffer = Buffer.alloc(80);
@@ -118,6 +125,11 @@ export class EVMBtcHeader implements BtcHeader {
         return buffer;
     }
 
+    /**
+     * Deserializes a bitcoin blockheader from 80-byte full or 48-byte compact representation.
+     *
+     * @param rawData Serialized blockheader bytes
+     */
     static deserialize(rawData: Buffer): EVMBtcHeader {
         if(rawData.length===80) {
             //Regular blockheader

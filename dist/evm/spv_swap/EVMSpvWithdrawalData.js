@@ -57,6 +57,9 @@ class EVMSpvWithdrawalData extends base_1.SpvWithdrawalTransactionData {
             ...super.serialize()
         };
     }
+    /**
+     * Serializes the withdrawal data to the EVM contract struct representation.
+     */
     serializeToStruct() {
         const callerFee = this.getCallerFee();
         const frontingFee = this.getFrontingFee();

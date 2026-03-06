@@ -141,17 +141,41 @@ export declare class EVMSwapData extends SwapData {
      * @inheritDoc
      */
     isOfferer(address: string): boolean;
+    /**
+     * Checks whether the passed address is specified as the refund handler for the swap.
+     *
+     * @param address
+     */
     isRefundHandler(address: string): boolean;
+    /**
+     * Checks whether the passed address is specified as the claim handler for the swap.
+     *
+     * @param address
+     */
     isClaimHandler(address: string): boolean;
+    /**
+     * Checks if the passed data matches the swap's claim data.
+     *
+     * @param data
+     */
     isClaimData(data: string): boolean;
     /**
      * @inheritDoc
      */
     equals(other: EVMSwapData): boolean;
+    /**
+     * Serializes the swap data into the EVM escrow-manager struct representation.
+     */
     toEscrowStruct(): EscrowDataStruct;
     /**
      * @inheritDoc
      */
     hasSuccessAction(): boolean;
+    /**
+     * Deserializes swap data from an on-chain escrow struct.
+     *
+     * @param struct Escrow struct as returned by the contract
+     * @param claimHandlerImpl Claim handler implementation used to resolve swap type
+     */
     static deserializeFromStruct(struct: EscrowDataStruct, claimHandlerImpl: IClaimHandler<any, any>): EVMSwapData;
 }

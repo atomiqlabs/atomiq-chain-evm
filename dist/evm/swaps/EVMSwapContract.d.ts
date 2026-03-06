@@ -162,6 +162,15 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
      * @inheritDoc
      */
     createSwapData(type: ChainSwapType, offerer: string, claimer: string, token: string, amount: bigint, paymentHash: string, sequence: bigint, expiry: bigint, payIn: boolean, payOut: boolean, securityDeposit: bigint, claimerBounty: bigint, depositToken?: string): Promise<EVMSwapData>;
+    /**
+     * Recursively scans call traces and extracts swap data from `initialize(...)` calldata
+     * for the specified escrow hash.
+     *
+     * @param call Trace call node to inspect
+     * @param escrowHash Escrow hash to match
+     * @param claimHandler Claim handler used to deserialize claim-specific fields
+     * @private
+     */
     findInitSwapData(call: EVMTxTrace, escrowHash: string, claimHandler: IClaimHandler<any, any>): EVMSwapData | null;
     /**
      * @inheritDoc

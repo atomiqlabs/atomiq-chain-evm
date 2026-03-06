@@ -571,6 +571,15 @@ export class EVMSwapContract<ChainId extends string = string>
         ));
     }
 
+    /**
+     * Recursively scans call traces and extracts swap data from `initialize(...)` calldata
+     * for the specified escrow hash.
+     *
+     * @param call Trace call node to inspect
+     * @param escrowHash Escrow hash to match
+     * @param claimHandler Claim handler used to deserialize claim-specific fields
+     * @private
+     */
     findInitSwapData(call: EVMTxTrace, escrowHash: string, claimHandler: IClaimHandler<any, any>): EVMSwapData | null {
         if(call.to.toLowerCase() === this.contractAddress.toLowerCase()) {
             const _result = this.parseCalldata(call.input);

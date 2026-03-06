@@ -61,7 +61,7 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         const tokens = vault.getTokenData();
         if (tokens.length !== 2)
             throw new Error("Must specify exactly 2 tokens for vault!");
-        const tx = await this.contract.open.populateTransaction(vault.vaultId, vault.getVaultParamsStruct(), txHash, vout);
+        const tx = await this.contract.open.populateTransaction(vault.vaultId, vault._getVaultParamsStruct(), txHash, vout);
         tx.from = signer;
         EVMFees_1.EVMFees.applyFeeRate(tx, EVMSpvVaultContract.GasCosts.OPEN, feeRate);
         return tx;
@@ -83,7 +83,7 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
             if (rawAmounts[1] != null && rawAmounts[1] > 0n && vault.token0.token.toLowerCase() !== vault.token1.token.toLowerCase())
                 totalGas += EVMSpvVaultContract.GasCosts.DEPOSIT_ERC20;
         }
-        const tx = await this.contract.deposit.populateTransaction(vault.owner, vault.vaultId, vault.getVaultParamsStruct(), rawAmounts[0], rawAmounts[1] ?? 0n, { value });
+        const tx = await this.contract.deposit.populateTransaction(vault.owner, vault.vaultId, vault._getVaultParamsStruct(), rawAmounts[0], rawAmounts[1] ?? 0n, { value });
         tx.from = signer;
         EVMFees_1.EVMFees.applyFeeRate(tx, totalGas, feeRate);
         return tx;
@@ -95,13 +95,13 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
             value += frontingAmount[0] * vault.token0.multiplier;
         if (vault.token1.token.toLowerCase() === this.Chain.getNativeCurrencyAddress().toLowerCase())
             value += (frontingAmount[1] ?? 0n) * vault.token1.multiplier;
-        const tx = await this.contract.front.populateTransaction(vault.owner, vault.vaultId, vault.getVaultParamsStruct(), withdrawalSequence, data.getTxHash(), data.serializeToStruct(), { value });
+        const tx = await this.contract.front.populateTransaction(vault.owner, vault.vaultId, vault._getVaultParamsStruct(), withdrawalSequence, data.getTxHash(), data.serializeToStruct(), { value });
         tx.from = signer;
         EVMFees_1.EVMFees.applyFeeRate(tx, this.getFrontGas(signer, vault, data), feeRate);
         return tx;
     }
     async Claim(signer, vault, data, blockheader, merkle, position, feeRate) {
-        const tx = await this.contract.claim.populateTransaction(vault.owner, vault.vaultId, vault.getVaultParamsStruct(), "0x" + data.btcTx.hex, blockheader.serializeToStruct(), merkle, position);
+        const tx = await this.contract.claim.populateTransaction(vault.owner, vault.vaultId, vault._getVaultParamsStruct(), "0x" + data.btcTx.hex, blockheader.serializeToStruct(), merkle, position);
         tx.from = signer;
         EVMFees_1.EVMFees.applyFeeRate(tx, this.getClaimGas(signer, vault, data), feeRate);
         return tx;
@@ -461,6 +461,11 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
     fromOpReturnData(data) {
         return EVMSpvVaultContract.fromOpReturnData(data);
     }
+    /**
+     * Parses withdrawal params from OP_RETURN data.
+     *
+     * @param data Data as specified in the OP_RETURN output of the transaction
+     */
     static fromOpReturnData(data) {
         let rawAmount0 = 0n;
         let rawAmount1 = 0n;
@@ -495,6 +500,13 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
     toOpReturnData(recipient, rawAmounts, executionHash) {
         return EVMSpvVaultContract.toOpReturnData(recipient, rawAmounts, executionHash);
     }
+    /**
+     * Serializes withdrawal params to OP_RETURN data.
+     *
+     * @param recipient Recipient of the withdrawn tokens
+     * @param rawAmounts Raw amount of tokens to withdraw
+     * @param executionHash Optional execution hash of the actions to execute
+     */
     static toOpReturnData(recipient, rawAmounts, executionHash) {
         if (!EVMAddresses_1.EVMAddresses.isValidAddress(recipient))
             throw new Error("Invalid recipient specified");
@@ -676,6 +688,13 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
             " vaultId: " + vault.getVaultId().toString(10));
         return [tx];
     }
+    /**
+     * Returns an estimated gas amount for a claim transaction.
+     *
+     * @param signer Signer address executing the claim
+     * @param vault Vault data used to determine transfer paths
+     * @param data Parsed withdrawal data
+     */
     getClaimGas(signer, vault, data) {
         let totalGas = EVMSpvVaultContract.GasCosts.CLAIM_BASE;
         if (data == null || (data.rawAmounts[0] != null && data.rawAmounts[0] > 0n)) {
@@ -700,6 +719,13 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
             totalGas += EVMSpvVaultContract.GasCosts.CLAIM_EXECUTION_SCHEDULE;
         return totalGas;
     }
+    /**
+     * Returns an estimated gas amount for a front-liquidity transaction.
+     *
+     * @param signer Signer address executing the front action
+     * @param vault Vault data used to determine transfer paths
+     * @param data Parsed withdrawal data
+     */
     getFrontGas(signer, vault, data) {
         let totalGas = EVMSpvVaultContract.GasCosts.FRONT_BASE;
         if (data == null || (data.rawAmounts[0] != null && data.rawAmounts[0] > 0n)) {
@@ -725,7 +751,7 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
      * @inheritDoc
      */
     async getFrontFee(signer, vault, withdrawalData, feeRate) {
-        vault ?? (vault = EVMSpvVaultData_1.EVMSpvVaultData.randomVault());
+        vault ?? (vault = EVMSpvVaultData_1.EVMSpvVaultData._randomVault());
         feeRate ?? (feeRate = await this.Chain.Fees.getFeeRate());
         let totalFee = EVMFees_1.EVMFees.getGasFee(this.getFrontGas(signer, vault, withdrawalData), feeRate);
         if (withdrawalData == null || (withdrawalData.rawAmounts[0] != null && withdrawalData.rawAmounts[0] > 0n)) {

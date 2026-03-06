@@ -403,16 +403,31 @@ export class EVMSwapData extends SwapData {
         return this.offerer.toLowerCase() === address.toLowerCase();
     }
 
+    /**
+     * Checks whether the passed address is specified as the refund handler for the swap.
+     *
+     * @param address
+     */
     isRefundHandler(address: string): boolean {
         if(!address.startsWith("0x")) address = "0x"+address;
         return this.refundHandler.toLowerCase() === address.toLowerCase();
     }
 
+    /**
+     * Checks whether the passed address is specified as the claim handler for the swap.
+     *
+     * @param address
+     */
     isClaimHandler(address: string): boolean {
         if(!address.startsWith("0x")) address = "0x"+address;
         return this.claimHandler.toLowerCase() === address.toLowerCase();
     }
 
+    /**
+     * Checks if the passed data matches the swap's claim data.
+     *
+     * @param data
+     */
     isClaimData(data: string): boolean {
         if(!data.startsWith("0x")) data = "0x"+data;
         return (this.claimData.startsWith("0x") ? this.claimData : "0x"+this.claimData) === data;
@@ -439,6 +454,9 @@ export class EVMSwapData extends SwapData {
             other.successActionCommitment.toLowerCase() === this.successActionCommitment.toLowerCase()
     }
 
+    /**
+     * Serializes the swap data into the EVM escrow-manager struct representation.
+     */
     toEscrowStruct(): EscrowDataStruct {
         return {
             offerer: this.offerer,
@@ -464,6 +482,12 @@ export class EVMSwapData extends SwapData {
         return this.successActionCommitment !== ZeroHash;
     }
 
+    /**
+     * Deserializes swap data from an on-chain escrow struct.
+     *
+     * @param struct Escrow struct as returned by the contract
+     * @param claimHandlerImpl Claim handler implementation used to resolve swap type
+     */
     static deserializeFromStruct(struct: EscrowDataStruct, claimHandlerImpl: IClaimHandler<any, any>): EVMSwapData {
         const {payOut, payIn, reputation, sequence} = EVMSwapData.toFlags(BigInt(struct.flags));
 

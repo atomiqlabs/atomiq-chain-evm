@@ -118,7 +118,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         const tokens = vault.getTokenData();
         if(tokens.length!==2) throw new Error("Must specify exactly 2 tokens for vault!");
 
-        const tx = await this.contract.open.populateTransaction(vault.vaultId, vault.getVaultParamsStruct(), txHash, vout);
+        const tx = await this.contract.open.populateTransaction(vault.vaultId, vault._getVaultParamsStruct(), txHash, vout);
         tx.from = signer;
         EVMFees.applyFeeRate(tx, EVMSpvVaultContract.GasCosts.OPEN, feeRate);
 
@@ -141,7 +141,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         }
 
         const tx = await this.contract.deposit.populateTransaction(
-            vault.owner, vault.vaultId, vault.getVaultParamsStruct(),
+            vault.owner, vault.vaultId, vault._getVaultParamsStruct(),
             rawAmounts[0], rawAmounts[1] ?? 0n, { value }
         );
         tx.from = signer;
@@ -161,7 +161,7 @@ export class EVMSpvVaultContract<ChainId extends string>
             value += (frontingAmount[1] ?? 0n) * vault.token1.multiplier;
 
         const tx = await this.contract.front.populateTransaction(
-            vault.owner, vault.vaultId, vault.getVaultParamsStruct(),
+            vault.owner, vault.vaultId, vault._getVaultParamsStruct(),
             withdrawalSequence, data.getTxHash(), data.serializeToStruct(),
             { value }
         );
@@ -176,7 +176,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         blockheader: EVMBtcStoredHeader, merkle: Buffer[], position: number, feeRate: string
     ): Promise<TransactionRequest> {
         const tx = await this.contract.claim.populateTransaction(
-            vault.owner, vault.vaultId, vault.getVaultParamsStruct(), "0x"+data.btcTx.hex,
+            vault.owner, vault.vaultId, vault._getVaultParamsStruct(), "0x"+data.btcTx.hex,
             blockheader.serializeToStruct(), merkle, position
         )
 
@@ -603,6 +603,12 @@ export class EVMSpvVaultContract<ChainId extends string>
     fromOpReturnData(data: Buffer): { recipient: string; rawAmounts: bigint[]; executionHash?: string } {
         return EVMSpvVaultContract.fromOpReturnData(data);
     }
+
+    /**
+     * Parses withdrawal params from OP_RETURN data.
+     *
+     * @param data Data as specified in the OP_RETURN output of the transaction
+     */
     static fromOpReturnData(data: Buffer): { recipient: string; rawAmounts: bigint[]; executionHash?: string } {
         let rawAmount0: bigint = 0n;
         let rawAmount1: bigint = 0n;
@@ -635,6 +641,14 @@ export class EVMSpvVaultContract<ChainId extends string>
     toOpReturnData(recipient: string, rawAmounts: bigint[], executionHash?: string): Buffer {
         return EVMSpvVaultContract.toOpReturnData(recipient, rawAmounts, executionHash);
     }
+
+    /**
+     * Serializes withdrawal params to OP_RETURN data.
+     *
+     * @param recipient Recipient of the withdrawn tokens
+     * @param rawAmounts Raw amount of tokens to withdraw
+     * @param executionHash Optional execution hash of the actions to execute
+     */
     static toOpReturnData(recipient: string, rawAmounts: bigint[], executionHash?: string): Buffer {
         if(!EVMAddresses.isValidAddress(recipient)) throw new Error("Invalid recipient specified");
         if(rawAmounts.length < 1) throw new Error("At least 1 amount needs to be specified");
@@ -853,6 +867,13 @@ export class EVMSpvVaultContract<ChainId extends string>
         return [tx];
     }
 
+    /**
+     * Returns an estimated gas amount for a claim transaction.
+     *
+     * @param signer Signer address executing the claim
+     * @param vault Vault data used to determine transfer paths
+     * @param data Parsed withdrawal data
+     */
     getClaimGas(signer: string, vault?: EVMSpvVaultData, data?: EVMSpvWithdrawalData): number {
         let totalGas = EVMSpvVaultContract.GasCosts.CLAIM_BASE;
 
@@ -875,6 +896,13 @@ export class EVMSpvVaultContract<ChainId extends string>
         return totalGas;
     }
 
+    /**
+     * Returns an estimated gas amount for a front-liquidity transaction.
+     *
+     * @param signer Signer address executing the front action
+     * @param vault Vault data used to determine transfer paths
+     * @param data Parsed withdrawal data
+     */
     getFrontGas(signer: string, vault: EVMSpvVaultData, data?: EVMSpvWithdrawalData): number {
         let totalGas = EVMSpvVaultContract.GasCosts.FRONT_BASE;
 
@@ -903,7 +931,7 @@ export class EVMSpvVaultContract<ChainId extends string>
      * @inheritDoc
      */
     async getFrontFee(signer: string, vault?: EVMSpvVaultData, withdrawalData?: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint> {
-        vault ??= EVMSpvVaultData.randomVault();
+        vault ??= EVMSpvVaultData._randomVault();
         feeRate ??= await this.Chain.Fees.getFeeRate();
         let totalFee = EVMFees.getGasFee(this.getFrontGas(signer, vault, withdrawalData), feeRate);
         if(withdrawalData==null || (withdrawalData.rawAmounts[0]!=null && withdrawalData.rawAmounts[0]>0n)) {

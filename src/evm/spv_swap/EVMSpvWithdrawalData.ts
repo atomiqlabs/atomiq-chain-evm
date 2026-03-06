@@ -70,6 +70,9 @@ export class EVMSpvWithdrawalData extends SpvWithdrawalTransactionData {
         };
     }
 
+    /**
+     * Serializes the withdrawal data to the EVM contract struct representation.
+     */
     serializeToStruct(): BitcoinVaultTransactionDataStruct {
         const callerFee = this.getCallerFee();
         const frontingFee = this.getFrontingFee();

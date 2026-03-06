@@ -203,7 +203,12 @@ class EVMSpvVaultData extends base_1.SpvVaultData {
     getDepositCount() {
         return this.depositCount;
     }
-    getVaultParamsStruct() {
+    /**
+     * Serializes this spv vault data to a struct object which can be passed to the ether.js functions
+     *
+     * @internal
+     */
+    _getVaultParamsStruct() {
         return {
             btcRelayContract: this.relayContract,
             token0: this.token0.token,
@@ -213,7 +218,12 @@ class EVMSpvVaultData extends base_1.SpvVaultData {
             confirmations: this.confirmations
         };
     }
-    static randomVault() {
+    /**
+     * Returns a dummy random vault that can be used for e.g. fee estimation
+     *
+     * @internal
+     */
+    static _randomVault() {
         const spvVaultParams = {
             btcRelayContract: EVMAddresses_1.EVMAddresses.randomAddress(),
             token0: EVMAddresses_1.EVMAddresses.randomAddress(),

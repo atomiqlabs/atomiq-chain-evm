@@ -83,6 +83,16 @@ export declare class EVMSpvVaultData extends SpvVaultData<EVMSpvWithdrawalData> 
      * @inheritDoc
      */
     getDepositCount(): number;
-    getVaultParamsStruct(): SpvVaultParametersStruct;
-    static randomVault(): EVMSpvVaultData;
+    /**
+     * Serializes this spv vault data to a struct object which can be passed to the ether.js functions
+     *
+     * @internal
+     */
+    _getVaultParamsStruct(): SpvVaultParametersStruct;
+    /**
+     * Returns a dummy random vault that can be used for e.g. fee estimation
+     *
+     * @internal
+     */
+    static _randomVault(): EVMSpvVaultData;
 }

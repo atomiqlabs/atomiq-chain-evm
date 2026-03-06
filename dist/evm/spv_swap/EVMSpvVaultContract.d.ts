@@ -130,6 +130,11 @@ export declare class EVMSpvVaultContract<ChainId extends string> extends EVMCont
         rawAmounts: bigint[];
         executionHash?: string;
     };
+    /**
+     * Parses withdrawal params from OP_RETURN data.
+     *
+     * @param data Data as specified in the OP_RETURN output of the transaction
+     */
     static fromOpReturnData(data: Buffer): {
         recipient: string;
         rawAmounts: bigint[];
@@ -139,6 +144,13 @@ export declare class EVMSpvVaultContract<ChainId extends string> extends EVMCont
      * @inheritDoc
      */
     toOpReturnData(recipient: string, rawAmounts: bigint[], executionHash?: string): Buffer;
+    /**
+     * Serializes withdrawal params to OP_RETURN data.
+     *
+     * @param recipient Recipient of the withdrawn tokens
+     * @param rawAmounts Raw amount of tokens to withdraw
+     * @param executionHash Optional execution hash of the actions to execute
+     */
     static toOpReturnData(recipient: string, rawAmounts: bigint[], executionHash?: string): Buffer;
     /**
      * @inheritDoc
@@ -178,7 +190,21 @@ export declare class EVMSpvVaultContract<ChainId extends string> extends EVMCont
      * @inheritDoc
      */
     txsOpen(signer: string, vault: EVMSpvVaultData, feeRate?: string): Promise<EVMTx[]>;
+    /**
+     * Returns an estimated gas amount for a claim transaction.
+     *
+     * @param signer Signer address executing the claim
+     * @param vault Vault data used to determine transfer paths
+     * @param data Parsed withdrawal data
+     */
     getClaimGas(signer: string, vault?: EVMSpvVaultData, data?: EVMSpvWithdrawalData): number;
+    /**
+     * Returns an estimated gas amount for a front-liquidity transaction.
+     *
+     * @param signer Signer address executing the front action
+     * @param vault Vault data used to determine transfer paths
+     * @param data Parsed withdrawal data
+     */
     getFrontGas(signer: string, vault: EVMSpvVaultData, data?: EVMSpvWithdrawalData): number;
     /**
      * @inheritDoc

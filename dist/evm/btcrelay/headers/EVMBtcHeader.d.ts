@@ -61,7 +61,19 @@ export declare class EVMBtcHeader implements BtcHeader {
      * @inheritDoc
      */
     getHash(): Buffer;
+    /**
+     * Serializes the bitcoin blockheader into compact 48-byte representation
+     * (without previous blockhash).
+     */
     serializeCompact(): Buffer;
+    /**
+     * Serializes the bitcoin blockheader into full 80-byte representation.
+     */
     serialize(): Buffer;
+    /**
+     * Deserializes a bitcoin blockheader from 80-byte full or 48-byte compact representation.
+     *
+     * @param rawData Serialized blockheader bytes
+     */
     static deserialize(rawData: Buffer): EVMBtcHeader;
 }

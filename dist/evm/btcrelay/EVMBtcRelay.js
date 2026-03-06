@@ -28,6 +28,14 @@ const logger = (0, Utils_1.getLogger)("EVMBtcRelay: ");
  * @category BTC Relay
  */
 class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
+    /**
+     * Returns a transaction that submits new main-chain bitcoin blockheaders to the light client.
+     *
+     * @param signer EVM signer address
+     * @param mainHeaders New bitcoin blockheaders to submit
+     * @param storedHeader Current latest committed and stored bitcoin blockheader in the light client
+     * @param feeRate Fee rate to apply to the transaction
+     */
     async SaveMainHeaders(signer, mainHeaders, storedHeader, feeRate) {
         const tx = await this.contract.submitMainBlockheaders.populateTransaction(Buffer.concat([
             storedHeader.serialize(),
@@ -37,6 +45,15 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         EVMFees_1.EVMFees.applyFeeRate(tx, EVMBtcRelay.GasCosts.GAS_BASE_MAIN + (EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER * mainHeaders.length), feeRate);
         return tx;
     }
+    /**
+     * Returns a transaction that submits a short competing branch.
+     * If the submitted chain has higher total chainwork than the current canonical chain, it becomes canonical.
+     *
+     * @param signer EVM signer address
+     * @param forkHeaders Fork bitcoin blockheaders to submit
+     * @param storedHeader Committed and stored bitcoin blockheader from which to fork the light client
+     * @param feeRate Fee rate to apply to the transaction
+     */
     async SaveShortForkHeaders(signer, forkHeaders, storedHeader, feeRate) {
         const tx = await this.contract.submitShortForkBlockheaders.populateTransaction(Buffer.concat([
             storedHeader.serialize(),
@@ -46,6 +63,16 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         EVMFees_1.EVMFees.applyFeeRate(tx, EVMBtcRelay.GasCosts.GAS_BASE_MAIN + (EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER * forkHeaders.length), feeRate);
         return tx;
     }
+    /**
+     * Returns a transaction that submits blockheaders to an existing long fork.
+     *
+     * @param signer EVM signer address
+     * @param forkId Fork ID to submit the fork blockheaders to
+     * @param forkHeaders Fork bitcoin blockheaders to submit
+     * @param storedHeader Either a committed and stored blockheader from which to fork, or the current fork tip
+     * @param feeRate Fee rate to apply to the transaction
+     * @param totalForkHeaders Total blockheaders in the fork, used for gas estimation when reorg happens
+     */
     async SaveLongForkHeaders(signer, forkId, forkHeaders, storedHeader, feeRate, totalForkHeaders = 100) {
         const tx = await this.contract.submitForkBlockheaders.populateTransaction(forkId, Buffer.concat([
             storedHeader.serialize(),

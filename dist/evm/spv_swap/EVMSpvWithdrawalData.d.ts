@@ -39,5 +39,8 @@ export declare class EVMSpvWithdrawalData extends SpvWithdrawalTransactionData {
      * @inheritDoc
      */
     serialize(): any;
+    /**
+     * Serializes the withdrawal data to the EVM contract struct representation.
+     */
     serializeToStruct(): BitcoinVaultTransactionDataStruct;
 }

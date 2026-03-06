@@ -26,7 +26,7 @@ class CitreaSpvVaultContract extends EVMSpvVaultContract_1.EVMSpvVaultContract {
         return stateDiffSize;
     }
     async getClaimFee(signer, vault, data, feeRate) {
-        vault ?? (vault = EVMSpvVaultData_1.EVMSpvVaultData.randomVault());
+        vault ?? (vault = EVMSpvVaultData_1.EVMSpvVaultData._randomVault());
         feeRate ?? (feeRate = await this.Chain.Fees.getFeeRate());
         const tokenStateChanges = new Set();
         let diffSize = CitreaSpvVaultContract.StateDiffSize.BASE_DIFF_SIZE;
@@ -54,7 +54,7 @@ class CitreaSpvVaultContract extends EVMSpvVaultContract_1.EVMSpvVaultContract {
         return gasFee + CitreaFees_1.CitreaFees.getGasFee(0, feeRate, diffSize);
     }
     async getFrontFee(signer, vault, data, feeRate) {
-        vault ?? (vault = EVMSpvVaultData_1.EVMSpvVaultData.randomVault());
+        vault ?? (vault = EVMSpvVaultData_1.EVMSpvVaultData._randomVault());
         feeRate ?? (feeRate = await this.Chain.Fees.getFeeRate());
         const tokenStateChanges = new Set();
         let diffSize = CitreaSpvVaultContract.StateDiffSize.BASE_DIFF_SIZE;

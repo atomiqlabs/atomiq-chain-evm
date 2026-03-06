@@ -106,9 +106,15 @@ class EVMBtcStoredHeader {
             blockheader: header
         });
     }
+    /**
+     * Returns the commitment of this stored head (keccak256 hash), this is what's actually stored on-chain
+     */
     getCommitHash() {
         return (0, ethers_1.keccak256)(this.serialize());
     }
+    /**
+     * Serializes the stored blockheader into the 160-byte binary layout used by the EVM contracts.
+     */
     serialize() {
         const buffer = buffer_1.Buffer.alloc(160);
         this.blockheader.serialize().copy(buffer, 0, 0, 80);
@@ -120,6 +126,9 @@ class EVMBtcStoredHeader {
         }
         return buffer;
     }
+    /**
+     * Serializes the stored blockheader into the contract tuple form (`bytes32[5]` payload).
+     */
     serializeToStruct() {
         const buffer = this.serialize();
         const result = [];
@@ -128,6 +137,11 @@ class EVMBtcStoredHeader {
         }
         return { data: result };
     }
+    /**
+     * Deserializes a stored blockheader from the 160-byte binary representation.
+     *
+     * @param data Serialized stored blockheader bytes
+     */
     static deserialize(data) {
         if (data.length !== 160)
             throw new Error(`Invalid size Expected 160, got: ${data.length}!`);
