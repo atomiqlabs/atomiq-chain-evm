@@ -30,24 +30,12 @@ export declare function unpackOwnerAndVaultId(data: string): [string, bigint];
  * @category Swaps
  */
 export declare class EVMSpvVaultContract<ChainId extends string> extends EVMContractBase<SpvVaultManager> implements SpvVaultContract<EVMTx, EVMSigner, ChainId, EVMSpvWithdrawalData, EVMSpvVaultData> {
-    static readonly GasCosts: {
-        DEPOSIT_BASE: number;
-        DEPOSIT_ERC20: number;
-        OPEN: number;
-        CLAIM_BASE: number;
-        CLAIM_NATIVE_TRANSFER: number;
-        CLAIM_ERC20_TRANSFER: number;
-        CLAIM_EXECUTION_SCHEDULE: number;
-        FRONT_BASE: number;
-        FRONT_NATIVE_TRANSFER: number;
-        FRONT_ERC20_TRANSFER: number;
-        FRONT_EXECUTION_SCHEDULE: number;
-    };
+    private static readonly GasCosts;
     readonly chainId: ChainId;
-    readonly btcRelay: EVMBtcRelay<any>;
-    readonly bitcoinRpc: BitcoinRpc<any>;
+    private readonly btcRelay;
+    private readonly bitcoinRpc;
     readonly claimTimeout: number;
-    readonly logger: import("../../utils/Utils").LoggerType;
+    private readonly logger;
     constructor(chainInterface: EVMChainInterface<ChainId>, btcRelay: EVMBtcRelay<any>, bitcoinRpc: BitcoinRpc<any>, contractAddress: string, contractDeploymentHeight?: number);
     protected Open(signer: string, vault: EVMSpvVaultData, feeRate: string): Promise<TransactionRequest>;
     protected Deposit(signer: string, vault: EVMSpvVaultData, rawAmounts: bigint[], feeRate: string): Promise<TransactionRequest>;

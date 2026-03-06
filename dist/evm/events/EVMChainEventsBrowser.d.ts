@@ -1,4 +1,4 @@
-import { ChainEvents, ClaimEvent, EventListener, InitializeEvent, RefundEvent, SpvVaultClaimEvent, SpvVaultCloseEvent, SpvVaultDepositEvent, SpvVaultFrontEvent, SpvVaultOpenEvent } from "@atomiqlabs/base";
+import { ChainEvents, EventListener } from "@atomiqlabs/base";
 import { EVMSwapData } from "../swaps/EVMSwapData";
 import { Block, JsonRpcApiProvider, EventFilter, Log } from "ethers";
 import { EVMSwapContract } from "../swaps/EVMSwapContract";
@@ -58,14 +58,14 @@ export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, E
      * @returns {() => Promise<EVMSwapData | null>} getter to be passed to InitializeEvent constructor
      */
     private getSwapDataGetter;
-    protected parseInitializeEvent(event: TypedEventLog<EscrowManager["filters"]["Initialize"]>): InitializeEvent<EVMSwapData> | null;
-    protected parseRefundEvent(event: TypedEventLog<EscrowManager["filters"]["Refund"]>): RefundEvent<EVMSwapData>;
-    protected parseClaimEvent(event: TypedEventLog<EscrowManager["filters"]["Claim"]>): ClaimEvent<EVMSwapData> | null;
-    protected parseSpvOpenEvent(event: TypedEventLog<SpvVaultManager["filters"]["Opened"]>): SpvVaultOpenEvent;
-    protected parseSpvDepositEvent(event: TypedEventLog<SpvVaultManager["filters"]["Deposited"]>): SpvVaultDepositEvent;
-    protected parseSpvFrontEvent(event: TypedEventLog<SpvVaultManager["filters"]["Fronted"]>): SpvVaultFrontEvent;
-    protected parseSpvClaimEvent(event: TypedEventLog<SpvVaultManager["filters"]["Claimed"]>): SpvVaultClaimEvent;
-    protected parseSpvCloseEvent(event: TypedEventLog<SpvVaultManager["filters"]["Closed"]>): SpvVaultCloseEvent;
+    private parseInitializeEvent;
+    private parseRefundEvent;
+    private parseClaimEvent;
+    private parseSpvOpenEvent;
+    private parseSpvDepositEvent;
+    private parseSpvFrontEvent;
+    private parseSpvClaimEvent;
+    private parseSpvCloseEvent;
     /**
      * Processes event as received from the chain, parses it & calls event listeners
      *
@@ -73,11 +73,8 @@ export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, E
      * @param currentBlock
      * @protected
      */
-    protected processEvents(events: (TypedEventLog<EscrowManager["filters"]["Initialize" | "Refund" | "Claim"]> | TypedEventLog<SpvVaultManager["filters"]["Opened" | "Deposited" | "Fronted" | "Claimed" | "Closed"]>)[], currentBlock?: Block): Promise<void>;
-    protected checkEventsEcrowManager(currentBlock: Block, lastEvent?: {
-        blockHash: string;
-        logIndex: number;
-    }, lastBlockNumber?: number): Promise<EVMEventListenerState>;
+    private processEvents;
+    private checkEventsEcrowManager;
     protected checkEventsSpvVaults(currentBlock: Block, lastEvent?: {
         blockHash: string;
         logIndex: number;

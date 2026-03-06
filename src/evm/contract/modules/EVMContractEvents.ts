@@ -19,7 +19,7 @@ function normalizeTopic(topic: string) {
  */
 export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
 
-    readonly contract: EVMContractBase<T>;
+    private readonly contract: EVMContractBase<T>;
     readonly baseContract: T;
 
     constructor(chainInterface: EVMChainInterface<any>, contract: EVMContractBase<T>) {

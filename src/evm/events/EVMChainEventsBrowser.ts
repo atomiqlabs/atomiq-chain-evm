@@ -118,7 +118,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventL
         }
     }
 
-    protected parseInitializeEvent(
+    private parseInitializeEvent(
         event: TypedEventLog<EscrowManager["filters"]["Initialize"]>
     ): InitializeEvent<EVMSwapData> | null {
         const escrowHash = event.args.escrowHash.substring(2);
@@ -138,7 +138,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventL
         );
     }
 
-    protected parseRefundEvent(
+    private parseRefundEvent(
         event: TypedEventLog<EscrowManager["filters"]["Refund"]>
     ): RefundEvent<EVMSwapData> {
         const escrowHash = event.args.escrowHash.substring(2);
@@ -146,7 +146,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventL
         return new RefundEvent<EVMSwapData>(escrowHash);
     }
 
-    protected parseClaimEvent(
+    private parseClaimEvent(
         event: TypedEventLog<EscrowManager["filters"]["Claim"]>
     ): ClaimEvent<EVMSwapData> | null {
         const escrowHash = event.args.escrowHash.substring(2);
@@ -161,7 +161,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventL
         return new ClaimEvent<EVMSwapData>(escrowHash, witnessResult);
     }
 
-    protected parseSpvOpenEvent(
+    private parseSpvOpenEvent(
         event: TypedEventLog<SpvVaultManager["filters"]["Opened"]>
     ): SpvVaultOpenEvent {
         const owner = event.args.owner;
@@ -173,7 +173,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventL
         return new SpvVaultOpenEvent(owner, vaultId, btcTxId, vout);
     }
 
-    protected parseSpvDepositEvent(
+    private parseSpvDepositEvent(
         event: TypedEventLog<SpvVaultManager["filters"]["Deposited"]>
     ): SpvVaultDepositEvent {
         const [owner, vaultId] = unpackOwnerAndVaultId(event.args.ownerAndVaultId);
@@ -184,7 +184,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventL
         return new SpvVaultDepositEvent(owner, vaultId, amounts, depositCount);
     }
 
-    protected parseSpvFrontEvent(
+    private parseSpvFrontEvent(
         event: TypedEventLog<SpvVaultManager["filters"]["Fronted"]>
     ): SpvVaultFrontEvent {
         const [owner, vaultId] = unpackOwnerAndVaultId(event.args.ownerAndVaultId);
@@ -199,7 +199,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventL
         return new SpvVaultFrontEvent(owner, vaultId, btcTxId, recipient, executionHash, amounts, frontingAddress);
     }
 
-    protected parseSpvClaimEvent(
+    private parseSpvClaimEvent(
         event: TypedEventLog<SpvVaultManager["filters"]["Claimed"]>
     ): SpvVaultClaimEvent {
         const [owner, vaultId] = unpackOwnerAndVaultId(event.args.ownerAndVaultId);
@@ -217,7 +217,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventL
         return new SpvVaultClaimEvent(owner, vaultId, btcTxId, recipient, executionHash, amounts, caller, frontingAddress, withdrawCount);
     }
 
-    protected parseSpvCloseEvent(
+    private parseSpvCloseEvent(
         event: TypedEventLog<SpvVaultManager["filters"]["Closed"]>
     ): SpvVaultCloseEvent {
         const btcTxId = Buffer.from(event.args.btcTxHash.substring(2), "hex").reverse().toString("hex");
@@ -232,7 +232,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventL
      * @param currentBlock
      * @protected
      */
-    protected async processEvents(
+    private async processEvents(
         events : (
             TypedEventLog<EscrowManager["filters"]["Initialize" | "Refund" | "Claim"]> |
             TypedEventLog<SpvVaultManager["filters"]["Opened" | "Deposited" | "Fronted" | "Claimed" | "Closed"]>
@@ -306,7 +306,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventL
         }
     }
 
-    protected async checkEventsEcrowManager(
+    private async checkEventsEcrowManager(
         currentBlock: Block,
         lastEvent?: {blockHash: string, logIndex: number},
         lastBlockNumber?: number

@@ -28,8 +28,8 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
     readonly claimWithSecretTimeout: number;
     readonly claimWithTxDataTimeout: number;
     readonly refundTimeout: number;
-    readonly claimGracePeriod: number;
-    readonly refundGracePeriod: number;
+    private readonly claimGracePeriod;
+    private readonly refundGracePeriod;
     readonly authGracePeriod: number;
     readonly Init: EVMSwapInit;
     readonly Refund: EVMSwapRefund;
@@ -178,7 +178,7 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
      * @inheritDoc
      */
     getIntermediaryReputation(address: string, token: string): Promise<IntermediaryReputationType>;
-    getIntermediaryBalance(address: string, token: string): Promise<bigint>;
+    private getIntermediaryBalance;
     /**
      * @inheritDoc
      */

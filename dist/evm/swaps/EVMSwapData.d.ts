@@ -7,12 +7,7 @@ import { IClaimHandler } from "./handlers/claim/ClaimHandlers";
  * @category Swaps
  */
 export declare class EVMSwapData extends SwapData {
-    static toFlags(val: bigint): {
-        payOut: boolean;
-        payIn: boolean;
-        reputation: boolean;
-        sequence: bigint;
-    };
+    private static toFlags;
     private getFlags;
     offerer: string;
     claimer: string;

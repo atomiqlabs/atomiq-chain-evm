@@ -63,8 +63,8 @@ export class EVMSwapContract<ChainId extends string = string>
     readonly claimWithSecretTimeout: number = 180;
     readonly claimWithTxDataTimeout: number = 180;
     readonly refundTimeout: number = 180;
-    readonly claimGracePeriod: number = 10*60;
-    readonly refundGracePeriod: number = 10*60;
+    private readonly claimGracePeriod: number = 10*60;
+    private readonly refundGracePeriod: number = 10*60;
     readonly authGracePeriod: number = 30;
 
     ////////////////////////
@@ -626,7 +626,7 @@ export class EVMSwapContract<ChainId extends string = string>
         return this.LpVault.getIntermediaryReputation(address, token);
     }
 
-    getIntermediaryBalance(address: string, token: string): Promise<bigint> {
+    private getIntermediaryBalance(address: string, token: string): Promise<bigint> {
         return this.LpVault.getIntermediaryBalance(address, token);
     }
 

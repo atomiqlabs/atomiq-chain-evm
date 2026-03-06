@@ -9,7 +9,7 @@ import { TypedEventLog } from "../../typechain/common";
  * @category Internal/Contracts
  */
 export declare class EVMContractEvents<T extends BaseContract> extends EVMEvents {
-    readonly contract: EVMContractBase<T>;
+    private readonly contract;
     readonly baseContract: T;
     constructor(chainInterface: EVMChainInterface<any>, contract: EVMContractBase<T>);
     toTypedEvents<TEventName extends keyof T["filters"]>(blockEvents: Log[]): (TypedEventLog<T["filters"][TEventName]> | null)[];

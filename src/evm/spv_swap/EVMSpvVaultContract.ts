@@ -73,7 +73,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         EVMSpvVaultData
     >
 {
-    public static readonly GasCosts = {
+    private static readonly GasCosts = {
         DEPOSIT_BASE: 15_000 + 21_000,
         DEPOSIT_ERC20: 40_000,
 
@@ -92,11 +92,11 @@ export class EVMSpvVaultContract<ChainId extends string>
 
     readonly chainId: ChainId;
 
-    readonly btcRelay: EVMBtcRelay<any>;
-    readonly bitcoinRpc: BitcoinRpc<any>;
+    private readonly btcRelay: EVMBtcRelay<any>;
+    private readonly bitcoinRpc: BitcoinRpc<any>;
     readonly claimTimeout: number = 180;
 
-    readonly logger = getLogger("EVMSpvVaultContract: ");
+    private readonly logger = getLogger("EVMSpvVaultContract: ");
 
     constructor(
         chainInterface: EVMChainInterface<ChainId>,

@@ -15,7 +15,7 @@ const FLAG_REPUTATION: bigint = 0x04n;
  */
 export class EVMSwapData extends SwapData {
 
-    static toFlags(val: bigint): {payOut: boolean, payIn: boolean, reputation: boolean, sequence: bigint} {
+    private static toFlags(val: bigint): {payOut: boolean, payIn: boolean, reputation: boolean, sequence: bigint} {
         return {
             sequence: val >> 64n,
             payOut: (val & FLAG_PAY_OUT) === FLAG_PAY_OUT,
