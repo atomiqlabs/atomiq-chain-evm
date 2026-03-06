@@ -208,7 +208,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
             return null;
         const [storedBlockHeader, commitHash] = result;
         //Check if block is part of the main chain
-        const chainCommitment = await this.contract.getCommitHash(storedBlockHeader.blockHeight);
+        const chainCommitment = await this.contract.getCommitHash(storedBlockHeader.getBlockheight());
         if (chainCommitment !== commitHash)
             return null;
         logger.debug("retrieveLogAndBlockheight(): block found," +
@@ -224,11 +224,11 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
             return null;
         const [storedBlockHeader, commitHash] = result;
         //Check if block is part of the main chain
-        const chainCommitment = await this.contract.getCommitHash(storedBlockHeader.blockHeight);
+        const chainCommitment = await this.contract.getCommitHash(storedBlockHeader.getBlockheight());
         if (chainCommitment !== commitHash)
             return null;
         logger.debug("retrieveLogByCommitHash(): block found," +
-            " commit hash: " + commitmentHashStr + " blockhash: " + blockData.blockhash + " height: " + storedBlockHeader.blockHeight);
+            " commit hash: " + commitmentHashStr + " blockhash: " + blockData.blockhash + " height: " + storedBlockHeader.getBlockheight());
         return storedBlockHeader;
     }
     /**

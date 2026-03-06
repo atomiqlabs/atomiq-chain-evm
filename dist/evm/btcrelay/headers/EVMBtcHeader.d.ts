@@ -22,13 +22,16 @@ export type EVMBtcHeaderType = {
  * @category BTC Relay
  */
 export declare class EVMBtcHeader implements BtcHeader {
-    version: number;
-    previousBlockhash?: Buffer;
-    merkleRoot: Buffer;
-    timestamp: number;
-    nbits: number;
-    nonce: number;
-    hash?: Buffer;
+    private readonly version;
+    private readonly merkleRoot;
+    private readonly timestamp;
+    private readonly nbits;
+    private readonly nonce;
+    private readonly hash?;
+    /**
+     * @internal
+     */
+    _previousBlockhash?: Buffer;
     constructor(data: EVMBtcHeaderType);
     /**
      * @inheritDoc

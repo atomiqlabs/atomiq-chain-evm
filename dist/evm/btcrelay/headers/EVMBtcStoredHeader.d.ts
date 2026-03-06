@@ -22,12 +22,12 @@ export type EVMBtcStoredHeaderType = {
  * @category BTC Relay
  */
 export declare class EVMBtcStoredHeader implements BtcStoredHeader<EVMBtcHeader> {
-    blockheader: EVMBtcHeader;
-    blockHash: Buffer;
-    chainWork: bigint;
-    blockHeight: number;
-    lastDiffAdjustment: number;
-    prevBlockTimestamps: number[];
+    private readonly blockheader;
+    private readonly blockHash;
+    private readonly chainWork;
+    private readonly blockHeight;
+    private readonly lastDiffAdjustment;
+    private readonly prevBlockTimestamps;
     constructor(obj: EVMBtcStoredHeaderType);
     /**
      * @inheritDoc

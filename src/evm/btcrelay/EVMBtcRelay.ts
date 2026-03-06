@@ -265,7 +265,7 @@ export class EVMBtcRelay<B extends BtcBlock>
         const [storedBlockHeader, commitHash] = result;
 
         //Check if block is part of the main chain
-        const chainCommitment = await this.contract.getCommitHash(storedBlockHeader.blockHeight);
+        const chainCommitment = await this.contract.getCommitHash(storedBlockHeader.getBlockheight());
         if(chainCommitment!==commitHash) return null;
 
         logger.debug("retrieveLogAndBlockheight(): block found," +
@@ -284,11 +284,11 @@ export class EVMBtcRelay<B extends BtcBlock>
         const [storedBlockHeader, commitHash] = result;
 
         //Check if block is part of the main chain
-        const chainCommitment = await this.contract.getCommitHash(storedBlockHeader.blockHeight);
+        const chainCommitment = await this.contract.getCommitHash(storedBlockHeader.getBlockheight());
         if(chainCommitment!==commitHash) return null;
 
         logger.debug("retrieveLogByCommitHash(): block found," +
-            " commit hash: "+commitmentHashStr+" blockhash: "+blockData.blockhash+" height: "+storedBlockHeader.blockHeight);
+            " commit hash: "+commitmentHashStr+" blockhash: "+blockData.blockhash+" height: "+storedBlockHeader.getBlockheight());
 
         return storedBlockHeader;
     }

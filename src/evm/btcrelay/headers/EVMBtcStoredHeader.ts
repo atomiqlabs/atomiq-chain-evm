@@ -24,12 +24,12 @@ export type EVMBtcStoredHeaderType = {
  */
 export class EVMBtcStoredHeader implements BtcStoredHeader<EVMBtcHeader> {
 
-    blockheader: EVMBtcHeader;
-    blockHash: Buffer;
-    chainWork: bigint;
-    blockHeight: number;
-    lastDiffAdjustment: number;
-    prevBlockTimestamps: number[];
+    private readonly blockheader: EVMBtcHeader;
+    private readonly blockHash: Buffer;
+    private readonly chainWork: bigint;
+    private readonly blockHeight: number;
+    private readonly lastDiffAdjustment: number;
+    private readonly prevBlockTimestamps: number[];
 
     constructor(obj: EVMBtcStoredHeaderType) {
         this.blockheader = obj.blockheader instanceof EVMBtcHeader ? obj.blockheader : new EVMBtcHeader(obj.blockheader);
@@ -128,7 +128,7 @@ export class EVMBtcStoredHeader implements BtcStoredHeader<EVMBtcHeader> {
      * @inheritDoc
      */
     computeNext(header: EVMBtcHeader): EVMBtcStoredHeader {
-        header.previousBlockhash = this.blockHash;
+        header._previousBlockhash = this.blockHash;
         return new EVMBtcStoredHeader({
             chainWork: this.computeNextChainWork(header.getNbits()),
             prevBlockTimestamps: this.computeNextBlockTimestamps(),

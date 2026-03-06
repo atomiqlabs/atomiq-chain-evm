@@ -24,17 +24,21 @@ export type EVMBtcHeaderType = {
  */
 export class EVMBtcHeader implements BtcHeader {
 
-    version: number;
-    previousBlockhash?: Buffer;
-    merkleRoot: Buffer;
-    timestamp: number;
-    nbits: number;
-    nonce: number;
-    hash?: Buffer;
+    private readonly version: number;
+    private readonly merkleRoot: Buffer;
+    private readonly timestamp: number;
+    private readonly nbits: number;
+    private readonly nonce: number;
+    private readonly hash?: Buffer;
+
+    /**
+     * @internal
+     */
+    _previousBlockhash?: Buffer;
 
     constructor(data: EVMBtcHeaderType) {
         this.version = data.version;
-        this.previousBlockhash = data.previousBlockhash;
+        this._previousBlockhash = data.previousBlockhash;
         this.merkleRoot = data.merkleRoot;
         this.timestamp = data.timestamp;
         this.nbits = data.nbits;
@@ -67,8 +71,8 @@ export class EVMBtcHeader implements BtcHeader {
      * @inheritDoc
      */
     getReversedPrevBlockhash(): Buffer {
-        if(this.previousBlockhash==null) throw new Error("Previous blockhash is not known from compact blockheader!");
-        return this.previousBlockhash;
+        if(this._previousBlockhash==null) throw new Error("Previous blockhash is not known from compact blockheader!");
+        return this._previousBlockhash;
     }
 
     /**
@@ -103,10 +107,10 @@ export class EVMBtcHeader implements BtcHeader {
     }
 
     serialize(): Buffer {
-        if(this.previousBlockhash==null) throw new Error("Cannot serialize compact blockheader without previous blockhash!");
+        if(this._previousBlockhash==null) throw new Error("Cannot serialize compact blockheader without previous blockhash!");
         const buffer = Buffer.alloc(80);
         buffer.writeUInt32LE(this.version, 0);
-        this.previousBlockhash.copy(buffer, 4);
+        this._previousBlockhash.copy(buffer, 4);
         this.merkleRoot.copy(buffer, 36);
         buffer.writeUInt32LE(this.timestamp, 68);
         buffer.writeUInt32LE(this.nbits, 72);

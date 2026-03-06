@@ -96,7 +96,7 @@ class EVMBtcStoredHeader {
      * @inheritDoc
      */
     computeNext(header) {
-        header.previousBlockhash = this.blockHash;
+        header._previousBlockhash = this.blockHash;
         return new EVMBtcStoredHeader({
             chainWork: this.computeNextChainWork(header.getNbits()),
             prevBlockTimestamps: this.computeNextBlockTimestamps(),

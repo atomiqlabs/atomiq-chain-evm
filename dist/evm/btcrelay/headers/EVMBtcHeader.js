@@ -11,7 +11,7 @@ const sha2_1 = require("@noble/hashes/sha2");
 class EVMBtcHeader {
     constructor(data) {
         this.version = data.version;
-        this.previousBlockhash = data.previousBlockhash;
+        this._previousBlockhash = data.previousBlockhash;
         this.merkleRoot = data.merkleRoot;
         this.timestamp = data.timestamp;
         this.nbits = data.nbits;
@@ -40,9 +40,9 @@ class EVMBtcHeader {
      * @inheritDoc
      */
     getReversedPrevBlockhash() {
-        if (this.previousBlockhash == null)
+        if (this._previousBlockhash == null)
             throw new Error("Previous blockhash is not known from compact blockheader!");
-        return this.previousBlockhash;
+        return this._previousBlockhash;
     }
     /**
      * @inheritDoc
@@ -72,11 +72,11 @@ class EVMBtcHeader {
         return buffer;
     }
     serialize() {
-        if (this.previousBlockhash == null)
+        if (this._previousBlockhash == null)
             throw new Error("Cannot serialize compact blockheader without previous blockhash!");
         const buffer = buffer_1.Buffer.alloc(80);
         buffer.writeUInt32LE(this.version, 0);
-        this.previousBlockhash.copy(buffer, 4);
+        this._previousBlockhash.copy(buffer, 4);
         this.merkleRoot.copy(buffer, 36);
         buffer.writeUInt32LE(this.timestamp, 68);
         buffer.writeUInt32LE(this.nbits, 72);
