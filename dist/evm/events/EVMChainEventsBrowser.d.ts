@@ -25,23 +25,61 @@ type AtomiqTypedEvent = (TypedEventLog<EscrowManager["filters"]["Initialize" | "
  * EVM on-chain event handler for front-end systems without access to fs, uses WS or long-polling to subscribe, might lose
  *  out on some events if the network is unreliable, front-end systems should take this into consideration and not
  *  rely purely on events
+ *
+ * @category Events
  */
 export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventListenerState[]> {
     private eventsProcessing;
     private processedEvents;
     private processedEventsIndex;
+    /**
+     * @internal
+     */
     protected readonly listeners: EventListener<EVMSwapData>[];
+    /**
+     * @internal
+     */
     protected readonly provider: JsonRpcApiProvider;
+    /**
+     * @internal
+     */
     protected readonly chainInterface: EVMChainInterface;
+    /**
+     * @internal
+     */
     protected readonly evmSwapContract: EVMSwapContract;
+    /**
+     * @internal
+     */
     protected readonly evmSpvVaultContract: EVMSpvVaultContract<any>;
+    /**
+     * @internal
+     */
     protected readonly logger: import("../../utils/Utils").LoggerType;
+    /**
+     * @internal
+     */
     protected stopped: boolean;
+    /**
+     * @internal
+     */
     protected pollIntervalSeconds: number;
     private timeout?;
+    /**
+     * @internal
+     */
     protected readonly spvVaultContractLogFilter: EventFilter;
+    /**
+     * @internal
+     */
     protected readonly swapContractLogFilter: EventFilter;
+    /**
+     * @internal
+     */
     protected unconfirmedEventQueue: AtomiqTypedEvent[];
+    /**
+     * @internal
+     */
     protected confirmedEventQueue: {
         event: AtomiqTypedEvent;
         block: Block;
@@ -75,10 +113,7 @@ export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, E
      */
     private processEvents;
     private checkEventsEcrowManager;
-    protected checkEventsSpvVaults(currentBlock: Block, lastEvent?: {
-        blockHash: string;
-        logIndex: number;
-    }, lastBlockNumber?: number): Promise<EVMEventListenerState>;
+    private checkEventsSpvVaults;
     /**
      * @inheritDoc
      */
@@ -86,18 +121,48 @@ export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, E
     /**
      * Sets up event handlers listening for swap events over websocket
      *
-     * @protected
+     * @internal
      */
     protected setupPoll(lastState?: EVMEventListenerState[], saveLatestProcessedBlockNumber?: (newState: EVMEventListenerState[]) => Promise<void>): Promise<void>;
+    /**
+     * @internal
+     */
     protected handleWsEvent(event: AtomiqTypedEvent): Promise<void>;
+    /**
+     * @internal
+     */
     protected spvVaultContractListener?: (log: Log) => void;
+    /**
+     * @internal
+     */
     protected swapContractListener?: (log: Log) => void;
+    /**
+     * @internal
+     */
     protected blockListener?: (blockNumber: number) => Promise<void>;
+    /**
+     * @internal
+     */
     protected finalityCheckTimer: any;
+    /**
+     * @internal
+     */
     protected wsStarted: boolean;
+    /**
+     * @internal
+     */
     protected checkUnconfirmedEventsFinality(): Promise<void>;
+    /**
+     * @internal
+     */
     protected addOrRemoveBlockListener(): Promise<void>;
+    /**
+     * @internal
+     */
     protected startFinalityCheckTimer(): Promise<void>;
+    /**
+     * @internal
+     */
     protected setupWebsocket(): Promise<void>;
     /**
      * @inheritDoc

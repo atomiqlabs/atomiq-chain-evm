@@ -19,7 +19,7 @@ export class EVMModule<ChainId extends string = string> {
         root: EVMChainInterface<ChainId>
     ) {
         this.provider = root.provider;
-        this.retryPolicy = root.retryPolicy;
+        this.retryPolicy = root._retryPolicy;
         this.root = root;
     }
 

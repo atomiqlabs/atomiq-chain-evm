@@ -12,6 +12,7 @@ export declare class EVMContractEvents<T extends BaseContract> extends EVMEvents
     private readonly contract;
     readonly baseContract: T;
     constructor(chainInterface: EVMChainInterface<any>, contract: EVMContractBase<T>);
+    private toTypedEvent;
     toTypedEvents<TEventName extends keyof T["filters"]>(blockEvents: Log[]): (TypedEventLog<T["filters"][TEventName]> | null)[];
     private toFilter;
     /**

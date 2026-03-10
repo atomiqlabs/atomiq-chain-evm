@@ -31,6 +31,9 @@ export class EVMBtcStoredHeader implements BtcStoredHeader<EVMBtcHeader> {
     private readonly lastDiffAdjustment: number;
     private readonly prevBlockTimestamps: number[];
 
+    /**
+     * @internal
+     */
     constructor(obj: EVMBtcStoredHeaderType) {
         this.blockheader = obj.blockheader instanceof EVMBtcHeader ? obj.blockheader : new EVMBtcHeader(obj.blockheader);
         this.blockHash = obj.blockHash;

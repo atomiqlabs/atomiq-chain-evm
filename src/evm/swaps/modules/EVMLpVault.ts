@@ -76,13 +76,13 @@ export class EVMLpVault extends EVMSwapModule {
      * @param token
      */
     public async getIntermediaryReputation(address: string, token: string): Promise<IntermediaryReputationType> {
-        const filter = Object.keys(this.contract.claimHandlersByAddress).map(claimHandler => ({owner: address, token, claimHandler}));
+        const filter = Object.keys(this.contract._claimHandlersByAddress).map(claimHandler => ({owner: address, token, claimHandler}));
         const resp = await this.swapContract.getReputation(filter);
         if(resp.length!==filter.length) throw new Error("getIntermediaryReputation(): Invalid response length");
 
         const result: any = {};
-        Object.keys(this.contract.claimHandlersByAddress).forEach((address, index) => {
-            const handler = this.contract.claimHandlersByAddress[address.toLowerCase()];
+        Object.keys(this.contract._claimHandlersByAddress).forEach((address, index) => {
+            const handler = this.contract._claimHandlersByAddress[address.toLowerCase()];
             const handlerResp = resp[index];
             result[handler.getType()] = {
                 successVolume: handlerResp[0].amount,
@@ -145,7 +145,7 @@ export class EVMLpVault extends EVMSwapModule {
 
         //Approve first
         if(token.toLowerCase()!==this.root.getNativeCurrencyAddress().toLowerCase()) {
-            const approveTx = await this.root.Tokens.checkAndGetApproveTx(signer, token, amount, this.contract.contractAddress, feeRate);
+            const approveTx = await this.root.Tokens.checkAndGetApproveTx(signer, token, amount, this.contract._contractAddress, feeRate);
             if(approveTx!=null) txs.push(approveTx);
         }
 

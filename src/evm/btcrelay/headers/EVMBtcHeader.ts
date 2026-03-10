@@ -36,6 +36,9 @@ export class EVMBtcHeader implements BtcHeader {
      */
     _previousBlockhash?: Buffer;
 
+    /**
+     * @internal
+     */
     constructor(data: EVMBtcHeaderType) {
         this.version = data.version;
         this._previousBlockhash = data.previousBlockhash;

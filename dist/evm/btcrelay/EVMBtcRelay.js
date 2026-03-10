@@ -42,7 +42,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
             Buffer.concat(mainHeaders.map(header => header.serializeCompact()))
         ]));
         tx.from = signer;
-        EVMFees_1.EVMFees.applyFeeRate(tx, EVMBtcRelay.GasCosts.GAS_BASE_MAIN + (EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER * mainHeaders.length), feeRate);
+        EVMFees_1.EVMFees.applyFeeRate(tx, EVMBtcRelay._GasCosts.GAS_BASE_MAIN + (EVMBtcRelay._GasCosts.GAS_PER_BLOCKHEADER * mainHeaders.length), feeRate);
         return tx;
     }
     /**
@@ -60,7 +60,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
             Buffer.concat(forkHeaders.map(header => header.serializeCompact()))
         ]));
         tx.from = signer;
-        EVMFees_1.EVMFees.applyFeeRate(tx, EVMBtcRelay.GasCosts.GAS_BASE_MAIN + (EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER * forkHeaders.length), feeRate);
+        EVMFees_1.EVMFees.applyFeeRate(tx, EVMBtcRelay._GasCosts.GAS_BASE_MAIN + (EVMBtcRelay._GasCosts.GAS_PER_BLOCKHEADER * forkHeaders.length), feeRate);
         return tx;
     }
     /**
@@ -79,7 +79,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
             Buffer.concat(forkHeaders.map(header => header.serializeCompact()))
         ]));
         tx.from = signer;
-        EVMFees_1.EVMFees.applyFeeRate(tx, EVMBtcRelay.GasCosts.GAS_BASE_FORK + (EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER_FORK * forkHeaders.length) + (EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER_FORKED * totalForkHeaders), feeRate);
+        EVMFees_1.EVMFees.applyFeeRate(tx, EVMBtcRelay._GasCosts.GAS_BASE_FORK + (EVMBtcRelay._GasCosts.GAS_PER_BLOCKHEADER_FORK * forkHeaders.length) + (EVMBtcRelay._GasCosts.GAS_PER_BLOCKHEADER_FORKED * totalForkHeaders), feeRate);
         return tx;
     }
     constructor(chainInterface, bitcoinRpc, bitcoinNetwork, contractAddress, contractDeploymentHeight) {
@@ -89,7 +89,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         this.maxShortForkHeadersPerTx = 100;
         this.commitHashCache = new promise_cache_ts_1.PromiseLruCache(1000);
         this.blockHashCache = new promise_cache_ts_1.PromiseLruCache(1000);
-        this.bitcoinRpc = bitcoinRpc;
+        this._bitcoinRpc = bitcoinRpc;
     }
     /**
      * Computes subsequent committed headers as they will appear on-chain once transactions
@@ -182,7 +182,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
     }
     getBlock(commitHash, blockHash) {
         const blockHashString = blockHash == null ? null : "0x" + Buffer.from([...blockHash]).reverse().toString("hex");
-        const generator = () => this.Events.findInContractEvents(["StoreHeader", "StoreForkHeader"], [
+        const generator = () => this._Events.findInContractEvents(["StoreHeader", "StoreForkHeader"], [
             commitHash ?? null,
             blockHashString
         ], async (event) => {
@@ -262,13 +262,13 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
      * @inheritDoc
      */
     async retrieveLatestKnownBlockLog() {
-        const data = await this.Events.findInContractEvents(["StoreHeader", "StoreForkHeader"], null, async (event) => {
+        const data = await this._Events.findInContractEvents(["StoreHeader", "StoreForkHeader"], null, async (event) => {
             const blockHashHex = Buffer.from(event.args.blockHash.substring(2), "hex").reverse().toString("hex");
             const commitHash = event.args.commitHash;
-            const isInBtcMainChain = await this.bitcoinRpc.isInMainChain(blockHashHex).catch(() => false);
+            const isInBtcMainChain = await this._bitcoinRpc.isInMainChain(blockHashHex).catch(() => false);
             if (!isInBtcMainChain)
                 return null;
-            const blockHeader = await this.bitcoinRpc.getBlockHeader(blockHashHex);
+            const blockHeader = await this._bitcoinRpc.getBlockHeader(blockHashHex);
             if (blockHeader == null)
                 return null;
             if (commitHash !== await this.contract.getCommitHash(blockHeader.getHeight()))
@@ -353,7 +353,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         if (blockheightDelta <= 0)
             return 0n;
         const synchronizationFee = (BigInt(blockheightDelta) * await this.getFeePerBlock(feeRate))
-            + EVMFees_1.EVMFees.getGasFee(EVMBtcRelay.GasCosts.GAS_BASE_MAIN * Math.ceil(blockheightDelta / this.maxHeadersPerTx), feeRate);
+            + EVMFees_1.EVMFees.getGasFee(EVMBtcRelay._GasCosts.GAS_BASE_MAIN * Math.ceil(blockheightDelta / this.maxHeadersPerTx), feeRate);
         logger.debug("estimateSynchronizeFee(): required blockheight: " + requiredBlockheight +
             " blockheight delta: " + blockheightDelta + " fee: " + synchronizationFee.toString(10));
         return synchronizationFee;
@@ -363,7 +363,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
      */
     async getFeePerBlock(feeRate) {
         feeRate ?? (feeRate = await this.Chain.Fees.getFeeRate());
-        return EVMFees_1.EVMFees.getGasFee(EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER, feeRate);
+        return EVMFees_1.EVMFees.getGasFee(EVMBtcRelay._GasCosts.GAS_PER_BLOCKHEADER, feeRate);
     }
     /**
      * @inheritDoc
@@ -439,7 +439,10 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
     }
 }
 exports.EVMBtcRelay = EVMBtcRelay;
-EVMBtcRelay.GasCosts = {
+/**
+ * @internal
+ */
+EVMBtcRelay._GasCosts = {
     GAS_PER_BLOCKHEADER: 30000,
     GAS_BASE_MAIN: 15000 + 21000,
     GAS_PER_BLOCKHEADER_FORK: 65000,

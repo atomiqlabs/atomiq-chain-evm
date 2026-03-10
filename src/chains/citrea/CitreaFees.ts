@@ -6,10 +6,9 @@ import {getLogger} from "../../utils/Utils";
  */
 export class CitreaFees extends EVMFees {
 
-    public static readonly StateDiffSize = {
-        APPROVE_DIFF_SIZE: 40,
-    };
-
+    /**
+     * @internal
+     */
     protected readonly logger = getLogger("CitreaFees: ");
 
     private _blockFeeCache?: {
@@ -35,8 +34,6 @@ export class CitreaFees extends EVMFees {
 
     /**
      * Gets the gas price with caching, format: <gas price in Wei>;<transaction version: v1/v3>
-     *
-     * @private
      */
     public async getFeeRate(): Promise<string> {
         if(this._blockFeeCache==null || Date.now() - this._blockFeeCache.timestamp > this.MAX_FEE_AGE) {

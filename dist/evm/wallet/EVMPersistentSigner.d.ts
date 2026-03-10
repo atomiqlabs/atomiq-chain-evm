@@ -1,5 +1,4 @@
 import { Signer, TransactionRequest, TransactionResponse } from "ethers";
-import { EVMBlockTag } from "../chain/modules/EVMBlocks";
 import { EVMChainInterface } from "../chain/EVMChainInterface";
 import { EVMSigner } from "./EVMSigner";
 /**
@@ -9,7 +8,7 @@ import { EVMSigner } from "./EVMSigner";
  * @category Wallets
  */
 export declare class EVMPersistentSigner extends EVMSigner {
-    readonly safeBlockTag: EVMBlockTag;
+    private readonly safeBlockTag;
     private pendingTxs;
     private confirmedNonce;
     private pendingNonce;

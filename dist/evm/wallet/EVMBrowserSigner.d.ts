@@ -3,14 +3,6 @@
 import { Signer, TransactionRequest, TransactionResponse } from "ethers";
 import { EVMSigner } from "./EVMSigner";
 /**
- * A static message, which should be signed by the EVM wallets to generate reproducible entropy. Works when
- *  wallets use signing with deterministic nonce, such that signature over the same message always yields the
- *  same signature (same entropy).
- *
- * @category Wallets
- */
-export declare const EVM_REPRODUCIBLE_ENTROPY_MESSAGE: string;
-/**
  * Browser-based EVM signer, intended for injected/external wallets. This ensures no explicit
  *  `signTransaction()` flow is required and transaction submission goes through `sendTransaction()`.
  *

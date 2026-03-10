@@ -28,6 +28,9 @@ export declare class EVMBtcStoredHeader implements BtcStoredHeader<EVMBtcHeader>
     private readonly blockHeight;
     private readonly lastDiffAdjustment;
     private readonly prevBlockTimestamps;
+    /**
+     * @internal
+     */
     constructor(obj: EVMBtcStoredHeaderType);
     /**
      * @inheritDoc

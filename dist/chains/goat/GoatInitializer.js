@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GoatInitializer = exports.initializeGoat = exports.GoatAssets = void 0;
+exports.GoatInitializer = exports.initializeGoat = void 0;
 const base_1 = require("@atomiqlabs/base");
 const ethers_1 = require("ethers");
 const EVMChainInterface_1 = require("../../evm/chain/EVMChainInterface");
@@ -88,7 +88,7 @@ const chainTypeMapping = {
  * Default GOAT Network token assets configuration
  * @category Networks/GOAT
  */
-exports.GoatAssets = {
+const GoatAssets = {
     BTC: {
         address: "0x0000000000000000000000000000000000000000",
         decimals: 18,
@@ -166,6 +166,6 @@ exports.GoatInitializer = {
     chainId: "GOAT",
     chainType: null,
     initializer: initializeGoat,
-    tokens: exports.GoatAssets,
+    tokens: GoatAssets,
     options: null
 };

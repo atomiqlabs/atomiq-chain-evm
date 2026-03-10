@@ -1,3 +1,4 @@
+export * from "./chains/EVMOptions";
 export * from "./chains/citrea/CitreaInitializer";
 export * from "./chains/citrea/CitreaChainType";
 export * from "./chains/citrea/CitreaFees";

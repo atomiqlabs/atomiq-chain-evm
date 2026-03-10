@@ -15,6 +15,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVMSpvVaultData = exports.EVMSpvWithdrawalData = exports.EVMSpvVaultContract = exports.EVMBtcRelay = exports.EVMBtcStoredHeader = exports.EVMBtcHeader = void 0;
+__exportStar(require("./chains/EVMOptions"), exports);
 __exportStar(require("./chains/citrea/CitreaInitializer"), exports);
 __exportStar(require("./chains/citrea/CitreaChainType"), exports);
 __exportStar(require("./chains/citrea/CitreaFees"), exports);

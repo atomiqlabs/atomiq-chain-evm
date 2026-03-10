@@ -10,6 +10,7 @@ import {EVMSwapData} from "../../evm/swaps/EVMSwapData";
 import {EVMSpvVaultData} from "../../evm/spv_swap/EVMSpvVaultData";
 import {EVMSpvWithdrawalData} from "../../evm/spv_swap/EVMSpvWithdrawalData";
 import {GoatChainType} from "./GoatChainType";
+import {EVMOptions} from "../EVMOptions";
 
 const GoatChainIds = {
     MAINNET: 2345,
@@ -96,7 +97,7 @@ export type GoatAssetsType = BaseTokenType<"BTC" | "PBTC" | "_PBTC_DEV">;
  * Default GOAT Network token assets configuration
  * @category Networks/GOAT
  */
-export const GoatAssets: GoatAssetsType = {
+const GoatAssets: GoatAssetsType = {
     BTC: {
         address: "0x0000000000000000000000000000000000000000",
         decimals: 18,
@@ -118,30 +119,7 @@ export const GoatAssets: GoatAssetsType = {
  * Configuration options for initializing GOAT Network chain
  * @category Networks/GOAT
  */
-export type GoatOptions = {
-    rpcUrl: string | JsonRpcApiProvider,
-    retryPolicy?: EVMRetryPolicy,
-    chainType?: "MAINNET" | "TESTNET" | "TESTNET4",
-
-    swapContract?: string,
-    swapContractDeploymentHeight?: number,
-    btcRelayContract?: string,
-    btcRelayDeploymentHeight?: number,
-    spvVaultContract?: string,
-    spvVaultDeploymentHeight?: number,
-    handlerContracts?: {
-        refund?: {
-            timelock?: string
-        },
-        claim?: {
-            [type in ChainSwapType]?: string
-        }
-    }
-
-    fees?: EVMFees,
-
-    evmConfig?: Partial<Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag" | "finalityCheckStrategy">>
-}
+export type GoatOptions = EVMOptions<"MAINNET" | "TESTNET" | "TESTNET4">;
 
 /**
  * Initialize GOAT Network chain integration

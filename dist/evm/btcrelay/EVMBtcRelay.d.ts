@@ -1,7 +1,6 @@
 /// <reference types="node" />
 /// <reference types="node" />
 import { BitcoinNetwork, BitcoinRpc, BtcBlock, BtcRelay, RelaySynchronizer } from "@atomiqlabs/base";
-import { EVMBtcHeader } from "./headers/EVMBtcHeader";
 import { EVMContractBase } from "../contract/EVMContractBase";
 import { BtcRelay as BtcRelayTypechain } from "./BtcRelayTypechain";
 import { EVMBtcStoredHeader } from "./headers/EVMBtcStoredHeader";
@@ -14,7 +13,10 @@ import { EVMChainInterface } from "../chain/EVMChainInterface";
  * @category BTC Relay
  */
 export declare class EVMBtcRelay<B extends BtcBlock> extends EVMContractBase<BtcRelayTypechain> implements BtcRelay<EVMBtcStoredHeader, EVMTx, B, EVMSigner> {
-    static GasCosts: {
+    /**
+     * @internal
+     */
+    static _GasCosts: {
         GAS_PER_BLOCKHEADER: number;
         GAS_BASE_MAIN: number;
         GAS_PER_BLOCKHEADER_FORK: number;
@@ -29,7 +31,7 @@ export declare class EVMBtcRelay<B extends BtcBlock> extends EVMContractBase<Btc
      * @param storedHeader Current latest committed and stored bitcoin blockheader in the light client
      * @param feeRate Fee rate to apply to the transaction
      */
-    SaveMainHeaders(signer: string, mainHeaders: EVMBtcHeader[], storedHeader: EVMBtcStoredHeader, feeRate: string): Promise<EVMTx>;
+    private SaveMainHeaders;
     /**
      * Returns a transaction that submits a short competing branch.
      * If the submitted chain has higher total chainwork than the current canonical chain, it becomes canonical.
@@ -39,7 +41,7 @@ export declare class EVMBtcRelay<B extends BtcBlock> extends EVMContractBase<Btc
      * @param storedHeader Committed and stored bitcoin blockheader from which to fork the light client
      * @param feeRate Fee rate to apply to the transaction
      */
-    SaveShortForkHeaders(signer: string, forkHeaders: EVMBtcHeader[], storedHeader: EVMBtcStoredHeader, feeRate: string): Promise<EVMTx>;
+    private SaveShortForkHeaders;
     /**
      * Returns a transaction that submits blockheaders to an existing long fork.
      *
@@ -50,8 +52,8 @@ export declare class EVMBtcRelay<B extends BtcBlock> extends EVMContractBase<Btc
      * @param feeRate Fee rate to apply to the transaction
      * @param totalForkHeaders Total blockheaders in the fork, used for gas estimation when reorg happens
      */
-    SaveLongForkHeaders(signer: string, forkId: number, forkHeaders: EVMBtcHeader[], storedHeader: EVMBtcStoredHeader, feeRate: string, totalForkHeaders?: number): Promise<EVMTx>;
-    bitcoinRpc: BitcoinRpc<B>;
+    private SaveLongForkHeaders;
+    readonly _bitcoinRpc: BitcoinRpc<B>;
     readonly maxHeadersPerTx: number;
     readonly maxForkHeadersPerTx: number;
     readonly maxShortForkHeadersPerTx: number;

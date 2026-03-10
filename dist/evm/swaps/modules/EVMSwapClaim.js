@@ -43,7 +43,7 @@ class EVMSwapClaim extends EVMSwapModule_1.EVMSwapModule {
         if (checkExpiry && await this.contract.isExpired(swapData.claimer.toString(), swapData)) {
             throw new base_1.SwapDataVerificationError("Not enough time to reliably pay the invoice");
         }
-        const claimHandler = this.contract.claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
+        const claimHandler = this.contract._claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
         if (claimHandler == null)
             throw new base_1.SwapDataVerificationError("Unknown claim handler!");
         if (claimHandler.getType() !== base_1.ChainSwapType.HTLC)
@@ -67,7 +67,7 @@ class EVMSwapClaim extends EVMSwapModule_1.EVMSwapModule {
      * @param feeRate fee rate to be used for the transactions
      */
     async txsClaimWithTxData(signer, swapData, tx, requiredConfirmations, vout, commitedHeader, synchronizer, feeRate) {
-        const claimHandler = this.contract.claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
+        const claimHandler = this.contract._claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
         if (claimHandler == null)
             throw new base_1.SwapDataVerificationError("Unknown claim handler!");
         if (claimHandler.getType() !== base_1.ChainSwapType.CHAIN_NONCED &&
@@ -80,7 +80,7 @@ class EVMSwapClaim extends EVMSwapModule_1.EVMSwapModule {
             vout,
             requiredConfirmations,
             commitedHeader,
-            btcRelay: this.contract.btcRelay,
+            btcRelay: this.contract._btcRelay,
             synchronizer,
         }, feeRate);
         const claimTx = await this.Claim(signer, swapData, witness, feeRate, claimHandler.getGas(swapData));
@@ -126,7 +126,7 @@ class EVMSwapClaim extends EVMSwapModule_1.EVMSwapModule {
         feeRate ?? (feeRate = await this.root.Fees.getFeeRate());
         //TODO: Claim with success action not supported yet!
         let gasRequired = this.getClaimGas(swapData);
-        const claimHandler = this.contract.claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
+        const claimHandler = this.contract._claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
         if (claimHandler != null)
             gasRequired += claimHandler.getGas(swapData);
         return EVMFees_1.EVMFees.getGasFee(gasRequired, feeRate);

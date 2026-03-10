@@ -32,6 +32,9 @@ export declare class EVMBtcHeader implements BtcHeader {
      * @internal
      */
     _previousBlockhash?: Buffer;
+    /**
+     * @internal
+     */
     constructor(data: EVMBtcHeaderType);
     /**
      * @inheritDoc

@@ -1,7 +1,7 @@
-import { BaseContract, Log, TransactionDescription } from "ethers";
+import { BaseContract, TransactionDescription } from "ethers";
 import { EVMChainInterface } from "../chain/EVMChainInterface";
 import { EVMContractEvents } from "./modules/EVMContractEvents";
-import { TypedContractMethod, TypedEventLog } from "../typechain/common";
+import { TypedContractMethod } from "../typechain/common";
 type __TypechainOutputObject<T> = T extends TypedContractMethod<infer V> ? V : never;
 /**
  * Typed transaction call decoded from calldata for a specific contract method.
@@ -17,13 +17,24 @@ export interface TypedFunctionCall<TCMethod extends TypedContractMethod> extends
  * @category Internal/Contracts
  */
 export declare class EVMContractBase<T extends BaseContract> {
-    contract: T;
-    readonly Events: EVMContractEvents<T>;
-    readonly Chain: EVMChainInterface<any>;
-    readonly contractAddress: string;
-    readonly contractDeploymentHeight?: number;
+    readonly contract: T;
+    /**
+     * @internal
+     */
+    readonly _Events: EVMContractEvents<T>;
+    protected readonly Chain: EVMChainInterface<any>;
+    /**
+     * @internal
+     */
+    readonly _contractAddress: string;
+    /**
+     * @internal
+     */
+    readonly _contractDeploymentHeight?: number;
     constructor(chainInterface: EVMChainInterface<any>, contractAddress: string, contractAbi: any, contractDeploymentHeight?: number);
-    toTypedEvent<TEventName extends keyof T["filters"] = keyof T["filters"]>(log: Log): TypedEventLog<T["filters"][TEventName]> | null;
-    parseCalldata<TMethod extends TypedContractMethod>(calldata: string): TypedFunctionCall<TMethod>;
+    /**
+     * @internal
+     */
+    protected parseCalldata<TMethod extends TypedContractMethod>(calldata: string): TypedFunctionCall<TMethod>;
 }
 export {};

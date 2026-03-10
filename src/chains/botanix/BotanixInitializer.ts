@@ -1,6 +1,6 @@
 import {BaseTokenType, BitcoinNetwork, BitcoinRpc, ChainData, ChainInitializer, ChainSwapType} from "@atomiqlabs/base";
-import {JsonRpcApiProvider, JsonRpcProvider, WebSocketProvider} from "ethers";
-import {EVMChainInterface, EVMConfiguration, EVMRetryPolicy} from "../../evm/chain/EVMChainInterface";
+import {JsonRpcProvider, WebSocketProvider} from "ethers";
+import {EVMChainInterface} from "../../evm/chain/EVMChainInterface";
 import {EVMFees} from "../../evm/chain/modules/EVMFees";
 import {EVMBtcRelay} from "../../evm/btcrelay/EVMBtcRelay";
 import {EVMSwapContract} from "../../evm/swaps/EVMSwapContract";
@@ -10,6 +10,7 @@ import {EVMSwapData} from "../../evm/swaps/EVMSwapData";
 import {EVMSpvVaultData} from "../../evm/spv_swap/EVMSpvVaultData";
 import {EVMSpvWithdrawalData} from "../../evm/spv_swap/EVMSpvWithdrawalData";
 import {BotanixChainType} from "./BotanixChainType";
+import {EVMOptions} from "../EVMOptions";
 
 const BotanixChainIds = {
     MAINNET: 3637,
@@ -74,7 +75,7 @@ export type BotanixAssetsType = BaseTokenType<"BTC">;
  * Default Botanix token assets configuration
  * @category Networks/Botanix
  */
-export const BotanixAssets: BotanixAssetsType = {
+const BotanixAssets: BotanixAssetsType = {
     BTC: {
         address: "0x0000000000000000000000000000000000000000",
         decimals: 18,
@@ -86,30 +87,7 @@ export const BotanixAssets: BotanixAssetsType = {
  * Configuration options for initializing Botanix chain
  * @category Networks/Botanix
  */
-export type BotanixOptions = {
-    rpcUrl: string | JsonRpcApiProvider,
-    retryPolicy?: EVMRetryPolicy,
-    chainType?: "MAINNET" | "TESTNET",
-
-    swapContract?: string,
-    swapContractDeploymentHeight?: number,
-    btcRelayContract?: string,
-    btcRelayDeploymentHeight?: number,
-    spvVaultContract?: string,
-    spvVaultDeploymentHeight?: number,
-    handlerContracts?: {
-        refund?: {
-            timelock?: string
-        },
-        claim?: {
-            [type in ChainSwapType]?: string
-        }
-    }
-
-    fees?: EVMFees,
-
-    evmConfig?: Partial<Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag" | "finalityCheckStrategy">>
-}
+export type BotanixOptions = EVMOptions<"MAINNET" | "TESTNET">;
 
 /**
  * Initialize Botanix chain integration

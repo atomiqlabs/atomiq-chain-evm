@@ -31,7 +31,7 @@ class EVMPersistentSigner extends EVMSigner_1.EVMSigner {
         this.minFeeIncreaseAbsolute = minFeeIncreaseAbsolute ?? MIN_FEE_INCREASE_ABSOLUTE;
         this.minFeeIncreasePpm = minFeeIncreasePpm ?? MIN_FEE_INCREASE_PPM;
         this.waitBeforeBump = waitBeforeBumpMillis ?? WAIT_BEFORE_BUMP;
-        this.safeBlockTag = chainInterface.config.safeBlockTag;
+        this.safeBlockTag = chainInterface._config.safeBlockTag;
         this.logger = (0, Utils_1.getLogger)("EVMPersistentSigner(" + address + "): ");
     }
     async load() {

@@ -50,7 +50,7 @@ export class CitreaSwapContract extends EVMSwapContract<"CITREA"> {
         }
         diffSize += this.calculateStateDiff(signer, tokenStateChanges);
 
-        const gasFee = await this.Init.getInitFee(swapData, feeRate);
+        const gasFee = await this._Init.getInitFee(swapData, feeRate);
         return gasFee + CitreaFees.getGasFee(0, feeRate, diffSize);
     }
 
@@ -74,7 +74,7 @@ export class CitreaSwapContract extends EVMSwapContract<"CITREA"> {
         }
         diffSize += this.calculateStateDiff(signer, tokenStateChanges);
 
-        const gasFee = await this.Claim.getClaimFee(swapData, feeRate);
+        const gasFee = await this._Claim.getClaimFee(swapData, feeRate);
         return gasFee + CitreaFees.getGasFee(0, feeRate, diffSize);
     }
 
@@ -101,7 +101,7 @@ export class CitreaSwapContract extends EVMSwapContract<"CITREA"> {
         }
         diffSize += this.calculateStateDiff(signer, tokenStateChanges);
 
-        const gasFee = await this.Refund.getRefundFee(swapData, feeRate);
+        const gasFee = await this._Refund.getRefundFee(swapData, feeRate);
         return gasFee + CitreaFees.getGasFee(0, feeRate, diffSize);
     }
 

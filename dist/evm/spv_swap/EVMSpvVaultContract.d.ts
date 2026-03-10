@@ -8,7 +8,6 @@ import { EVMSigner } from "../wallet/EVMSigner";
 import { SpvVaultManager } from "./SpvVaultContractTypechain";
 import { EVMBtcRelay } from "../btcrelay/EVMBtcRelay";
 import { EVMChainInterface } from "../chain/EVMChainInterface";
-import { TransactionRequest } from "ethers";
 import { EVMSpvVaultData } from "./EVMSpvVaultData";
 import { EVMSpvWithdrawalData } from "./EVMSpvWithdrawalData";
 import { EVMBtcStoredHeader } from "../btcrelay/headers/EVMBtcStoredHeader";
@@ -32,15 +31,15 @@ export declare function unpackOwnerAndVaultId(data: string): [string, bigint];
 export declare class EVMSpvVaultContract<ChainId extends string> extends EVMContractBase<SpvVaultManager> implements SpvVaultContract<EVMTx, EVMSigner, ChainId, EVMSpvWithdrawalData, EVMSpvVaultData> {
     private static readonly GasCosts;
     readonly chainId: ChainId;
+    readonly claimTimeout: number;
     private readonly btcRelay;
     private readonly bitcoinRpc;
-    readonly claimTimeout: number;
     private readonly logger;
     constructor(chainInterface: EVMChainInterface<ChainId>, btcRelay: EVMBtcRelay<any>, bitcoinRpc: BitcoinRpc<any>, contractAddress: string, contractDeploymentHeight?: number);
-    protected Open(signer: string, vault: EVMSpvVaultData, feeRate: string): Promise<TransactionRequest>;
-    protected Deposit(signer: string, vault: EVMSpvVaultData, rawAmounts: bigint[], feeRate: string): Promise<TransactionRequest>;
-    protected Front(signer: string, vault: EVMSpvVaultData, data: EVMSpvWithdrawalData, withdrawalSequence: number, feeRate: string): Promise<TransactionRequest>;
-    protected Claim(signer: string, vault: EVMSpvVaultData, data: EVMSpvWithdrawalData, blockheader: EVMBtcStoredHeader, merkle: Buffer[], position: number, feeRate: string): Promise<TransactionRequest>;
+    private Open;
+    private Deposit;
+    private Front;
+    private Claim;
     /**
      * @inheritDoc
      */

@@ -39,7 +39,7 @@ class CitreaSwapContract extends EVMSwapContract_1.EVMSwapContract {
             tokenStateChanges.add(signer.toLowerCase() + ":" + swapData.getDepositToken().toLowerCase());
         }
         diffSize += this.calculateStateDiff(signer, tokenStateChanges);
-        const gasFee = await this.Init.getInitFee(swapData, feeRate);
+        const gasFee = await this._Init.getInitFee(swapData, feeRate);
         return gasFee + CitreaFees_1.CitreaFees.getGasFee(0, feeRate, diffSize);
     }
     async getClaimFee(signer, swapData, feeRate) {
@@ -61,7 +61,7 @@ class CitreaSwapContract extends EVMSwapContract_1.EVMSwapContract {
             tokenStateChanges.add(swapData.getClaimer().toLowerCase() + ":" + swapData.getDepositToken().toLowerCase());
         }
         diffSize += this.calculateStateDiff(signer, tokenStateChanges);
-        const gasFee = await this.Claim.getClaimFee(swapData, feeRate);
+        const gasFee = await this._Claim.getClaimFee(swapData, feeRate);
         return gasFee + CitreaFees_1.CitreaFees.getGasFee(0, feeRate, diffSize);
     }
     /**
@@ -86,7 +86,7 @@ class CitreaSwapContract extends EVMSwapContract_1.EVMSwapContract {
             tokenStateChanges.add(swapData.getClaimer().toLowerCase() + ":" + swapData.getDepositToken().toLowerCase());
         }
         diffSize += this.calculateStateDiff(signer, tokenStateChanges);
-        const gasFee = await this.Refund.getRefundFee(swapData, feeRate);
+        const gasFee = await this._Refund.getRefundFee(swapData, feeRate);
         return gasFee + CitreaFees_1.CitreaFees.getGasFee(0, feeRate, diffSize);
     }
 }

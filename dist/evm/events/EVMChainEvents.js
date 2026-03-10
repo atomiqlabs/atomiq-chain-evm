@@ -75,6 +75,9 @@ class EVMChainEvents extends EVMChainEventsBrowser_1.EVMChainEventsBrowser {
             }
         }).join(";"));
     }
+    /**
+     * @inheritDoc
+     */
     async init(noAutomaticPoll) {
         if (noAutomaticPoll)
             return Promise.resolve();

@@ -1,43 +1,16 @@
-import { BaseTokenType, BitcoinNetwork, BitcoinRpc, ChainData, ChainInitializer, ChainSwapType } from "@atomiqlabs/base";
-import { JsonRpcApiProvider } from "ethers";
-import { EVMConfiguration, EVMRetryPolicy } from "../../evm/chain/EVMChainInterface";
-import { EVMFees } from "../../evm/chain/modules/EVMFees";
+import { BaseTokenType, BitcoinNetwork, BitcoinRpc, ChainData, ChainInitializer } from "@atomiqlabs/base";
 import { GoatChainType } from "./GoatChainType";
+import { EVMOptions } from "../EVMOptions";
 /**
  * Token assets available on GOAT Network
  * @category Networks/GOAT
  */
 export type GoatAssetsType = BaseTokenType<"BTC" | "PBTC" | "_PBTC_DEV">;
 /**
- * Default GOAT Network token assets configuration
- * @category Networks/GOAT
- */
-export declare const GoatAssets: GoatAssetsType;
-/**
  * Configuration options for initializing GOAT Network chain
  * @category Networks/GOAT
  */
-export type GoatOptions = {
-    rpcUrl: string | JsonRpcApiProvider;
-    retryPolicy?: EVMRetryPolicy;
-    chainType?: "MAINNET" | "TESTNET" | "TESTNET4";
-    swapContract?: string;
-    swapContractDeploymentHeight?: number;
-    btcRelayContract?: string;
-    btcRelayDeploymentHeight?: number;
-    spvVaultContract?: string;
-    spvVaultDeploymentHeight?: number;
-    handlerContracts?: {
-        refund?: {
-            timelock?: string;
-        };
-        claim?: {
-            [type in ChainSwapType]?: string;
-        };
-    };
-    fees?: EVMFees;
-    evmConfig?: Partial<Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag" | "finalityCheckStrategy">>;
-};
+export type GoatOptions = EVMOptions<"MAINNET" | "TESTNET" | "TESTNET4">;
 /**
  * Initialize GOAT Network chain integration
  * @category Networks/GOAT

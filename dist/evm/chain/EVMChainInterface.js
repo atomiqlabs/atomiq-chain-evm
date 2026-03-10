@@ -22,12 +22,12 @@ class EVMChainInterface {
         this.chainId = chainId;
         this.evmChainId = evmChainId;
         this.provider = provider;
-        this.retryPolicy = retryPolicy;
-        this.config = config;
-        (_a = this.config).safeBlockTag ?? (_a.safeBlockTag = "safe");
-        (_b = this.config).finalizedBlockTag ?? (_b.finalizedBlockTag = "finalized");
-        (_c = this.config).finalityCheckStrategy ?? (_c.finalityCheckStrategy = { type: "timer" });
-        (_d = this.config.finalityCheckStrategy).delayMs ?? (_d.delayMs = 1000);
+        this._retryPolicy = retryPolicy;
+        this._config = config;
+        (_a = this._config).safeBlockTag ?? (_a.safeBlockTag = "safe");
+        (_b = this._config).finalizedBlockTag ?? (_b.finalizedBlockTag = "finalized");
+        (_c = this._config).finalityCheckStrategy ?? (_c.finalityCheckStrategy = { type: "timer" });
+        (_d = this._config.finalityCheckStrategy).delayMs ?? (_d.delayMs = 1000);
         this.logger = (0, Utils_1.getLogger)("EVMChainInterface(" + this.evmChainId + "): ");
         this.Fees = evmFeeEstimator;
         this.Tokens = new EVMTokens_1.EVMTokens(this);
@@ -158,7 +158,7 @@ class EVMChainInterface {
      * @inheritDoc
      */
     async getFinalizedBlock() {
-        const block = await this.Blocks.getBlock(this.config.finalizedBlockTag);
+        const block = await this.Blocks.getBlock(this._config.finalizedBlockTag);
         return {
             height: block.number,
             blockHash: block.hash

@@ -30,13 +30,22 @@ export interface TypedFunctionCall<TCMethod extends TypedContractMethod>
  */
 export class EVMContractBase<T extends BaseContract> {
 
-    contract: T;
+    readonly contract: T;
 
-    public readonly Events: EVMContractEvents<T>;
-    public readonly Chain: EVMChainInterface<any>;
+    /**
+     * @internal
+     */
+    readonly _Events: EVMContractEvents<T>;
+    protected readonly Chain: EVMChainInterface<any>;
 
-    public readonly contractAddress: string;
-    public readonly contractDeploymentHeight?: number;
+    /**
+     * @internal
+     */
+    readonly _contractAddress: string;
+    /**
+     * @internal
+     */
+    readonly _contractDeploymentHeight?: number;
 
     constructor(
         chainInterface: EVMChainInterface<any>,
@@ -46,26 +55,15 @@ export class EVMContractBase<T extends BaseContract> {
     ) {
         this.Chain = chainInterface;
         this.contract = new Contract(contractAddress, contractAbi, chainInterface.provider) as unknown as T;
-        this.Events = new EVMContractEvents<T>(chainInterface, this);
-        this.contractAddress = contractAddress;
-        this.contractDeploymentHeight = contractDeploymentHeight;
+        this._Events = new EVMContractEvents<T>(chainInterface, this);
+        this._contractAddress = contractAddress;
+        this._contractDeploymentHeight = contractDeploymentHeight;
     }
 
-    toTypedEvent<TEventName extends keyof T["filters"] = keyof T["filters"]>(log: Log): TypedEventLog<T["filters"][TEventName]> | null {
-        let foundFragment: EventFragment | null = null;
-        try {
-            foundFragment = this.contract.interface.getEvent(log.topics[0]);
-        } catch (error) { }
-        if(!foundFragment) return null;
-
-        try {
-            return new EventLog(log, this.contract.interface, foundFragment) as unknown as TypedEventLog<T["filters"][TEventName]>;
-        } catch (error: any) { }
-
-        return null;
-    }
-
-    parseCalldata<TMethod extends TypedContractMethod>(calldata: string): TypedFunctionCall<TMethod> {
+    /**
+     * @internal
+     */
+    protected parseCalldata<TMethod extends TypedContractMethod>(calldata: string): TypedFunctionCall<TMethod> {
         return this.contract.interface.parseTransaction({data: calldata}) as unknown as TypedFunctionCall<TMethod>;
     }
 

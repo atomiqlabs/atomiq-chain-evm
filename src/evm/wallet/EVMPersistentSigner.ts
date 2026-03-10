@@ -24,7 +24,7 @@ const MIN_FEE_INCREASE_PPM = 100_000n; // +10%
  */
 export class EVMPersistentSigner extends EVMSigner {
 
-    readonly safeBlockTag: EVMBlockTag;
+    private readonly safeBlockTag: EVMBlockTag;
 
     private pendingTxs: Map<number, {
         txs: Transaction[],
@@ -64,7 +64,7 @@ export class EVMPersistentSigner extends EVMSigner {
         this.minFeeIncreaseAbsolute = minFeeIncreaseAbsolute ?? MIN_FEE_INCREASE_ABSOLUTE;
         this.minFeeIncreasePpm = minFeeIncreasePpm ?? MIN_FEE_INCREASE_PPM;
         this.waitBeforeBump = waitBeforeBumpMillis ?? WAIT_BEFORE_BUMP;
-        this.safeBlockTag = chainInterface.config.safeBlockTag;
+        this.safeBlockTag = chainInterface._config.safeBlockTag;
         this.logger = getLogger("EVMPersistentSigner("+address+"): ");
     }
 

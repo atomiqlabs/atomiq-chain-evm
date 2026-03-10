@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVMContractEvents = void 0;
+const ethers_1 = require("ethers");
 const EVMEvents_1 = require("../../chain/modules/EVMEvents");
 function normalizeTopic(topic) {
     if (topic.length !== 66) {
@@ -19,8 +20,22 @@ class EVMContractEvents extends EVMEvents_1.EVMEvents {
         this.contract = contract;
         this.baseContract = contract.contract;
     }
+    toTypedEvent(log) {
+        let foundFragment = null;
+        try {
+            foundFragment = this.baseContract.interface.getEvent(log.topics[0]);
+        }
+        catch (error) { }
+        if (!foundFragment)
+            return null;
+        try {
+            return new ethers_1.EventLog(log, this.baseContract.interface, foundFragment);
+        }
+        catch (error) { }
+        return null;
+    }
     toTypedEvents(blockEvents) {
-        return blockEvents.map(log => this.contract.toTypedEvent(log));
+        return blockEvents.map(log => this.toTypedEvent(log));
     }
     toFilter(events, keys) {
         const filterArray = [];
@@ -66,7 +81,7 @@ class EVMContractEvents extends EVMEvents_1.EVMEvents {
                     return result;
             }
             return null;
-        }, abortSignal, this.contract.contractDeploymentHeight);
+        }, abortSignal, this.contract._contractDeploymentHeight);
     }
     /**
      * Runs a search forwards in time, processing the events for a specific topic
@@ -89,7 +104,7 @@ class EVMContractEvents extends EVMEvents_1.EVMEvents {
                     return result;
             }
             return null;
-        }, abortSignal, Math.max(this.contract.contractDeploymentHeight ?? 0, startHeight ?? 0));
+        }, abortSignal, Math.max(this.contract._contractDeploymentHeight ?? 0, startHeight ?? 0));
     }
 }
 exports.EVMContractEvents = EVMContractEvents;

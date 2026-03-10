@@ -53,7 +53,7 @@ export abstract class IBitcoinClaimHandler<C, W extends BitcoinWitnessData> impl
     protected serializeCommitment(data: BitcoinCommitmentData): Buffer {
         const buffer = Buffer.alloc(24);
         buffer.writeUint32BE(data.confirmations, 0);
-        Buffer.from(data.btcRelay.contractAddress.substring(2), "hex").copy(buffer, 4, 0, 20);
+        Buffer.from(data.btcRelay._contractAddress.substring(2), "hex").copy(buffer, 4, 0, 20);
         return buffer;
     }
 
@@ -83,7 +83,7 @@ export abstract class IBitcoinClaimHandler<C, W extends BitcoinWitnessData> impl
 
         if(!swapData.isClaimData(commitmentHash)) throw new Error("Invalid commit data");
 
-        const merkleProof = await btcRelay.bitcoinRpc.getMerkleProof(tx.txid, tx.blockhash);
+        const merkleProof = await btcRelay._bitcoinRpc.getMerkleProof(tx.txid, tx.blockhash);
         if(merkleProof==null) throw new Error(`Failed to generate merkle proof for tx: ${tx.txid}!`);
         logger.debug("getWitness(): merkle proof computed: ", merkleProof);
 

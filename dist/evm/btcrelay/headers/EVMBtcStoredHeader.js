@@ -11,6 +11,9 @@ const ethers_1 = require("ethers");
  * @category BTC Relay
  */
 class EVMBtcStoredHeader {
+    /**
+     * @internal
+     */
     constructor(obj) {
         this.blockheader = obj.blockheader instanceof EVMBtcHeader_1.EVMBtcHeader ? obj.blockheader : new EVMBtcHeader_1.EVMBtcHeader(obj.blockheader);
         this.blockHash = obj.blockHash;

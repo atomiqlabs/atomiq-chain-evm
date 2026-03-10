@@ -13,8 +13,17 @@ import { EVMSigner } from "../wallet/EVMSigner";
  * @category Chain Interface
  */
 export type EVMRetryPolicy = {
+    /**
+     * Maximum retries to be attempted
+     */
     maxRetries?: number;
+    /**
+     * Default delay between retries
+     */
     delay?: number;
+    /**
+     * Whether the delays should scale exponentially, i.e. 1 second, 2 seconds, 4 seconds, 8 seconds
+     */
     exponential?: boolean;
 };
 /**
@@ -22,16 +31,53 @@ export type EVMRetryPolicy = {
  * @category Chain Interface
  */
 export type EVMConfiguration = {
+    /**
+     * EVM Block tag to be considered safe for financial application, i.e. sending assets on different blockchains
+     */
     safeBlockTag: EVMBlockTag;
+    /**
+     * EVM Block tag to be considered finalized, i.e. the state definitely cannot revert after the blocks gets
+     *  this level of finality
+     */
     finalizedBlockTag: EVMBlockTag;
+    /**
+     * Maximum range of blocks to query when querying `ethereum_getLogs` RPC endpoint.
+     */
     maxLogsBlockRange: number;
+    /**
+     * Maximum number of `ethereum_getLogs` RPC calls to be executed in parallel
+     */
     maxParallelLogRequests: number;
+    /**
+     * Maximum number of parallel contract calls to execute in batch functions
+     */
     maxParallelCalls: number;
+    /**
+     * Maximum number of topics specified in the `ethereum_getLogs` RPC call
+     */
     maxLogTopics: number;
+    /**
+     * Whether to use EIP-2930 access lists for transactions, if set to `true` the transaction is simulated before
+     *  sending and the access list is populated for the transaction
+     */
     useAccessLists?: boolean;
+    /**
+     * Default EIP-2930 addresses to add when simulating the transaction initially
+     */
     defaultAccessListAddresses?: string[];
+    /**
+     * Strategy for checking finality of transactions or events
+     */
     finalityCheckStrategy?: {
+        /**
+         * Type of the finality checking strategy:
+         * - `"timer"` - periodically checks for the finality status, set the interval period `delayMs`
+         * - `"blocks"` - check for the finality when new block is created
+         */
         type: "timer" | "blocks";
+        /**
+         * Interval in milliseconds to use for the `"timer"` type of finality checking strategy
+         */
         delayMs?: number;
     };
 };
@@ -42,15 +88,24 @@ export type EVMConfiguration = {
 export declare class EVMChainInterface<ChainId extends string = string> implements ChainInterface<EVMTx, SignedEVMTx, EVMSigner, ChainId, Signer> {
     readonly chainId: ChainId;
     readonly provider: JsonRpcApiProvider;
-    readonly retryPolicy?: EVMRetryPolicy;
     readonly evmChainId: number;
-    readonly config: EVMConfiguration;
+    /**
+     * @internal
+     */
+    readonly _retryPolicy?: EVMRetryPolicy;
+    /**
+     * @internal
+     */
+    readonly _config: EVMConfiguration;
     Fees: EVMFees;
     Tokens: EVMTokens;
     Transactions: EVMTransactions;
     Signatures: EVMSignatures;
     Events: EVMEvents;
     Blocks: EVMBlocks;
+    /**
+     * @internal
+     */
     protected logger: LoggerType;
     constructor(chainId: ChainId, evmChainId: number, provider: JsonRpcApiProvider, config: EVMConfiguration, retryPolicy?: EVMRetryPolicy, evmFeeEstimator?: EVMFees);
     /**

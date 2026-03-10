@@ -8,6 +8,27 @@ import {getAddress, Signer, Transaction, TransactionRequest, TransactionResponse
  * @category Wallets
  */
 export class EVMSigner implements AbstractSigner {
+    /**
+     * A static message, which should be signed by the EVM wallets to generate reproducible entropy. Works when
+     *  wallets use signing with deterministic nonce, such that signature over the same message always yields the
+     *  same signature (same entropy).
+     */
+    private static readonly EVM_REPRODUCIBLE_ENTROPY_MESSAGE =
+      "Signing this messages generates a reproducible secret to be used on %APPNAME%.\n\nPLEASE DOUBLE CHECK THAT YOU"+
+      " ARE ON THE %APPNAME% WEBSITE BEFORE SIGNING THE MESSAGE, SIGNING THIS MESSAGE ON ANY OTHER WEBSITE MIGHT LEAD TO"+
+      " LOSS OF FUNDS!";
+
+    /**
+     * Returns a static message, which should be signed by the EVM wallets to generate reproducible entropy. Works when
+     *  wallets use signing with deterministic nonce, such that signature over the same message always yields the
+     *  same signature (same entropy).
+     *
+     * @param appName Application name to differentiate reproducible entropy generated across different apps
+     */
+    public static getReproducibleEntropyMessage(appName: string): string {
+        return EVMSigner.EVM_REPRODUCIBLE_ENTROPY_MESSAGE.replace(new RegExp("%APPNAME%", 'g'), appName);
+    }
+
     type = "AtomiqAbstractSigner" as const;
 
     account: Signer;

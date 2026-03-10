@@ -9,6 +9,9 @@ const Utils_1 = require("../../utils/Utils");
 class CitreaFees extends EVMFees_1.EVMFees {
     constructor() {
         super(...arguments);
+        /**
+         * @internal
+         */
         this.logger = (0, Utils_1.getLogger)("CitreaFees: ");
     }
     /**
@@ -26,8 +29,6 @@ class CitreaFees extends EVMFees_1.EVMFees {
     }
     /**
      * Gets the gas price with caching, format: <gas price in Wei>;<transaction version: v1/v3>
-     *
-     * @private
      */
     async getFeeRate() {
         if (this._blockFeeCache == null || Date.now() - this._blockFeeCache.timestamp > this.MAX_FEE_AGE) {
@@ -63,6 +64,3 @@ class CitreaFees extends EVMFees_1.EVMFees {
     }
 }
 exports.CitreaFees = CitreaFees;
-CitreaFees.StateDiffSize = {
-    APPROVE_DIFF_SIZE: 40,
-};

@@ -91,10 +91,10 @@ export class EVMSpvVaultContract<ChainId extends string>
     };
 
     readonly chainId: ChainId;
+    public readonly claimTimeout: number = 180;
 
     private readonly btcRelay: EVMBtcRelay<any>;
     private readonly bitcoinRpc: BitcoinRpc<any>;
-    readonly claimTimeout: number = 180;
 
     private readonly logger = getLogger("EVMSpvVaultContract: ");
 
@@ -112,7 +112,7 @@ export class EVMSpvVaultContract<ChainId extends string>
     }
 
     //Transactions
-    protected async Open(signer: string, vault: EVMSpvVaultData, feeRate: string): Promise<TransactionRequest> {
+    private async Open(signer: string, vault: EVMSpvVaultData, feeRate: string): Promise<TransactionRequest> {
         const {txHash, vout} = decodeUtxo(vault.getUtxo());
 
         const tokens = vault.getTokenData();
@@ -125,7 +125,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         return tx;
     }
 
-    protected async Deposit(signer: string, vault: EVMSpvVaultData, rawAmounts: bigint[], feeRate: string): Promise<TransactionRequest> {
+    private async Deposit(signer: string, vault: EVMSpvVaultData, rawAmounts: bigint[], feeRate: string): Promise<TransactionRequest> {
         let totalGas = EVMSpvVaultContract.GasCosts.DEPOSIT_BASE;
         let value = 0n;
         if(vault.token0.token.toLowerCase()===this.Chain.getNativeCurrencyAddress().toLowerCase()) {
@@ -150,7 +150,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         return tx;
     }
 
-    protected async Front(
+    private async Front(
         signer: string, vault: EVMSpvVaultData, data: EVMSpvWithdrawalData, withdrawalSequence: number, feeRate: string
     ): Promise<TransactionRequest> {
         let value = 0n;
@@ -171,7 +171,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         return tx;
     }
 
-    protected async Claim(
+    private async Claim(
         signer: string, vault: EVMSpvVaultData, data: EVMSpvWithdrawalData,
         blockheader: EVMBtcStoredHeader, merkle: Buffer[], position: number, feeRate: string
     ): Promise<TransactionRequest> {
@@ -203,7 +203,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         if(tokenData.length!==2) throw new Error("Must specify 2 tokens in tokenData!");
 
         const vaultParams = {
-            btcRelayContract: this.btcRelay.contractAddress,
+            btcRelayContract: this.btcRelay._contractAddress,
             token0: tokenData[0].token,
             token1: tokenData[1].token,
             token0Multiplier: tokenData[0].multiplier,
@@ -251,7 +251,7 @@ export class EVMSpvVaultContract<ChainId extends string>
             promises.push(this.getFronterAddress(owner, vaultId, withdrawal).then(val => {
                 result[withdrawal.getTxId()] = val;
             }));
-            if(promises.length>=this.Chain.config.maxParallelCalls) {
+            if(promises.length>=this.Chain._config.maxParallelCalls) {
                 await Promise.all(promises);
                 promises = [];
             }
@@ -272,7 +272,7 @@ export class EVMSpvVaultContract<ChainId extends string>
 
         const vaultParams = await this.vaultParamsCache.getOrComputeAsync(vaultState.spvVaultParametersCommitment, async () => {
             const blockheight = Number(vaultState.openBlockheight);
-            const events = await this.Events.getContractBlockEvents(
+            const events = await this._Events.getContractBlockEvents(
                 ["Opened"],
                 [
                     "0x"+owner.substring(2).padStart(64, "0"),
@@ -289,7 +289,7 @@ export class EVMSpvVaultContract<ChainId extends string>
             return foundEvent.args.params;
         });
 
-        if(vaultParams.btcRelayContract.toLowerCase()!==this.btcRelay.contractAddress.toLowerCase()) return null;
+        if(vaultParams.btcRelayContract.toLowerCase()!==this.btcRelay._contractAddress.toLowerCase()) return null;
 
         return new EVMSpvVaultData(owner, vaultId, vaultState, vaultParams);
     }
@@ -306,7 +306,7 @@ export class EVMSpvVaultContract<ChainId extends string>
                 result[owner] ??= {};
                 result[owner][vaultId.toString(10)] = val;
             }));
-            if(promises.length>=this.Chain.config.maxParallelCalls) {
+            if(promises.length>=this.Chain._config.maxParallelCalls) {
                 await Promise.all(promises);
                 promises = [];
             }
@@ -337,7 +337,7 @@ export class EVMSpvVaultContract<ChainId extends string>
                 result[owner] ??= {};
                 result[owner][vaultId.toString(10)] = val;
             }));
-            if(promises.length>=this.Chain.config.maxParallelCalls) {
+            if(promises.length>=this.Chain._config.maxParallelCalls) {
                 await Promise.all(promises);
                 promises = [];
             }
@@ -351,7 +351,7 @@ export class EVMSpvVaultContract<ChainId extends string>
      */
     async getAllVaults(owner?: string): Promise<EVMSpvVaultData[]> {
         const openedVaults = new Map<string, SpvVaultParametersStructOutput>();
-        await this.Events.findInContractEventsForward(
+        await this._Events.findInContractEventsForward(
             ["Opened", "Closed"],
             owner==null ? null : [
                 "0x"+owner.substring(2).padStart(64, "0")
@@ -370,7 +370,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         const vaults: EVMSpvVaultData[] = [];
         let promises: Promise<void>[] = [];
         for(let [identifier, vaultParams] of openedVaults.entries()) {
-            if(vaultParams.btcRelayContract.toLowerCase()!==this.btcRelay.contractAddress.toLowerCase()) continue;
+            if(vaultParams.btcRelayContract.toLowerCase()!==this.btcRelay._contractAddress.toLowerCase()) continue;
 
             const [owner, vaultIdStr] = identifier.split(":");
 
@@ -380,7 +380,7 @@ export class EVMSpvVaultContract<ChainId extends string>
                 }
             }))
 
-            if(promises.length>=this.Chain.config.maxParallelCalls) {
+            if(promises.length>=this.Chain._config.maxParallelCalls) {
                 await Promise.all(promises);
                 promises = [];
             }
@@ -456,14 +456,14 @@ export class EVMSpvVaultContract<ChainId extends string>
 
         let result: SpvWithdrawalState | null;
         if(scStartHeight==null) {
-            result = await this.Events.findInContractEvents(
+            result = await this._Events.findInContractEvents(
                 events, keys,
                 async (event) => {
                     return this.parseWithdrawalEvent(event);
                 }
             );
         } else {
-            result = await this.Events.findInContractEventsForward(
+            result = await this._Events.findInContractEventsForward(
                 events, keys,
                 async (event) => {
                     const result = this.parseWithdrawalEvent(event);
@@ -493,8 +493,8 @@ export class EVMSpvVaultContract<ChainId extends string>
 
         const events: ["Fronted", "Claimed", "Closed"] = ["Fronted", "Claimed", "Closed"];
 
-        for(let i=0;i<withdrawalTxs.length;i+=this.Chain.config.maxLogTopics) {
-            const checkWithdrawalTxs = withdrawalTxs.slice(i, i+this.Chain.config.maxLogTopics);
+        for(let i=0;i<withdrawalTxs.length;i+=this.Chain._config.maxLogTopics) {
+            const checkWithdrawalTxs = withdrawalTxs.slice(i, i+this.Chain._config.maxLogTopics);
             const checkWithdrawalTxsMap = new Map(checkWithdrawalTxs.map(val => [val.withdrawal.getTxId() as string, val.withdrawal]));
 
             let scStartHeight = null;
@@ -509,7 +509,7 @@ export class EVMSpvVaultContract<ChainId extends string>
             const keys = [null, null, checkWithdrawalTxs.map(withdrawal => hexlify(Buffer.from(withdrawal.withdrawal.getTxId(), "hex").reverse()))];
 
             if(scStartHeight==null) {
-                await this.Events.findInContractEvents(
+                await this._Events.findInContractEvents(
                     events, keys,
                     async (event) => {
                         const _event = event as TypedEventLog<SpvVaultManager["filters"]["Fronted" | "Claimed" | "Closed"]>;
@@ -526,7 +526,7 @@ export class EVMSpvVaultContract<ChainId extends string>
                     }
                 );
             } else {
-                await this.Events.findInContractEventsForward(
+                await this._Events.findInContractEventsForward(
                     events, keys,
                     async (event) => {
                         const _event = event as TypedEventLog<SpvVaultManager["filters"]["Fronted" | "Claimed" | "Closed"]>;
@@ -572,7 +572,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         const {height: latestBlockheight} = await this.Chain.getFinalizedBlock();
         const withdrawals: { [btcTxId: string]: SpvWithdrawalClaimedState | SpvWithdrawalFrontedState } = {};
 
-        await this.Events.findInContractEventsForward(
+        await this._Events.findInContractEventsForward(
             ["Claimed", "Fronted"],
             [null, recipient],
             async (_event) => {
@@ -795,7 +795,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         }
 
         const requiredApprovalTxns = await Promise.all(
-            Object.keys(requiredApprovals).map(token => this.Chain.Tokens.checkAndGetApproveTx(signer, token, requiredApprovals[token], this.contractAddress, feeRate))
+            Object.keys(requiredApprovals).map(token => this.Chain.Tokens.checkAndGetApproveTx(signer, token, requiredApprovals[token], this._contractAddress, feeRate))
         );
         requiredApprovalTxns.forEach(tx => tx!=null && txs.push(tx));
 
@@ -839,7 +839,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         }
 
         const requiredApprovalTxns = await Promise.all(
-            Object.keys(requiredApprovals).map(token => this.Chain.Tokens.checkAndGetApproveTx(signer, token, requiredApprovals[token], this.contractAddress, feeRate))
+            Object.keys(requiredApprovals).map(token => this.Chain.Tokens.checkAndGetApproveTx(signer, token, requiredApprovals[token], this._contractAddress, feeRate))
         );
         requiredApprovalTxns.forEach(tx => tx!=null && txs.push(tx));
 

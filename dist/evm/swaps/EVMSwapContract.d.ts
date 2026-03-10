@@ -30,22 +30,52 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
     readonly refundTimeout: number;
     private readonly claimGracePeriod;
     private readonly refundGracePeriod;
-    readonly authGracePeriod: number;
-    readonly Init: EVMSwapInit;
-    readonly Refund: EVMSwapRefund;
-    readonly Claim: EVMSwapClaim;
-    readonly LpVault: EVMLpVault;
-    readonly claimHandlersByAddress: {
+    /**
+     * @internal
+     */
+    readonly _authGracePeriod: number;
+    /**
+     * @internal
+     */
+    readonly _Init: EVMSwapInit;
+    /**
+     * @internal
+     */
+    readonly _Refund: EVMSwapRefund;
+    /**
+     * @internal
+     */
+    readonly _Claim: EVMSwapClaim;
+    /**
+     * @internal
+     */
+    readonly _LpVault: EVMLpVault;
+    /**
+     * @internal
+     */
+    readonly _claimHandlersByAddress: {
         [address: string]: IClaimHandler<any, any>;
     };
-    readonly claimHandlersBySwapType: {
+    /**
+     * @internal
+     */
+    readonly _claimHandlersBySwapType: {
         [type in ChainSwapType]?: IClaimHandler<any, any>;
     };
-    readonly refundHandlersByAddress: {
+    /**
+     * @internal
+     */
+    readonly _refundHandlersByAddress: {
         [address: string]: IHandler<any, any>;
     };
-    readonly timelockRefundHandler: IHandler<any, any>;
-    readonly btcRelay: EVMBtcRelay<any>;
+    /**
+     * @internal
+     */
+    readonly _timelockRefundHandler: IHandler<any, any>;
+    /**
+     * @internal
+     */
+    readonly _btcRelay: EVMBtcRelay<any>;
     constructor(chainInterface: EVMChainInterface<ChainId>, btcRelay: EVMBtcRelay<any>, contractAddress: string, handlerAddresses: {
         refund: {
             timelock: string;

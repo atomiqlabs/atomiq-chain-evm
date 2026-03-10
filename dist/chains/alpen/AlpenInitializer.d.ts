@@ -1,43 +1,16 @@
-import { BaseTokenType, BitcoinNetwork, BitcoinRpc, ChainData, ChainInitializer, ChainSwapType } from "@atomiqlabs/base";
-import { JsonRpcApiProvider } from "ethers";
-import { EVMConfiguration, EVMRetryPolicy } from "../../evm/chain/EVMChainInterface";
-import { EVMFees } from "../../evm/chain/modules/EVMFees";
+import { BaseTokenType, BitcoinNetwork, BitcoinRpc, ChainData, ChainInitializer } from "@atomiqlabs/base";
 import { AlpenChainType } from "./AlpenChainType";
+import { EVMOptions } from "../EVMOptions";
 /**
  * Token assets available on Alpen
  * @category Networks/Alpen
  */
 export type AlpenAssetsType = BaseTokenType<"BTC">;
 /**
- * Default Alpen token assets configuration
- * @category Networks/Alpen
- */
-export declare const AlpenAssets: AlpenAssetsType;
-/**
  * Configuration options for initializing Alpen chain
  * @category Networks/Alpen
  */
-export type AlpenOptions = {
-    rpcUrl: string | JsonRpcApiProvider;
-    retryPolicy?: EVMRetryPolicy;
-    chainType?: "MAINNET" | "TESTNET" | "TESTNET4";
-    swapContract?: string;
-    swapContractDeploymentHeight?: number;
-    btcRelayContract?: string;
-    btcRelayDeploymentHeight?: number;
-    spvVaultContract?: string;
-    spvVaultDeploymentHeight?: number;
-    handlerContracts?: {
-        refund?: {
-            timelock?: string;
-        };
-        claim?: {
-            [type in ChainSwapType]?: string;
-        };
-    };
-    fees?: EVMFees;
-    evmConfig?: Partial<Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag" | "finalityCheckStrategy">>;
-};
+export type AlpenOptions = EVMOptions<"MAINNET" | "TESTNET" | "TESTNET4">;
 /**
  * Initialize Alpen chain integration
  * @category Networks/Alpen

@@ -23,5 +23,8 @@ export declare class EVMChainEvents extends EVMChainEventsBrowser {
      * @private
      */
     private saveLastEventData;
+    /**
+     * @inheritDoc
+     */
     init(noAutomaticPoll?: boolean): Promise<void>;
 }

@@ -82,6 +82,9 @@ export class EVMChainEvents extends EVMChainEventsBrowser {
         }).join(";"));
     }
 
+    /**
+     * @inheritDoc
+     */
     async init(noAutomaticPoll?: boolean): Promise<void> {
         if(noAutomaticPoll) return Promise.resolve();
         this.stopped = false;

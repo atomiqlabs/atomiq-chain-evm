@@ -9,6 +9,9 @@ const sha2_1 = require("@noble/hashes/sha2");
  * @category BTC Relay
  */
 class EVMBtcHeader {
+    /**
+     * @internal
+     */
     constructor(data) {
         this.version = data.version;
         this._previousBlockhash = data.previousBlockhash;

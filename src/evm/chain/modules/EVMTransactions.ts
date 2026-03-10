@@ -102,7 +102,7 @@ export class EVMTransactions extends EVMModule<any> {
                 }
                 this.logger.warn("confirmTransaction(): All transactions not found, fetching the latest account nonce...");
                 const _latestConfirmedNonce = this.latestConfirmedNonces[tx.from!];
-                const currentLatestNonce = await this.provider.getTransactionCount(tx.from!, this.root.config.safeBlockTag);
+                const currentLatestNonce = await this.provider.getTransactionCount(tx.from!, this.root._config.safeBlockTag);
                 if(_latestConfirmedNonce==null || _latestConfirmedNonce < currentLatestNonce) {
                     this.latestConfirmedNonces[tx.from!] = currentLatestNonce;
                 }
@@ -144,9 +144,9 @@ export class EVMTransactions extends EVMModule<any> {
                     value: toBeHex(tx.value ?? 0n),
                     input: tx.data,
                     data: tx.data,
-                    accessList: this.root.config.defaultAccessListAddresses==null
+                    accessList: this.root._config.defaultAccessListAddresses==null
                         ? undefined
-                        : this.root.config.defaultAccessListAddresses.map(val => ({address: val, storageKeys: []}))
+                        : this.root._config.defaultAccessListAddresses.map(val => ({address: val, storageKeys: []}))
                 }, "pending"]);
             } catch (e: any) {
                 //Unable to create access list, fuck it
@@ -246,7 +246,7 @@ export class EVMTransactions extends EVMModule<any> {
         abortSignal?: AbortSignal, parallel?: boolean, onBeforePublish?: (txId: string, rawTx: string) => Promise<void>,
         useAccessLists?: boolean
     ): Promise<string[]> {
-        await this.prepareTransactions(signer, txs, useAccessLists ?? this.root.config.useAccessLists);
+        await this.prepareTransactions(signer, txs, useAccessLists ?? this.root._config.useAccessLists);
         const signedTxs: Transaction[] = [];
 
         //Don't separate the signing process from the sending when using browser-based wallet
@@ -454,9 +454,9 @@ export class EVMTransactions extends EVMModule<any> {
         if(txResponse.blockHash==null) return "pending";
 
         const [safeBlockNumber, txReceipt] = await Promise.all([
-            this.root.config.safeBlockTag==="latest"
+            this.root._config.safeBlockTag==="latest"
                 ? Promise.resolve(null)
-                : this.provider.getBlock(this.root.config.safeBlockTag).then(res => res?.number ?? 0),
+                : this.provider.getBlock(this.root._config.safeBlockTag).then(res => res?.number ?? 0),
             this.provider.getTransactionReceipt(txId)
         ]);
 
