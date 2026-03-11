@@ -88,6 +88,7 @@ export {EVMBtcRelay} from "./evm/btcrelay/EVMBtcRelay";
 
 export * from "./evm/chain/EVMChainInterface";
 export * from "./evm/chain/modules/EVMFees";
+export {EVMTx, SignedEVMTx} from "./evm/chain/modules/EVMTransactions";
 
 export * from "./evm/events/EVMChainEventsBrowser";
 
