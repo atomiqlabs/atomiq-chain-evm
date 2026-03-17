@@ -5,6 +5,11 @@ import { BitcoinCommitmentData, BitcoinWitnessData, IBitcoinClaimHandler } from 
 import { Buffer } from "buffer";
 import { EVMSwapData } from "../../../EVMSwapData";
 import { EVMTx } from "../../../../chain/modules/EVMTransactions";
+/**
+ * Commitment payload for txid-based bitcoin claims.
+ *
+ * @category Internal/Handlers
+ */
 export type BitcoinTxIdCommitmentData = {
     txId: string;
 };

@@ -8,11 +8,21 @@ import {keccak256} from "ethers";
 import {Buffer} from "buffer";
 import {EVMSwapData} from "../../../EVMSwapData";
 
+/**
+ * Common commitment fields used by all bitcoin-based claim handlers.
+ *
+ * @category Internal/Handlers
+ */
 export type BitcoinCommitmentData = {
     btcRelay: EVMBtcRelay<any>,
     confirmations: number
 }
 
+/**
+ * Common witness input for bitcoin-based claim handlers.
+ *
+ * @category Internal/Handlers
+ */
 export type BitcoinWitnessData = {
     tx: { blockhash: string, confirmations: number, txid: string, hex: string, height: number },
     requiredConfirmations: number,
@@ -23,6 +33,11 @@ export type BitcoinWitnessData = {
 
 const logger = getLogger("IBitcoinClaimHandler: ");
 
+/**
+ * Shared base implementation for bitcoin-backed claim handlers.
+ *
+ * @category Internal/Handlers
+ */
 export abstract class IBitcoinClaimHandler<C, W extends BitcoinWitnessData> implements IClaimHandler<C & BitcoinCommitmentData, W> {
 
     public readonly address: string;
@@ -38,7 +53,7 @@ export abstract class IBitcoinClaimHandler<C, W extends BitcoinWitnessData> impl
     protected serializeCommitment(data: BitcoinCommitmentData): Buffer {
         const buffer = Buffer.alloc(24);
         buffer.writeUint32BE(data.confirmations, 0);
-        Buffer.from(data.btcRelay.contractAddress.substring(2), "hex").copy(buffer, 4, 0, 20);
+        Buffer.from(data.btcRelay._contractAddress.substring(2), "hex").copy(buffer, 4, 0, 20);
         return buffer;
     }
 
@@ -68,7 +83,7 @@ export abstract class IBitcoinClaimHandler<C, W extends BitcoinWitnessData> impl
 
         if(!swapData.isClaimData(commitmentHash)) throw new Error("Invalid commit data");
 
-        const merkleProof = await btcRelay.bitcoinRpc.getMerkleProof(tx.txid, tx.blockhash);
+        const merkleProof = await btcRelay._bitcoinRpc.getMerkleProof(tx.txid, tx.blockhash);
         if(merkleProof==null) throw new Error(`Failed to generate merkle proof for tx: ${tx.txid}!`);
         logger.debug("getWitness(): merkle proof computed: ", merkleProof);
 

@@ -1,8 +1,23 @@
 import { EVMModule } from "../EVMModule";
 import { Transaction, TransactionRequest } from "ethers";
 import { EVMSigner } from "../../wallet/EVMSigner";
+/**
+ * Unsigned EVM transaction type used by chain modules.
+ *
+ * @category Chain Interface
+ */
 export type EVMTx = TransactionRequest;
+/**
+ * Signed EVM transaction type as produced by ethers.
+ *
+ * @category Chain Interface
+ */
 export type SignedEVMTx = Transaction;
+/**
+ * Simplified call-trace structure returned by `debug_traceTransaction` with `callTracer`.
+ *
+ * @category Internal/Chain
+ */
 export type EVMTxTrace = {
     from: string;
     gas: string;
@@ -16,6 +31,8 @@ export type EVMTxTrace = {
     type: "CREATE" | "CALL" | "STATICCALL";
 };
 /**
+ * Transaction service for preparing, signing, broadcasting and confirming EVM transactions.
+ *
  * @category Internal/Chain
  */
 export declare class EVMTransactions extends EVMModule<any> {
@@ -36,7 +53,8 @@ export declare class EVMTransactions extends EVMModule<any> {
     private confirmTransaction;
     private applyAccessList;
     /**
-     * Prepares starknet transactions, checks if the account is deployed, assigns nonces if needed & calls beforeTxSigned callback
+     * Prepares EVM transactions, assigns nonces when needed, and optionally applies access lists
+     * before signing.
      *
      * @param signer
      * @param txs
@@ -93,7 +111,7 @@ export declare class EVMTransactions extends EVMModule<any> {
      */
     deserializeSignedTx(signedTxData: string): Transaction;
     /**
-     * Gets the status of the raw starknet transaction
+     * Gets the status of a raw signed EVM transaction.
      *
      * @param tx
      */

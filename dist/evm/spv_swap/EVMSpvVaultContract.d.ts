@@ -8,39 +8,38 @@ import { EVMSigner } from "../wallet/EVMSigner";
 import { SpvVaultManager } from "./SpvVaultContractTypechain";
 import { EVMBtcRelay } from "../btcrelay/EVMBtcRelay";
 import { EVMChainInterface } from "../chain/EVMChainInterface";
-import { TransactionRequest } from "ethers";
 import { EVMSpvVaultData } from "./EVMSpvVaultData";
 import { EVMSpvWithdrawalData } from "./EVMSpvWithdrawalData";
 import { EVMBtcStoredHeader } from "../btcrelay/headers/EVMBtcStoredHeader";
+/**
+ * Packs vault owner and vault id into compact `owner+vaultId` event key format.
+ *
+ * @category Swaps
+ */
 export declare function packOwnerAndVaultId(owner: string, vaultId: bigint): string;
+/**
+ * Unpacks compact `owner+vaultId` event key format into owner and vault id.
+ *
+ * @category Swaps
+ */
 export declare function unpackOwnerAndVaultId(data: string): [string, bigint];
 /**
+ * EVM SPV vault (UTXO-controlled vault) contract representation.
+ *
  * @category Swaps
  */
 export declare class EVMSpvVaultContract<ChainId extends string> extends EVMContractBase<SpvVaultManager> implements SpvVaultContract<EVMTx, EVMSigner, ChainId, EVMSpvWithdrawalData, EVMSpvVaultData> {
-    static readonly GasCosts: {
-        DEPOSIT_BASE: number;
-        DEPOSIT_ERC20: number;
-        OPEN: number;
-        CLAIM_BASE: number;
-        CLAIM_NATIVE_TRANSFER: number;
-        CLAIM_ERC20_TRANSFER: number;
-        CLAIM_EXECUTION_SCHEDULE: number;
-        FRONT_BASE: number;
-        FRONT_NATIVE_TRANSFER: number;
-        FRONT_ERC20_TRANSFER: number;
-        FRONT_EXECUTION_SCHEDULE: number;
-    };
+    private static readonly GasCosts;
     readonly chainId: ChainId;
-    readonly btcRelay: EVMBtcRelay<any>;
-    readonly bitcoinRpc: BitcoinRpc<any>;
     readonly claimTimeout: number;
-    readonly logger: import("../../utils/Utils").LoggerType;
+    private readonly btcRelay;
+    private readonly bitcoinRpc;
+    private readonly logger;
     constructor(chainInterface: EVMChainInterface<ChainId>, btcRelay: EVMBtcRelay<any>, bitcoinRpc: BitcoinRpc<any>, contractAddress: string, contractDeploymentHeight?: number);
-    protected Open(signer: string, vault: EVMSpvVaultData, feeRate: string): Promise<TransactionRequest>;
-    protected Deposit(signer: string, vault: EVMSpvVaultData, rawAmounts: bigint[], feeRate: string): Promise<TransactionRequest>;
-    protected Front(signer: string, vault: EVMSpvVaultData, data: EVMSpvWithdrawalData, withdrawalSequence: number, feeRate: string): Promise<TransactionRequest>;
-    protected Claim(signer: string, vault: EVMSpvVaultData, data: EVMSpvWithdrawalData, blockheader: EVMBtcStoredHeader, merkle: Buffer[], position: number, feeRate: string): Promise<TransactionRequest>;
+    private Open;
+    private Deposit;
+    private Front;
+    private Claim;
     /**
      * @inheritDoc
      */
@@ -130,6 +129,11 @@ export declare class EVMSpvVaultContract<ChainId extends string> extends EVMCont
         rawAmounts: bigint[];
         executionHash?: string;
     };
+    /**
+     * Parses withdrawal params from OP_RETURN data.
+     *
+     * @param data Data as specified in the OP_RETURN output of the transaction
+     */
     static fromOpReturnData(data: Buffer): {
         recipient: string;
         rawAmounts: bigint[];
@@ -139,6 +143,13 @@ export declare class EVMSpvVaultContract<ChainId extends string> extends EVMCont
      * @inheritDoc
      */
     toOpReturnData(recipient: string, rawAmounts: bigint[], executionHash?: string): Buffer;
+    /**
+     * Serializes withdrawal params to OP_RETURN data.
+     *
+     * @param recipient Recipient of the withdrawn tokens
+     * @param rawAmounts Raw amount of tokens to withdraw
+     * @param executionHash Optional execution hash of the actions to execute
+     */
     static toOpReturnData(recipient: string, rawAmounts: bigint[], executionHash?: string): Buffer;
     /**
      * @inheritDoc
@@ -178,7 +189,21 @@ export declare class EVMSpvVaultContract<ChainId extends string> extends EVMCont
      * @inheritDoc
      */
     txsOpen(signer: string, vault: EVMSpvVaultData, feeRate?: string): Promise<EVMTx[]>;
+    /**
+     * Returns an estimated gas amount for a claim transaction.
+     *
+     * @param signer Signer address executing the claim
+     * @param vault Vault data used to determine transfer paths
+     * @param data Parsed withdrawal data
+     */
     getClaimGas(signer: string, vault?: EVMSpvVaultData, data?: EVMSpvWithdrawalData): number;
+    /**
+     * Returns an estimated gas amount for a front-liquidity transaction.
+     *
+     * @param signer Signer address executing the front action
+     * @param vault Vault data used to determine transfer paths
+     * @param data Parsed withdrawal data
+     */
     getFrontGas(signer: string, vault: EVMSpvVaultData, data?: EVMSpvWithdrawalData): number;
     /**
      * @inheritDoc

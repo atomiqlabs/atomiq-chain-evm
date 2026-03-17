@@ -36,6 +36,9 @@ const ESCROW_STATE_REFUNDED = 3;
 const logger = getLogger("EVMSwapContract: ");
 
 /**
+ * EVM swap contract (escrow manager) representation handling PrTLC (on-chain) and HTLC (lightning)
+ *  based swaps.
+ *
  * @category Swaps
  */
 export class EVMSwapContract<ChainId extends string = string>
@@ -60,26 +63,56 @@ export class EVMSwapContract<ChainId extends string = string>
     readonly claimWithSecretTimeout: number = 180;
     readonly claimWithTxDataTimeout: number = 180;
     readonly refundTimeout: number = 180;
-    readonly claimGracePeriod: number = 10*60;
-    readonly refundGracePeriod: number = 10*60;
-    readonly authGracePeriod: number = 30;
+    private readonly claimGracePeriod: number = 10*60;
+    private readonly refundGracePeriod: number = 10*60;
+    /**
+     * @internal
+     */
+    readonly _authGracePeriod: number = 30;
 
     ////////////////////////
     //// Services
-    readonly Init: EVMSwapInit;
-    readonly Refund: EVMSwapRefund;
-    readonly Claim: EVMSwapClaim;
-    readonly LpVault: EVMLpVault;
+    /**
+     * @internal
+     */
+    readonly _Init: EVMSwapInit;
+    /**
+     * @internal
+     */
+    readonly _Refund: EVMSwapRefund;
+    /**
+     * @internal
+     */
+    readonly _Claim: EVMSwapClaim;
+    /**
+     * @internal
+     */
+    readonly _LpVault: EVMLpVault;
 
     ////////////////////////
     //// Handlers
-    readonly claimHandlersByAddress: {[address: string]: IClaimHandler<any, any>} = {};
-    readonly claimHandlersBySwapType: {[type in ChainSwapType]?: IClaimHandler<any, any>} = {};
+    /**
+     * @internal
+     */
+    readonly _claimHandlersByAddress: {[address: string]: IClaimHandler<any, any>} = {};
+    /**
+     * @internal
+     */
+    readonly _claimHandlersBySwapType: {[type in ChainSwapType]?: IClaimHandler<any, any>} = {};
 
-    readonly refundHandlersByAddress: {[address: string]: IHandler<any, any>} = {};
-    readonly timelockRefundHandler: IHandler<any, any>;
+    /**
+     * @internal
+     */
+    readonly _refundHandlersByAddress: {[address: string]: IHandler<any, any>} = {};
+    /**
+     * @internal
+     */
+    readonly _timelockRefundHandler: IHandler<any, any>;
 
-    readonly btcRelay: EVMBtcRelay<any>;
+    /**
+     * @internal
+     */
+    readonly _btcRelay: EVMBtcRelay<any>;
 
     constructor(
         chainInterface: EVMChainInterface<ChainId>,
@@ -97,21 +130,21 @@ export class EVMSwapContract<ChainId extends string = string>
     ) {
         super(chainInterface, contractAddress, EscrowManagerAbi, contractDeploymentHeight);
         this.chainId = chainInterface.chainId;
-        this.Init = new EVMSwapInit(chainInterface, this);
-        this.Refund = new EVMSwapRefund(chainInterface, this);
-        this.Claim = new EVMSwapClaim(chainInterface, this);
-        this.LpVault = new EVMLpVault(chainInterface, this);
+        this._Init = new EVMSwapInit(chainInterface, this);
+        this._Refund = new EVMSwapRefund(chainInterface, this);
+        this._Claim = new EVMSwapClaim(chainInterface, this);
+        this._LpVault = new EVMLpVault(chainInterface, this);
 
-        this.btcRelay = btcRelay;
+        this._btcRelay = btcRelay;
 
         claimHandlersList.forEach(handlerCtor => {
             const handler = new handlerCtor(handlerAddresses.claim[handlerCtor.type]);
-            this.claimHandlersByAddress[handler.address.toLowerCase()] = handler;
-            this.claimHandlersBySwapType[handlerCtor.type] = handler;
+            this._claimHandlersByAddress[handler.address.toLowerCase()] = handler;
+            this._claimHandlersBySwapType[handlerCtor.type] = handler;
         });
 
-        this.timelockRefundHandler = new TimelockRefundHandler(handlerAddresses.refund.timelock);
-        this.refundHandlersByAddress[this.timelockRefundHandler.address.toLowerCase()] = this.timelockRefundHandler;
+        this._timelockRefundHandler = new TimelockRefundHandler(handlerAddresses.refund.timelock);
+        this._refundHandlersByAddress[this._timelockRefundHandler.address.toLowerCase()] = this._timelockRefundHandler;
     }
 
     /**
@@ -126,49 +159,49 @@ export class EVMSwapContract<ChainId extends string = string>
      * @inheritDoc
      */
     preFetchForInitSignatureVerification(): Promise<EVMPreFetchVerification> {
-        return this.Init.preFetchForInitSignatureVerification();
+        return this._Init.preFetchForInitSignatureVerification();
     }
 
     /**
      * @inheritDoc
      */
     getInitSignature(signer: EVMSigner, swapData: EVMSwapData, authorizationTimeout: number, preFetchedBlockData?: never, feeRate?: string): Promise<SignatureData> {
-        return this.Init.signSwapInitialization(signer, swapData, authorizationTimeout);
+        return this._Init.signSwapInitialization(signer, swapData, authorizationTimeout);
     }
 
     /**
      * @inheritDoc
      */
     isValidInitAuthorization(sender: string, swapData: EVMSwapData, signature: SignatureData, feeRate?: string, preFetchedData?: EVMPreFetchVerification): Promise<Buffer | null> {
-        return this.Init.isSignatureValid(sender, swapData, signature.timeout, signature.prefix, signature.signature, preFetchedData);
+        return this._Init.isSignatureValid(sender, swapData, signature.timeout, signature.prefix, signature.signature, preFetchedData);
     }
 
     /**
      * @inheritDoc
      */
     getInitAuthorizationExpiry(swapData: EVMSwapData, signature: SignatureData, preFetchedData?: EVMPreFetchVerification): Promise<number> {
-        return this.Init.getSignatureExpiry(signature.timeout);
+        return this._Init.getSignatureExpiry(signature.timeout);
     }
 
     /**
      * @inheritDoc
      */
     isInitAuthorizationExpired(swapData: EVMSwapData, signature: SignatureData): Promise<boolean> {
-        return this.Init.isSignatureExpired(signature.timeout);
+        return this._Init.isSignatureExpired(signature.timeout);
     }
 
     /**
      * @inheritDoc
      */
     getRefundSignature(signer: EVMSigner, swapData: EVMSwapData, authorizationTimeout: number): Promise<SignatureData> {
-        return this.Refund.signSwapRefund(signer, swapData, authorizationTimeout);
+        return this._Refund.signSwapRefund(signer, swapData, authorizationTimeout);
     }
 
     /**
      * @inheritDoc
      */
     isValidRefundAuthorization(swapData: EVMSwapData, signature: SignatureData): Promise<Buffer |  null> {
-        return this.Refund.isSignatureValid(swapData, signature.timeout, signature.prefix, signature.signature);
+        return this._Refund.isSignatureValid(swapData, signature.timeout, signature.prefix, signature.signature);
     }
 
     /**
@@ -228,12 +261,12 @@ export class EVMSwapContract<ChainId extends string = string>
      * @inheritDoc
      */
     getHashForTxId(txId: string, confirmations: number) {
-        const chainTxIdHandler = this.claimHandlersBySwapType[ChainSwapType.CHAIN_TXID];
+        const chainTxIdHandler = this._claimHandlersBySwapType[ChainSwapType.CHAIN_TXID];
         if(chainTxIdHandler==null) throw new Error("Claim handler for CHAIN_TXID not found!");
         return Buffer.from(chainTxIdHandler.getCommitment({
             txId,
             confirmations,
-            btcRelay: this.btcRelay
+            btcRelay: this._btcRelay
         }).slice(2), "hex");
     }
 
@@ -243,23 +276,23 @@ export class EVMSwapContract<ChainId extends string = string>
     getHashForOnchain(outputScript: Buffer, amount: bigint, confirmations: number, nonce?: bigint): Buffer {
         let result: string;
         if(nonce==null || nonce === 0n) {
-            const chainHandler = this.claimHandlersBySwapType[ChainSwapType.CHAIN];
+            const chainHandler = this._claimHandlersBySwapType[ChainSwapType.CHAIN];
             if(chainHandler==null) throw new Error("Claim handler for CHAIN not found!");
             result = chainHandler.getCommitment({
                 output: outputScript,
                 amount,
                 confirmations,
-                btcRelay: this.btcRelay
+                btcRelay: this._btcRelay
             });
         } else {
-            const chainNoncedHandler = this.claimHandlersBySwapType[ChainSwapType.CHAIN_NONCED];
+            const chainNoncedHandler = this._claimHandlersBySwapType[ChainSwapType.CHAIN_NONCED];
             if(chainNoncedHandler==null) throw new Error("Claim handler for CHAIN_NONCED not found!");
             result = chainNoncedHandler.getCommitment({
                 output: outputScript,
                 amount,
                 nonce,
                 confirmations,
-                btcRelay: this.btcRelay
+                btcRelay: this._btcRelay
             });
         }
         return Buffer.from(result.slice(2), "hex");
@@ -269,7 +302,7 @@ export class EVMSwapContract<ChainId extends string = string>
      * @inheritDoc
      */
     getHashForHtlc(paymentHash: Buffer): Buffer {
-        const htlcHandler = this.claimHandlersBySwapType[ChainSwapType.HTLC];
+        const htlcHandler = this._claimHandlersBySwapType[ChainSwapType.HTLC];
         if(htlcHandler==null) throw new Error("Claim handler for HTLC not found!");
         return Buffer.from(htlcHandler.getCommitment(paymentHash).slice(2), "hex");
     }
@@ -315,7 +348,7 @@ export class EVMSwapContract<ChainId extends string = string>
                         };
                     },
                     getClaimResult: async () => {
-                        const events = await this.Events.getContractBlockEvents(
+                        const events = await this._Events.getContractBlockEvents(
                             ["Claim"],
                             [null, null, "0x"+escrowHash],
                             blockHeight, blockHeight
@@ -324,7 +357,7 @@ export class EVMSwapContract<ChainId extends string = string>
                         return events[0].args.witnessResult;
                     },
                     getClaimTxId: async () => {
-                        const events = await this.Events.getContractBlockEvents(
+                        const events = await this._Events.getContractBlockEvents(
                             ["Claim"],
                             [null, null, "0x"+escrowHash],
                             blockHeight, blockHeight
@@ -343,7 +376,7 @@ export class EVMSwapContract<ChainId extends string = string>
                         };
                     },
                     getRefundTxId: async () => {
-                        const events = await this.Events.getContractBlockEvents(
+                        const events = await this._Events.getContractBlockEvents(
                           ["Refund"],
                           [null, null, "0x"+escrowHash],
                           blockHeight, blockHeight
@@ -374,7 +407,7 @@ export class EVMSwapContract<ChainId extends string = string>
             promises.push(this.getCommitStatus(signer, swapData).then(val => {
                 result[swapData.getEscrowHash()] = val;
             }));
-            if(promises.length>=this.Chain.config.maxParallelCalls) {
+            if(promises.length>=this.Chain._config.maxParallelCalls) {
                 await Promise.all(promises);
                 promises = [];
             }
@@ -383,6 +416,9 @@ export class EVMSwapContract<ChainId extends string = string>
         return result;
     }
 
+    /**
+     * @inheritDoc
+     */
     async getHistoricalSwaps(signer: string, startBlockheight?: number): Promise<{
         swaps: {
             [escrowHash: string]: {
@@ -425,7 +461,7 @@ export class EVMSwapContract<ChainId extends string = string>
                 const event = _event as TypedEventLog<EscrowManager["filters"]["Initialize"]>;
                 const claimHandlerHex = event.args.claimHandler;
 
-                const claimHandler = this.claimHandlersByAddress[claimHandlerHex.toLowerCase()];
+                const claimHandler = this._claimHandlersByAddress[claimHandlerHex.toLowerCase()];
                 if(claimHandler==null) {
                     logger.warn(`getHistoricalSwaps(): Unknown claim handler in tx ${event.transactionHash} with claim handler: `+claimHandlerHex);
                     return null;
@@ -490,13 +526,13 @@ export class EVMSwapContract<ChainId extends string = string>
         };
 
         //We have to fetch separately the different directions
-        await this.Events.findInContractEventsForward(
+        await this._Events.findInContractEventsForward(
             ["Initialize", "Claim", "Refund"],
             [signer, null],
             processor,
             startBlockheight
         );
-        await this.Events.findInContractEventsForward(
+        await this._Events.findInContractEventsForward(
             ["Initialize", "Claim", "Refund"],
             [null, signer],
             processor,
@@ -542,14 +578,14 @@ export class EVMSwapContract<ChainId extends string = string>
         claimerBounty: bigint,
         depositToken: string = this.Chain.Tokens.getNativeCurrencyAddress()
     ): Promise<EVMSwapData> {
-        const claimHandler = this.claimHandlersBySwapType?.[type];
+        const claimHandler = this._claimHandlersBySwapType?.[type];
         if(claimHandler==null) throw new Error(`Claim handler unknown for swap type: ${ChainSwapType[type]}!`);
 
         return Promise.resolve(new EVMSwapData(
             offerer,
             claimer,
             token,
-            this.timelockRefundHandler.address,
+            this._timelockRefundHandler.address,
             claimHandler.address,
             payOut,
             payIn,
@@ -565,8 +601,17 @@ export class EVMSwapContract<ChainId extends string = string>
         ));
     }
 
+    /**
+     * Recursively scans call traces and extracts swap data from `initialize(...)` calldata
+     * for the specified escrow hash.
+     *
+     * @param call Trace call node to inspect
+     * @param escrowHash Escrow hash to match
+     * @param claimHandler Claim handler used to deserialize claim-specific fields
+     * @private
+     */
     findInitSwapData(call: EVMTxTrace, escrowHash: string, claimHandler: IClaimHandler<any, any>): EVMSwapData | null {
-        if(call.to.toLowerCase() === this.contractAddress.toLowerCase()) {
+        if(call.to.toLowerCase() === this._contractAddress.toLowerCase()) {
             const _result = this.parseCalldata(call.input);
             if(_result!=null && _result.name==="initialize") {
                 const result = _result as TypedFunctionCall<
@@ -610,18 +655,18 @@ export class EVMSwapContract<ChainId extends string = string>
         balance: bigint,
         reputation: IntermediaryReputationType
     }> {
-        return this.LpVault.getIntermediaryData(address, token);
+        return this._LpVault.getIntermediaryData(address, token);
     }
 
     /**
      * @inheritDoc
      */
     getIntermediaryReputation(address: string, token: string): Promise<IntermediaryReputationType> {
-        return this.LpVault.getIntermediaryReputation(address, token);
+        return this._LpVault.getIntermediaryReputation(address, token);
     }
 
-    getIntermediaryBalance(address: string, token: string): Promise<bigint> {
-        return this.LpVault.getIntermediaryBalance(address, token);
+    private getIntermediaryBalance(address: string, token: string): Promise<bigint> {
+        return this._LpVault.getIntermediaryBalance(address, token);
     }
 
     ////////////////////////////////////////////
@@ -638,7 +683,7 @@ export class EVMSwapContract<ChainId extends string = string>
         feeRate?: string,
         skipAtaCheck?: boolean
     ): Promise<EVMTx[]> {
-        return this.Claim.txsClaimWithSecret(typeof(signer)==="string" ? signer : signer.getAddress(), swapData, secret, checkExpiry, feeRate)
+        return this._Claim.txsClaimWithSecret(typeof(signer)==="string" ? signer : signer.getAddress(), swapData, secret, checkExpiry, feeRate)
     }
 
     /**
@@ -655,7 +700,7 @@ export class EVMSwapContract<ChainId extends string = string>
         initAta?: boolean,
         feeRate?: string
     ): Promise<EVMTx[]> {
-        return this.Claim.txsClaimWithTxData(
+        return this._Claim.txsClaimWithTxData(
             typeof(signer)==="string" ? signer : signer.getAddress(),
             swapData,
             tx,
@@ -671,35 +716,35 @@ export class EVMSwapContract<ChainId extends string = string>
      * @inheritDoc
      */
     txsRefund(signer: string, swapData: EVMSwapData, check?: boolean, initAta?: boolean, feeRate?: string): Promise<EVMTx[]> {
-        return this.Refund.txsRefund(signer, swapData, check, feeRate);
+        return this._Refund.txsRefund(signer, swapData, check, feeRate);
     }
 
     /**
      * @inheritDoc
      */
     txsRefundWithAuthorization(signer: string, swapData: EVMSwapData, signature: SignatureData, check?: boolean, initAta?: boolean, feeRate?: string): Promise<EVMTx[]> {
-        return this.Refund.txsRefundWithAuthorization(signer, swapData, signature.timeout, signature.prefix, signature.signature, check, feeRate);
+        return this._Refund.txsRefundWithAuthorization(signer, swapData, signature.timeout, signature.prefix, signature.signature, check, feeRate);
     }
 
     /**
      * @inheritDoc
      */
     txsInit(signer: string, swapData: EVMSwapData, signature: SignatureData, skipChecks?: boolean, feeRate?: string): Promise<EVMTx[]> {
-        return this.Init.txsInit(signer, swapData, signature.timeout, signature.prefix, signature.signature, skipChecks, feeRate);
+        return this._Init.txsInit(signer, swapData, signature.timeout, signature.prefix, signature.signature, skipChecks, feeRate);
     }
 
     /**
      * @inheritDoc
      */
     txsWithdraw(signer: string, token: string, amount: bigint, feeRate?: string): Promise<EVMTx[]> {
-        return this.LpVault.txsWithdraw(signer, token, amount, feeRate);
+        return this._LpVault.txsWithdraw(signer, token, amount, feeRate);
     }
 
     /**
      * @inheritDoc
      */
     txsDeposit(signer: string, token: string, amount: bigint, feeRate?: string): Promise<EVMTx[]> {
-        return this.LpVault.txsDeposit(signer, token, amount, feeRate);
+        return this._LpVault.txsDeposit(signer, token, amount, feeRate);
     }
 
     ////////////////////////////////////////////
@@ -715,7 +760,7 @@ export class EVMSwapContract<ChainId extends string = string>
         initAta?: boolean,
         txOptions?: TransactionConfirmationOptions
     ): Promise<string> {
-        const result = await this.Claim.txsClaimWithSecret(signer.getAddress(), swapData, secret, checkExpiry, txOptions?.feeRate);
+        const result = await this._Claim.txsClaimWithSecret(signer.getAddress(), swapData, secret, checkExpiry, txOptions?.feeRate);
         const [signature] = await this.Chain.sendAndConfirm(signer, result, txOptions?.waitForConfirmation, txOptions?.abortSignal);
         return signature;
     }
@@ -734,7 +779,7 @@ export class EVMSwapContract<ChainId extends string = string>
         initAta?: boolean,
         txOptions?: TransactionConfirmationOptions
     ): Promise<string> {
-        const txs = await this.Claim.txsClaimWithTxData(
+        const txs = await this._Claim.txsClaimWithTxData(
             signer.getAddress(), swapData, tx, requiredConfirmations, vout,
             commitedHeader, synchronizer, txOptions?.feeRate
         );
@@ -812,7 +857,7 @@ export class EVMSwapContract<ChainId extends string = string>
         amount: bigint,
         txOptions?: TransactionConfirmationOptions
     ): Promise<string> {
-        const txs = await this.LpVault.txsWithdraw(signer.getAddress(), token, amount, txOptions?.feeRate);
+        const txs = await this._LpVault.txsWithdraw(signer.getAddress(), token, amount, txOptions?.feeRate);
         const [txId] = await this.Chain.sendAndConfirm(signer, txs, txOptions?.waitForConfirmation, txOptions?.abortSignal, false);
         return txId;
     }
@@ -826,7 +871,7 @@ export class EVMSwapContract<ChainId extends string = string>
         amount: bigint,
         txOptions?: TransactionConfirmationOptions
     ): Promise<string> {
-        const txs = await this.LpVault.txsDeposit(signer.getAddress(), token, amount, txOptions?.feeRate);
+        const txs = await this._LpVault.txsDeposit(signer.getAddress(), token, amount, txOptions?.feeRate);
         const [txId] = await this.Chain.sendAndConfirm(signer, txs, txOptions?.waitForConfirmation, txOptions?.abortSignal, false);
         return txId;
     }
@@ -865,21 +910,21 @@ export class EVMSwapContract<ChainId extends string = string>
      * @inheritDoc
      */
     getClaimFee(signer: string, swapData: EVMSwapData, feeRate?: string): Promise<bigint> {
-        return this.Claim.getClaimFee(swapData, feeRate);
+        return this._Claim.getClaimFee(swapData, feeRate);
     }
 
     /**
      * @inheritDoc
      */
     getCommitFee(signer: string, swapData: EVMSwapData, feeRate?: string): Promise<bigint> {
-        return this.Init.getInitFee(swapData, feeRate);
+        return this._Init.getInitFee(swapData, feeRate);
     }
 
     /**
      * @inheritDoc
      */
     getRefundFee(signer: string, swapData: EVMSwapData, feeRate?: string): Promise<bigint> {
-        return this.Refund.getRefundFee(swapData, feeRate);
+        return this._Refund.getRefundFee(swapData, feeRate);
     }
 
 }

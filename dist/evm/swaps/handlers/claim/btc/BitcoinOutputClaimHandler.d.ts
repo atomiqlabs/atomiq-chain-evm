@@ -5,10 +5,20 @@ import { BitcoinCommitmentData, BitcoinWitnessData, IBitcoinClaimHandler } from 
 import { Buffer } from "buffer";
 import { EVMTx } from "../../../../chain/modules/EVMTransactions";
 import { EVMSwapData } from "../../../EVMSwapData";
+/**
+ * Commitment payload for output-script bitcoin claims.
+ *
+ * @category Internal/Handlers
+ */
 export type BitcoinOutputCommitmentData = {
     output: Buffer;
     amount: bigint;
 };
+/**
+ * Witness input for output-script bitcoin claims.
+ *
+ * @category Internal/Handlers
+ */
 export type BitcoinOutputWitnessData = BitcoinWitnessData & {
     vout: number;
 };

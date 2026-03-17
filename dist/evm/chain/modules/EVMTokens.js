@@ -16,7 +16,7 @@ class EVMTokens extends EVMModule_1.EVMModule {
     ///////////////////
     //// Tokens
     /**
-     * Checks if the provided string is a valid starknet token
+     * Checks if the provided string is a valid EVM token address.
      *
      * @param token
      */

@@ -25,8 +25,17 @@ import {EVMBrowserSigner} from "../wallet/EVMBrowserSigner";
  * @category Chain Interface
  */
 export type EVMRetryPolicy = {
+    /**
+     * Maximum retries to be attempted
+     */
     maxRetries?: number,
+    /**
+     * Default delay between retries
+     */
     delay?: number,
+    /**
+     * Whether the delays should scale exponentially, i.e. 1 second, 2 seconds, 4 seconds, 8 seconds
+     */
     exponential?: boolean
 }
 
@@ -35,18 +44,55 @@ export type EVMRetryPolicy = {
  * @category Chain Interface
  */
 export type EVMConfiguration = {
+    /**
+     * EVM Block tag to be considered safe for financial application, i.e. sending assets on different blockchains
+     */
     safeBlockTag: EVMBlockTag,
+    /**
+     * EVM Block tag to be considered finalized, i.e. the state definitely cannot revert after the blocks gets
+     *  this level of finality
+     */
     finalizedBlockTag: EVMBlockTag,
+    /**
+     * Maximum range of blocks to query when querying `ethereum_getLogs` RPC endpoint.
+     */
     maxLogsBlockRange: number,
+    /**
+     * Maximum number of `ethereum_getLogs` RPC calls to be executed in parallel
+     */
     maxParallelLogRequests: number,
+    /**
+     * Maximum number of parallel contract calls to execute in batch functions
+     */
     maxParallelCalls: number,
+    /**
+     * Maximum number of topics specified in the `ethereum_getLogs` RPC call
+     */
     maxLogTopics: number,
 
+    /**
+     * Whether to use EIP-2930 access lists for transactions, if set to `true` the transaction is simulated before
+     *  sending and the access list is populated for the transaction
+     */
     useAccessLists?: boolean,
+    /**
+     * Default EIP-2930 addresses to add when simulating the transaction initially
+     */
     defaultAccessListAddresses?: string[],
 
+    /**
+     * Strategy for checking finality of transactions or events
+     */
     finalityCheckStrategy?: {
+        /**
+         * Type of the finality checking strategy:
+         * - `"timer"` - periodically checks for the finality status, set the interval period `delayMs`
+         * - `"blocks"` - check for the finality when new block is created
+         */
         type: "timer" | "blocks"
+        /**
+         * Interval in milliseconds to use for the `"timer"` type of finality checking strategy
+         */
         delayMs?: number
     }
 };
@@ -57,14 +103,18 @@ export type EVMConfiguration = {
  */
 export class EVMChainInterface<ChainId extends string = string> implements ChainInterface<EVMTx, SignedEVMTx, EVMSigner, ChainId, Signer> {
 
-    readonly chainId: ChainId;
-
-    readonly provider: JsonRpcApiProvider;
-    readonly retryPolicy?: EVMRetryPolicy;
-
+    public readonly chainId: ChainId;
+    public readonly provider: JsonRpcApiProvider;
     public readonly evmChainId: number;
 
-    public readonly config: EVMConfiguration;
+    /**
+     * @internal
+     */
+    readonly _retryPolicy?: EVMRetryPolicy;
+    /**
+     * @internal
+     */
+    readonly _config: EVMConfiguration;
 
     public Fees: EVMFees;
     public Tokens: EVMTokens;
@@ -73,6 +123,9 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
     public Events: EVMEvents;
     public Blocks: EVMBlocks;
 
+    /**
+     * @internal
+     */
     protected logger: LoggerType;
 
     constructor(
@@ -86,12 +139,12 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
         this.chainId = chainId;
         this.evmChainId = evmChainId;
         this.provider = provider;
-        this.retryPolicy = retryPolicy;
-        this.config = config;
-        this.config.safeBlockTag ??= "safe";
-        this.config.finalizedBlockTag ??= "finalized";
-        this.config.finalityCheckStrategy ??= {type: "timer"};
-        this.config.finalityCheckStrategy.delayMs ??= 1000;
+        this._retryPolicy = retryPolicy;
+        this._config = config;
+        this._config.safeBlockTag ??= "safe";
+        this._config.finalizedBlockTag ??= "finalized";
+        this._config.finalityCheckStrategy ??= {type: "timer"};
+        this._config.finalityCheckStrategy.delayMs ??= 1000;
 
         this.logger = getLogger("EVMChainInterface("+this.evmChainId+"): ");
 
@@ -102,7 +155,6 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
         this.Events = new EVMEvents(this);
         this.Blocks = new EVMBlocks(this);
     }
-
 
     /**
      * @inheritDoc
@@ -258,7 +310,7 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
      * @inheritDoc
      */
     async getFinalizedBlock(): Promise<{ height: number; blockHash: string }> {
-        const block = await this.Blocks.getBlock(this.config.finalizedBlockTag);
+        const block = await this.Blocks.getBlock(this._config.finalizedBlockTag);
         return {
             height: block.number,
             blockHash: block.hash!

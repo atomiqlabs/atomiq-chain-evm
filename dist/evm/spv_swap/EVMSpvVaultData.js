@@ -7,16 +7,28 @@ const EVMSpvWithdrawalData_1 = require("./EVMSpvWithdrawalData");
 const ethers_1 = require("ethers");
 const ethers_2 = require("ethers");
 const EVMAddresses_1 = require("../chain/modules/EVMAddresses");
+/**
+ * Computes the vault parameter commitment hash used by the on-chain SPV vault state.
+ *
+ * @category Swaps
+ */
 function getVaultParamsCommitment(vaultParams) {
     return (0, ethers_2.keccak256)(ethers_2.AbiCoder.defaultAbiCoder().encode(["address", "address", "address", "uint192", "uint192", "uint256"], [vaultParams.btcRelayContract, vaultParams.token0, vaultParams.token1, vaultParams.token0Multiplier, vaultParams.token1Multiplier, vaultParams.confirmations]));
 }
 exports.getVaultParamsCommitment = getVaultParamsCommitment;
+/**
+ * Decodes UTXO reference (`txid:vout`) from the on-chain SPV vault state struct.
+ *
+ * @category Swaps
+ */
 function getVaultUtxoFromState(state) {
     const txHash = buffer_1.Buffer.from((0, ethers_1.hexlify)(state.utxoTxHash).substring(2), "hex");
     return txHash.reverse().toString("hex") + ":" + BigInt(state.utxoVout).toString(10);
 }
 exports.getVaultUtxoFromState = getVaultUtxoFromState;
 /**
+ * Represents the state of the EVM SPV vault (UTXO-controlled vault).
+ *
  * @category Swaps
  */
 class EVMSpvVaultData extends base_1.SpvVaultData {
@@ -69,33 +81,60 @@ class EVMSpvVaultData extends base_1.SpvVaultData {
             this.initialUtxo = ownerOrObj.initialUtxo;
         }
     }
+    /**
+     * @inheritDoc
+     */
     getBalances() {
         return [
             { ...this.token0, scaledAmount: this.token0.rawAmount * this.token0.multiplier },
             { ...this.token1, scaledAmount: this.token1.rawAmount * this.token1.multiplier }
         ];
     }
+    /**
+     * @inheritDoc
+     */
     getConfirmations() {
         return this.confirmations;
     }
+    /**
+     * @inheritDoc
+     */
     getOwner() {
         return this.owner;
     }
+    /**
+     * @inheritDoc
+     */
     getTokenData() {
         return [this.token0, this.token1];
     }
+    /**
+     * @inheritDoc
+     */
     getUtxo() {
         return this.isOpened() ? this.utxo : this.initialUtxo;
     }
+    /**
+     * @inheritDoc
+     */
     getVaultId() {
         return this.vaultId;
     }
+    /**
+     * @inheritDoc
+     */
     getWithdrawalCount() {
         return this.withdrawCount;
     }
+    /**
+     * @inheritDoc
+     */
     isOpened() {
         return this.utxo !== "0000000000000000000000000000000000000000000000000000000000000000:0";
     }
+    /**
+     * @inheritDoc
+     */
     serialize() {
         return {
             type: "EVM",
@@ -119,6 +158,9 @@ class EVMSpvVaultData extends base_1.SpvVaultData {
             initialUtxo: this.initialUtxo
         };
     }
+    /**
+     * @inheritDoc
+     */
     updateState(withdrawalTxOrEvent) {
         if (withdrawalTxOrEvent instanceof base_1.SpvVaultClaimEvent) {
             if (withdrawalTxOrEvent.withdrawCount <= this.withdrawCount)
@@ -155,10 +197,18 @@ class EVMSpvVaultData extends base_1.SpvVaultData {
             this.utxo = withdrawalTxOrEvent.btcTx.txid + ":0";
         }
     }
+    /**
+     * @inheritDoc
+     */
     getDepositCount() {
         return this.depositCount;
     }
-    getVaultParamsStruct() {
+    /**
+     * Serializes this spv vault data to a struct object which can be passed to the ether.js functions
+     *
+     * @internal
+     */
+    _getVaultParamsStruct() {
         return {
             btcRelayContract: this.relayContract,
             token0: this.token0.token,
@@ -168,7 +218,12 @@ class EVMSpvVaultData extends base_1.SpvVaultData {
             confirmations: this.confirmations
         };
     }
-    static randomVault() {
+    /**
+     * Returns a dummy random vault that can be used for e.g. fee estimation
+     *
+     * @internal
+     */
+    static _randomVault() {
         const spvVaultParams = {
             btcRelayContract: EVMAddresses_1.EVMAddresses.randomAddress(),
             token0: EVMAddresses_1.EVMAddresses.randomAddress(),

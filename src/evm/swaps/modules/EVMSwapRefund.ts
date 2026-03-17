@@ -13,6 +13,11 @@ const Refund = [
     { name: "timeout", type: "uint256" }
 ];
 
+/**
+ * Swap refund helper for timeout and cooperative refund flows.
+ *
+ * @category Internal/Swaps
+ */
 export class EVMSwapRefund extends EVMSwapModule {
 
     private static readonly GasCosts = {
@@ -77,7 +82,7 @@ export class EVMSwapRefund extends EVMSwapModule {
         const authPrefix = "refund";
         const authTimeout = Math.floor(Date.now()/1000)+authorizationTimeout;
 
-        const signature = await this.root.Signatures.signTypedMessage(this.contract.contractAddress, signer, Refund, "Refund", {
+        const signature = await this.root.Signatures.signTypedMessage(this.contract._contractAddress, signer, Refund, "Refund", {
             "swapHash": "0x"+swapData.getEscrowHash(),
             "timeout": BigInt(authTimeout)
         });
@@ -100,10 +105,10 @@ export class EVMSwapRefund extends EVMSwapModule {
         const expiryTimestamp = BigInt(timeout);
         const currentTimestamp = BigInt(Math.floor(Date.now() / 1000));
 
-        const isExpired = (expiryTimestamp - currentTimestamp) < BigInt(this.contract.authGracePeriod);
+        const isExpired = (expiryTimestamp - currentTimestamp) < BigInt(this.contract._authGracePeriod);
         if(isExpired) throw new SignatureVerificationError("Authorization expired!");
 
-        const valid = await this.root.Signatures.isValidSignature(this.contract.contractAddress, signature, swapData.claimer, Refund, "Refund", {
+        const valid = await this.root.Signatures.isValidSignature(this.contract._contractAddress, signature, swapData.claimer, Refund, "Refund", {
             "swapHash": "0x"+swapData.getEscrowHash(),
             "timeout": BigInt(expiryTimestamp)
         });
@@ -131,7 +136,7 @@ export class EVMSwapRefund extends EVMSwapModule {
         feeRate?: string,
         witnessData?: T
     ): Promise<EVMTx[]> {
-        const refundHandler: IHandler<any, T> = this.contract.refundHandlersByAddress[swapData.refundHandler.toLowerCase()];
+        const refundHandler: IHandler<any, T> = this.contract._refundHandlersByAddress[swapData.refundHandler.toLowerCase()];
         if(refundHandler==null) throw new Error("Invalid refund handler");
 
         if(check && !await this.contract.isRequestRefundable(swapData.offerer.toString(), swapData)) {

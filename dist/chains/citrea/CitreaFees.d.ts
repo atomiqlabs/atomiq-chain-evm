@@ -3,9 +3,9 @@ import { EVMFees } from "../../evm/chain/modules/EVMFees";
  * @category Networks/Citrea
  */
 export declare class CitreaFees extends EVMFees {
-    static readonly StateDiffSize: {
-        APPROVE_DIFF_SIZE: number;
-    };
+    /**
+     * @internal
+     */
     protected readonly logger: import("../../utils/Utils").LoggerType;
     private _blockFeeCache?;
     /**
@@ -17,8 +17,6 @@ export declare class CitreaFees extends EVMFees {
     private __getFeeRate;
     /**
      * Gets the gas price with caching, format: <gas price in Wei>;<transaction version: v1/v3>
-     *
-     * @private
      */
     getFeeRate(): Promise<string>;
     /**

@@ -24,7 +24,7 @@ export class EVMTokens extends EVMModule<any> {
     ///////////////////
     //// Tokens
     /**
-     * Checks if the provided string is a valid starknet token
+     * Checks if the provided string is a valid EVM token address.
      *
      * @param token
      */

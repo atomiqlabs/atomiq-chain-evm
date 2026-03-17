@@ -3,6 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVMLpVault = void 0;
 const EVMSwapModule_1 = require("../EVMSwapModule");
 const EVMFees_1 = require("../../chain/modules/EVMFees");
+/**
+ * LP vault helper for intermediary balances, reputation and LP deposit/withdraw transactions.
+ *
+ * @category Internal/Swaps
+ */
 class EVMLpVault extends EVMSwapModule_1.EVMSwapModule {
     /**
      * Action for withdrawing funds from the LP vault
@@ -57,13 +62,13 @@ class EVMLpVault extends EVMSwapModule_1.EVMSwapModule {
      * @param token
      */
     async getIntermediaryReputation(address, token) {
-        const filter = Object.keys(this.contract.claimHandlersByAddress).map(claimHandler => ({ owner: address, token, claimHandler }));
+        const filter = Object.keys(this.contract._claimHandlersByAddress).map(claimHandler => ({ owner: address, token, claimHandler }));
         const resp = await this.swapContract.getReputation(filter);
         if (resp.length !== filter.length)
             throw new Error("getIntermediaryReputation(): Invalid response length");
         const result = {};
-        Object.keys(this.contract.claimHandlersByAddress).forEach((address, index) => {
-            const handler = this.contract.claimHandlersByAddress[address.toLowerCase()];
+        Object.keys(this.contract._claimHandlersByAddress).forEach((address, index) => {
+            const handler = this.contract._claimHandlersByAddress[address.toLowerCase()];
             const handlerResp = resp[index];
             result[handler.getType()] = {
                 successVolume: handlerResp[0].amount,
@@ -117,7 +122,7 @@ class EVMLpVault extends EVMSwapModule_1.EVMSwapModule {
         const txs = [];
         //Approve first
         if (token.toLowerCase() !== this.root.getNativeCurrencyAddress().toLowerCase()) {
-            const approveTx = await this.root.Tokens.checkAndGetApproveTx(signer, token, amount, this.contract.contractAddress, feeRate);
+            const approveTx = await this.root.Tokens.checkAndGetApproveTx(signer, token, amount, this.contract._contractAddress, feeRate);
             if (approveTx != null)
                 txs.push(approveTx);
         }

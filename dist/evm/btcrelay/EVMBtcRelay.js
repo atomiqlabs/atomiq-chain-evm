@@ -23,34 +23,63 @@ function serializeBlockHeader(e) {
 }
 const logger = (0, Utils_1.getLogger)("EVMBtcRelay: ");
 /**
+ * EVM BTC Relay bitcoin light client contract representation.
+ *
  * @category BTC Relay
  */
 class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
+    /**
+     * Returns a transaction that submits new main-chain bitcoin blockheaders to the light client.
+     *
+     * @param signer EVM signer address
+     * @param mainHeaders New bitcoin blockheaders to submit
+     * @param storedHeader Current latest committed and stored bitcoin blockheader in the light client
+     * @param feeRate Fee rate to apply to the transaction
+     */
     async SaveMainHeaders(signer, mainHeaders, storedHeader, feeRate) {
         const tx = await this.contract.submitMainBlockheaders.populateTransaction(Buffer.concat([
             storedHeader.serialize(),
             Buffer.concat(mainHeaders.map(header => header.serializeCompact()))
         ]));
         tx.from = signer;
-        EVMFees_1.EVMFees.applyFeeRate(tx, EVMBtcRelay.GasCosts.GAS_BASE_MAIN + (EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER * mainHeaders.length), feeRate);
+        EVMFees_1.EVMFees.applyFeeRate(tx, EVMBtcRelay._GasCosts.GAS_BASE_MAIN + (EVMBtcRelay._GasCosts.GAS_PER_BLOCKHEADER * mainHeaders.length), feeRate);
         return tx;
     }
+    /**
+     * Returns a transaction that submits a short competing branch.
+     * If the submitted chain has higher total chainwork than the current canonical chain, it becomes canonical.
+     *
+     * @param signer EVM signer address
+     * @param forkHeaders Fork bitcoin blockheaders to submit
+     * @param storedHeader Committed and stored bitcoin blockheader from which to fork the light client
+     * @param feeRate Fee rate to apply to the transaction
+     */
     async SaveShortForkHeaders(signer, forkHeaders, storedHeader, feeRate) {
         const tx = await this.contract.submitShortForkBlockheaders.populateTransaction(Buffer.concat([
             storedHeader.serialize(),
             Buffer.concat(forkHeaders.map(header => header.serializeCompact()))
         ]));
         tx.from = signer;
-        EVMFees_1.EVMFees.applyFeeRate(tx, EVMBtcRelay.GasCosts.GAS_BASE_MAIN + (EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER * forkHeaders.length), feeRate);
+        EVMFees_1.EVMFees.applyFeeRate(tx, EVMBtcRelay._GasCosts.GAS_BASE_MAIN + (EVMBtcRelay._GasCosts.GAS_PER_BLOCKHEADER * forkHeaders.length), feeRate);
         return tx;
     }
+    /**
+     * Returns a transaction that submits blockheaders to an existing long fork.
+     *
+     * @param signer EVM signer address
+     * @param forkId Fork ID to submit the fork blockheaders to
+     * @param forkHeaders Fork bitcoin blockheaders to submit
+     * @param storedHeader Either a committed and stored blockheader from which to fork, or the current fork tip
+     * @param feeRate Fee rate to apply to the transaction
+     * @param totalForkHeaders Total blockheaders in the fork, used for gas estimation when reorg happens
+     */
     async SaveLongForkHeaders(signer, forkId, forkHeaders, storedHeader, feeRate, totalForkHeaders = 100) {
         const tx = await this.contract.submitForkBlockheaders.populateTransaction(forkId, Buffer.concat([
             storedHeader.serialize(),
             Buffer.concat(forkHeaders.map(header => header.serializeCompact()))
         ]));
         tx.from = signer;
-        EVMFees_1.EVMFees.applyFeeRate(tx, EVMBtcRelay.GasCosts.GAS_BASE_FORK + (EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER_FORK * forkHeaders.length) + (EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER_FORKED * totalForkHeaders), feeRate);
+        EVMFees_1.EVMFees.applyFeeRate(tx, EVMBtcRelay._GasCosts.GAS_BASE_FORK + (EVMBtcRelay._GasCosts.GAS_PER_BLOCKHEADER_FORK * forkHeaders.length) + (EVMBtcRelay._GasCosts.GAS_PER_BLOCKHEADER_FORKED * totalForkHeaders), feeRate);
         return tx;
     }
     constructor(chainInterface, bitcoinRpc, bitcoinNetwork, contractAddress, contractDeploymentHeight) {
@@ -60,11 +89,11 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         this.maxShortForkHeadersPerTx = 100;
         this.commitHashCache = new promise_cache_ts_1.PromiseLruCache(1000);
         this.blockHashCache = new promise_cache_ts_1.PromiseLruCache(1000);
-        this.bitcoinRpc = bitcoinRpc;
+        this._bitcoinRpc = bitcoinRpc;
     }
     /**
-     * Computes subsequent commited headers as they will appear on the blockchain when transactions
-     *  are submitted & confirmed
+     * Computes subsequent committed headers as they will appear on-chain once transactions
+     * are submitted and confirmed.
      *
      * @param initialStoredHeader
      * @param syncedHeaders
@@ -153,7 +182,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
     }
     getBlock(commitHash, blockHash) {
         const blockHashString = blockHash == null ? null : "0x" + Buffer.from([...blockHash]).reverse().toString("hex");
-        const generator = () => this.Events.findInContractEvents(["StoreHeader", "StoreForkHeader"], [
+        const generator = () => this._Events.findInContractEvents(["StoreHeader", "StoreForkHeader"], [
             commitHash ?? null,
             blockHashString
         ], async (event) => {
@@ -206,7 +235,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
             return null;
         const [storedBlockHeader, commitHash] = result;
         //Check if block is part of the main chain
-        const chainCommitment = await this.contract.getCommitHash(storedBlockHeader.blockHeight);
+        const chainCommitment = await this.contract.getCommitHash(storedBlockHeader.getBlockheight());
         if (chainCommitment !== commitHash)
             return null;
         logger.debug("retrieveLogAndBlockheight(): block found," +
@@ -222,24 +251,24 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
             return null;
         const [storedBlockHeader, commitHash] = result;
         //Check if block is part of the main chain
-        const chainCommitment = await this.contract.getCommitHash(storedBlockHeader.blockHeight);
+        const chainCommitment = await this.contract.getCommitHash(storedBlockHeader.getBlockheight());
         if (chainCommitment !== commitHash)
             return null;
         logger.debug("retrieveLogByCommitHash(): block found," +
-            " commit hash: " + commitmentHashStr + " blockhash: " + blockData.blockhash + " height: " + storedBlockHeader.blockHeight);
+            " commit hash: " + commitmentHashStr + " blockhash: " + blockData.blockhash + " height: " + storedBlockHeader.getBlockheight());
         return storedBlockHeader;
     }
     /**
      * @inheritDoc
      */
     async retrieveLatestKnownBlockLog() {
-        const data = await this.Events.findInContractEvents(["StoreHeader", "StoreForkHeader"], null, async (event) => {
+        const data = await this._Events.findInContractEvents(["StoreHeader", "StoreForkHeader"], null, async (event) => {
             const blockHashHex = Buffer.from(event.args.blockHash.substring(2), "hex").reverse().toString("hex");
             const commitHash = event.args.commitHash;
-            const isInBtcMainChain = await this.bitcoinRpc.isInMainChain(blockHashHex).catch(() => false);
+            const isInBtcMainChain = await this._bitcoinRpc.isInMainChain(blockHashHex).catch(() => false);
             if (!isInBtcMainChain)
                 return null;
-            const blockHeader = await this.bitcoinRpc.getBlockHeader(blockHashHex);
+            const blockHeader = await this._bitcoinRpc.getBlockHeader(blockHashHex);
             if (blockHeader == null)
                 return null;
             if (commitHash !== await this.contract.getCommitHash(blockHeader.getHeight()))
@@ -324,7 +353,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         if (blockheightDelta <= 0)
             return 0n;
         const synchronizationFee = (BigInt(blockheightDelta) * await this.getFeePerBlock(feeRate))
-            + EVMFees_1.EVMFees.getGasFee(EVMBtcRelay.GasCosts.GAS_BASE_MAIN * Math.ceil(blockheightDelta / this.maxHeadersPerTx), feeRate);
+            + EVMFees_1.EVMFees.getGasFee(EVMBtcRelay._GasCosts.GAS_BASE_MAIN * Math.ceil(blockheightDelta / this.maxHeadersPerTx), feeRate);
         logger.debug("estimateSynchronizeFee(): required blockheight: " + requiredBlockheight +
             " blockheight delta: " + blockheightDelta + " fee: " + synchronizationFee.toString(10));
         return synchronizationFee;
@@ -334,7 +363,7 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
      */
     async getFeePerBlock(feeRate) {
         feeRate ?? (feeRate = await this.Chain.Fees.getFeeRate());
-        return EVMFees_1.EVMFees.getGasFee(EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER, feeRate);
+        return EVMFees_1.EVMFees.getGasFee(EVMBtcRelay._GasCosts.GAS_PER_BLOCKHEADER, feeRate);
     }
     /**
      * @inheritDoc
@@ -363,8 +392,8 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
      * @param signer
      * @param btcRelay
      * @param btcTxs
-     * @param txs solana transaction array, in case we need to synchronize the btc relay ourselves the synchronization
-     *  txns are added here
+     * @param txs EVM transaction array. If BTC relay synchronization is needed, synchronization
+     * transactions are appended here.
      * @param synchronizer optional synchronizer to use to synchronize the btc relay in case it is not yet synchronized
      *  to the required blockheight
      * @param feeRate Fee rate to use for synchronization transactions
@@ -410,7 +439,10 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
     }
 }
 exports.EVMBtcRelay = EVMBtcRelay;
-EVMBtcRelay.GasCosts = {
+/**
+ * @internal
+ */
+EVMBtcRelay._GasCosts = {
     GAS_PER_BLOCKHEADER: 30000,
     GAS_BASE_MAIN: 15000 + 21000,
     GAS_PER_BLOCKHEADER_FORK: 65000,

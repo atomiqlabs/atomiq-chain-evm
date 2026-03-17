@@ -16,6 +16,11 @@ import {AbiCoder, keccak256} from "ethers";
 import {EVMAddresses} from "../chain/modules/EVMAddresses";
 import type {AddressLike, BigNumberish, BytesLike} from "ethers/lib.esm";
 
+/**
+ * Computes the vault parameter commitment hash used by the on-chain SPV vault state.
+ *
+ * @category Swaps
+ */
 export function getVaultParamsCommitment(vaultParams: SpvVaultParametersStruct) {
     return keccak256(AbiCoder.defaultAbiCoder().encode(
         ["address", "address", "address", "uint192", "uint192", "uint256"],
@@ -23,12 +28,19 @@ export function getVaultParamsCommitment(vaultParams: SpvVaultParametersStruct) 
     ));
 }
 
+/**
+ * Decodes UTXO reference (`txid:vout`) from the on-chain SPV vault state struct.
+ *
+ * @category Swaps
+ */
 export function getVaultUtxoFromState(state: SpvVaultStateStruct): string {
     const txHash = Buffer.from(hexlify(state.utxoTxHash).substring(2), "hex");
     return txHash.reverse().toString("hex")+":"+BigInt(state.utxoVout).toString(10);
 }
 
 /**
+ * Represents the state of the EVM SPV vault (UTXO-controlled vault).
+ *
  * @category Swaps
  */
 export class EVMSpvVaultData extends SpvVaultData<EVMSpvWithdrawalData> {
@@ -102,6 +114,9 @@ export class EVMSpvVaultData extends SpvVaultData<EVMSpvWithdrawalData> {
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     getBalances(): SpvVaultTokenBalance[] {
         return [
             {...this.token0, scaledAmount: this.token0.rawAmount * this.token0.multiplier},
@@ -109,34 +124,58 @@ export class EVMSpvVaultData extends SpvVaultData<EVMSpvWithdrawalData> {
         ];
     }
 
+    /**
+     * @inheritDoc
+     */
     getConfirmations(): number {
         return this.confirmations;
     }
 
+    /**
+     * @inheritDoc
+     */
     getOwner(): string {
         return this.owner;
     }
 
+    /**
+     * @inheritDoc
+     */
     getTokenData(): SpvVaultTokenData[] {
         return [this.token0, this.token1];
     }
 
+    /**
+     * @inheritDoc
+     */
     getUtxo(): string {
         return this.isOpened() ? this.utxo : this.initialUtxo!;
     }
 
+    /**
+     * @inheritDoc
+     */
     getVaultId(): bigint {
         return this.vaultId;
     }
 
+    /**
+     * @inheritDoc
+     */
     getWithdrawalCount(): number {
         return this.withdrawCount;
     }
 
+    /**
+     * @inheritDoc
+     */
     isOpened(): boolean {
         return this.utxo!=="0000000000000000000000000000000000000000000000000000000000000000:0";
     }
 
+    /**
+     * @inheritDoc
+     */
     serialize(): any {
         return {
             type: "EVM",
@@ -161,6 +200,9 @@ export class EVMSpvVaultData extends SpvVaultData<EVMSpvWithdrawalData> {
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     updateState(withdrawalTxOrEvent: SpvVaultClaimEvent | SpvVaultCloseEvent | SpvVaultOpenEvent | SpvVaultDepositEvent | EVMSpvWithdrawalData): void {
         if(withdrawalTxOrEvent instanceof SpvVaultClaimEvent) {
             if(withdrawalTxOrEvent.withdrawCount <= this.withdrawCount) return;
@@ -194,11 +236,19 @@ export class EVMSpvVaultData extends SpvVaultData<EVMSpvWithdrawalData> {
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     getDepositCount(): number {
         return this.depositCount;
     }
 
-    getVaultParamsStruct(): SpvVaultParametersStruct {
+    /**
+     * Serializes this spv vault data to a struct object which can be passed to the ether.js functions
+     *
+     * @internal
+     */
+    _getVaultParamsStruct(): SpvVaultParametersStruct {
         return {
             btcRelayContract: this.relayContract,
             token0: this.token0.token,
@@ -209,7 +259,12 @@ export class EVMSpvVaultData extends SpvVaultData<EVMSpvWithdrawalData> {
         }
     }
 
-    static randomVault(): EVMSpvVaultData {
+    /**
+     * Returns a dummy random vault that can be used for e.g. fee estimation
+     *
+     * @internal
+     */
+    static _randomVault(): EVMSpvVaultData {
         const spvVaultParams = {
             btcRelayContract: EVMAddresses.randomAddress(),
             token0: EVMAddresses.randomAddress(),

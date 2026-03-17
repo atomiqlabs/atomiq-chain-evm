@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AlpenInitializer = exports.initializeAlpen = exports.AlpenAssets = void 0;
+exports.AlpenInitializer = exports.initializeAlpen = void 0;
 const base_1 = require("@atomiqlabs/base");
 const ethers_1 = require("ethers");
 const EVMChainInterface_1 = require("../../evm/chain/EVMChainInterface");
@@ -88,7 +88,7 @@ const chainTypeMapping = {
  * Default Alpen token assets configuration
  * @category Networks/Alpen
  */
-exports.AlpenAssets = {
+const AlpenAssets = {
     BTC: {
         address: "0x0000000000000000000000000000000000000000",
         decimals: 18,
@@ -156,6 +156,6 @@ exports.AlpenInitializer = {
     chainId: "ALPEN",
     chainType: null,
     initializer: initializeAlpen,
-    tokens: exports.AlpenAssets,
+    tokens: AlpenAssets,
     options: null
 };

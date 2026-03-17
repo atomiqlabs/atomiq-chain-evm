@@ -11,7 +11,7 @@ export declare class EVMTokens extends EVMModule<any> {
     };
     private getContract;
     /**
-     * Checks if the provided string is a valid starknet token
+     * Checks if the provided string is a valid EVM token address.
      *
      * @param token
      */

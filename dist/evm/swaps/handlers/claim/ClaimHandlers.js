@@ -5,6 +5,11 @@ const HashlockClaimHandler_1 = require("./HashlockClaimHandler");
 const BitcoinTxIdClaimHandler_1 = require("./btc/BitcoinTxIdClaimHandler");
 const BitcoinOutputClaimHandler_1 = require("./btc/BitcoinOutputClaimHandler");
 const BitcoinNoncedOutputClaimHandler_1 = require("./btc/BitcoinNoncedOutputClaimHandler");
+/**
+ * Supported claim handler implementations for EVM swap contract initialization.
+ *
+ * @category Internal/Handlers
+ */
 exports.claimHandlersList = [
     HashlockClaimHandler_1.HashlockClaimHandler,
     BitcoinTxIdClaimHandler_1.BitcoinTxIdClaimHandler,

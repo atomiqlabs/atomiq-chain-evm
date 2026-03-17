@@ -10,6 +10,11 @@ import {EVMFees} from "../../chain/modules/EVMFees";
 import {EVMTx} from "../../chain/modules/EVMTransactions";
 import {EVMBtcStoredHeader} from "../../btcrelay/headers/EVMBtcStoredHeader";
 
+/**
+ * Swap claim helper for HTLC and BTC on-chain claim paths.
+ *
+ * @category Internal/Swaps
+ */
 export class EVMSwapClaim extends EVMSwapModule {
 
     private static readonly GasCosts = {
@@ -67,7 +72,7 @@ export class EVMSwapClaim extends EVMSwapModule {
             throw new SwapDataVerificationError("Not enough time to reliably pay the invoice");
         }
 
-        const claimHandler: IClaimHandler<Buffer, string> = this.contract.claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
+        const claimHandler: IClaimHandler<Buffer, string> = this.contract._claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
         if(claimHandler==null) throw new SwapDataVerificationError("Unknown claim handler!");
         if(claimHandler.getType()!==ChainSwapType.HTLC) throw new SwapDataVerificationError("Invalid claim handler!");
 
@@ -89,7 +94,7 @@ export class EVMSwapClaim extends EVMSwapModule {
      * @param tx bitcoin transaction that satisfies the swap condition
      * @param requiredConfirmations
      * @param vout vout of the bitcoin transaction that satisfies the swap condition
-     * @param commitedHeader commited header data from btc relay (fetched internally if null)
+     * @param commitedHeader committed header data from BTC relay (fetched internally if null)
      * @param synchronizer optional synchronizer to use in case we need to sync up the btc relay ourselves
      * @param feeRate fee rate to be used for the transactions
      */
@@ -103,7 +108,7 @@ export class EVMSwapClaim extends EVMSwapModule {
         synchronizer?: RelaySynchronizer<EVMBtcStoredHeader, EVMTx, any>,
         feeRate?: string
     ): Promise<EVMTx[]> {
-        const claimHandler: IClaimHandler<any, BitcoinOutputWitnessData | BitcoinWitnessData> = this.contract.claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
+        const claimHandler: IClaimHandler<any, BitcoinOutputWitnessData | BitcoinWitnessData> = this.contract._claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
         if(claimHandler==null) throw new SwapDataVerificationError("Unknown claim handler!");
         if(
             claimHandler.getType()!==ChainSwapType.CHAIN_NONCED &&
@@ -118,7 +123,7 @@ export class EVMSwapClaim extends EVMSwapModule {
             vout,
             requiredConfirmations,
             commitedHeader,
-            btcRelay: this.contract.btcRelay,
+            btcRelay: this.contract._btcRelay,
             synchronizer,
         }, feeRate);
         const claimTx = await this.Claim(signer, swapData, witness, feeRate, claimHandler.getGas(swapData));
@@ -156,7 +161,7 @@ export class EVMSwapClaim extends EVMSwapModule {
     }
 
     /**
-     * Get the estimated starknet transaction fee of the claim transaction
+     * Returns the estimated fee of the claim transaction.
      */
     public async getClaimFee(swapData: EVMSwapData, feeRate?: string): Promise<bigint> {
         feeRate ??= await this.root.Fees.getFeeRate();
@@ -164,7 +169,7 @@ export class EVMSwapClaim extends EVMSwapModule {
         //TODO: Claim with success action not supported yet!
         let gasRequired = this.getClaimGas(swapData);
 
-        const claimHandler: IClaimHandler<any, any> = this.contract.claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
+        const claimHandler: IClaimHandler<any, any> = this.contract._claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
         if(claimHandler!=null) gasRequired += claimHandler.getGas(swapData);
 
         return EVMFees.getGasFee(gasRequired, feeRate);

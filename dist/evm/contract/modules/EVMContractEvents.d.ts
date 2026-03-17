@@ -3,10 +3,16 @@ import { EVMEvents } from "../../chain/modules/EVMEvents";
 import { EVMContractBase } from "../EVMContractBase";
 import { EVMChainInterface } from "../../chain/EVMChainInterface";
 import { TypedEventLog } from "../../typechain/common";
+/**
+ * Typed contract event utilities built on top of generic EVM log querying helpers.
+ *
+ * @category Internal/Contracts
+ */
 export declare class EVMContractEvents<T extends BaseContract> extends EVMEvents {
-    readonly contract: EVMContractBase<T>;
+    private readonly contract;
     readonly baseContract: T;
     constructor(chainInterface: EVMChainInterface<any>, contract: EVMContractBase<T>);
+    private toTypedEvent;
     toTypedEvents<TEventName extends keyof T["filters"]>(blockEvents: Log[]): (TypedEventLog<T["filters"][TEventName]> | null)[];
     private toFilter;
     /**

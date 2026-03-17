@@ -8,6 +8,11 @@ const Refund = [
     { name: "swapHash", type: "bytes32" },
     { name: "timeout", type: "uint256" }
 ];
+/**
+ * Swap refund helper for timeout and cooperative refund flows.
+ *
+ * @category Internal/Swaps
+ */
 class EVMSwapRefund extends EVMSwapModule_1.EVMSwapModule {
     /**
      * Action for generic Refund instruction
@@ -44,7 +49,7 @@ class EVMSwapRefund extends EVMSwapModule_1.EVMSwapModule {
     async signSwapRefund(signer, swapData, authorizationTimeout) {
         const authPrefix = "refund";
         const authTimeout = Math.floor(Date.now() / 1000) + authorizationTimeout;
-        const signature = await this.root.Signatures.signTypedMessage(this.contract.contractAddress, signer, Refund, "Refund", {
+        const signature = await this.root.Signatures.signTypedMessage(this.contract._contractAddress, signer, Refund, "Refund", {
             "swapHash": "0x" + swapData.getEscrowHash(),
             "timeout": BigInt(authTimeout)
         });
@@ -59,10 +64,10 @@ class EVMSwapRefund extends EVMSwapModule_1.EVMSwapModule {
             throw new base_1.SignatureVerificationError("Invalid prefix");
         const expiryTimestamp = BigInt(timeout);
         const currentTimestamp = BigInt(Math.floor(Date.now() / 1000));
-        const isExpired = (expiryTimestamp - currentTimestamp) < BigInt(this.contract.authGracePeriod);
+        const isExpired = (expiryTimestamp - currentTimestamp) < BigInt(this.contract._authGracePeriod);
         if (isExpired)
             throw new base_1.SignatureVerificationError("Authorization expired!");
-        const valid = await this.root.Signatures.isValidSignature(this.contract.contractAddress, signature, swapData.claimer, Refund, "Refund", {
+        const valid = await this.root.Signatures.isValidSignature(this.contract._contractAddress, signature, swapData.claimer, Refund, "Refund", {
             "swapHash": "0x" + swapData.getEscrowHash(),
             "timeout": BigInt(expiryTimestamp)
         });
@@ -81,7 +86,7 @@ class EVMSwapRefund extends EVMSwapModule_1.EVMSwapModule {
      * @param witnessData
      */
     async txsRefund(signer, swapData, check, feeRate, witnessData) {
-        const refundHandler = this.contract.refundHandlersByAddress[swapData.refundHandler.toLowerCase()];
+        const refundHandler = this.contract._refundHandlersByAddress[swapData.refundHandler.toLowerCase()];
         if (refundHandler == null)
             throw new Error("Invalid refund handler");
         if (check && !await this.contract.isRequestRefundable(swapData.offerer.toString(), swapData)) {

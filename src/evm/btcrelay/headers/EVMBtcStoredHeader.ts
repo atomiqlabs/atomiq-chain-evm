@@ -3,7 +3,12 @@ import {EVMBtcHeader, EVMBtcHeaderType} from "./EVMBtcHeader";
 import {Buffer} from "buffer";
 import {keccak256} from "ethers";
 
-export type StarknetBtcStoredHeaderType = {
+/**
+ * Constructor payload for a stored bitcoin header committed in EVM BTC relay contract state.
+ *
+ * @category BTC Relay
+ */
+export type EVMBtcStoredHeaderType = {
     blockheader: EVMBtcHeader | EVMBtcHeaderType,
     blockHash: Buffer,
     chainWork: bigint,
@@ -13,18 +18,23 @@ export type StarknetBtcStoredHeaderType = {
 }
 
 /**
+ * Represents a bitcoin header already committed inside EVM BTC relay contract state.
+ *
  * @category BTC Relay
  */
 export class EVMBtcStoredHeader implements BtcStoredHeader<EVMBtcHeader> {
 
-    blockheader: EVMBtcHeader;
-    blockHash: Buffer;
-    chainWork: bigint;
-    blockHeight: number;
-    lastDiffAdjustment: number;
-    prevBlockTimestamps: number[];
+    private readonly blockheader: EVMBtcHeader;
+    private readonly blockHash: Buffer;
+    private readonly chainWork: bigint;
+    private readonly blockHeight: number;
+    private readonly lastDiffAdjustment: number;
+    private readonly prevBlockTimestamps: number[];
 
-    constructor(obj: StarknetBtcStoredHeaderType) {
+    /**
+     * @internal
+     */
+    constructor(obj: EVMBtcStoredHeaderType) {
         this.blockheader = obj.blockheader instanceof EVMBtcHeader ? obj.blockheader : new EVMBtcHeader(obj.blockheader);
         this.blockHash = obj.blockHash;
         this.chainWork = obj.chainWork;
@@ -33,26 +43,44 @@ export class EVMBtcStoredHeader implements BtcStoredHeader<EVMBtcHeader> {
         this.prevBlockTimestamps = obj.prevBlockTimestamps;
     }
 
+    /**
+     * @inheritDoc
+     */
     getBlockheight(): number {
         return this.blockHeight;
     }
 
+    /**
+     * @inheritDoc
+     */
     getChainWork(): Buffer {
         return Buffer.from(this.chainWork.toString(16).padStart(64, "0"), "hex");
     }
 
+    /**
+     * @inheritDoc
+     */
     getHeader(): EVMBtcHeader {
         return this.blockheader;
     }
 
+    /**
+     * @inheritDoc
+     */
     getLastDiffAdjustment(): number {
         return this.lastDiffAdjustment;
     }
 
+    /**
+     * @inheritDoc
+     */
     getPrevBlockTimestamps(): number[] {
         return this.prevBlockTimestamps;
     }
 
+    /**
+     * @inheritDoc
+     */
     getBlockHash(): Buffer {
         return Buffer.from([...this.blockHash]).reverse();
     }
@@ -99,8 +127,11 @@ export class EVMBtcStoredHeader implements BtcStoredHeader<EVMBtcHeader> {
         return lastDiffAdjustment;
     }
 
+    /**
+     * @inheritDoc
+     */
     computeNext(header: EVMBtcHeader): EVMBtcStoredHeader {
-        header.previousBlockhash = this.blockHash;
+        header._previousBlockhash = this.blockHash;
         return new EVMBtcStoredHeader({
             chainWork: this.computeNextChainWork(header.getNbits()),
             prevBlockTimestamps: this.computeNextBlockTimestamps(),
@@ -111,10 +142,16 @@ export class EVMBtcStoredHeader implements BtcStoredHeader<EVMBtcHeader> {
         });
     }
 
+    /**
+     * Returns the commitment of this stored head (keccak256 hash), this is what's actually stored on-chain
+     */
     getCommitHash(): string {
         return keccak256(this.serialize());
     }
 
+    /**
+     * Serializes the stored blockheader into the 160-byte binary layout used by the EVM contracts.
+     */
     serialize(): Buffer {
         const buffer = Buffer.alloc(160);
         this.blockheader.serialize().copy(buffer, 0, 0, 80);
@@ -127,6 +164,9 @@ export class EVMBtcStoredHeader implements BtcStoredHeader<EVMBtcHeader> {
         return buffer;
     }
 
+    /**
+     * Serializes the stored blockheader into the contract tuple form (`bytes32[5]` payload).
+     */
     serializeToStruct(): {data: [string, string, string, string, string]} {
         const buffer = this.serialize();
         const result: string[] = [];
@@ -136,6 +176,11 @@ export class EVMBtcStoredHeader implements BtcStoredHeader<EVMBtcHeader> {
         return {data: result as any};
     }
 
+    /**
+     * Deserializes a stored blockheader from the 160-byte binary representation.
+     *
+     * @param data Serialized stored blockheader bytes
+     */
     static deserialize(data: Buffer): EVMBtcStoredHeader {
         if(data.length!==160) throw new Error(`Invalid size Expected 160, got: ${data.length}!`);
         const blockheader = EVMBtcHeader.deserialize(data.subarray(0, 80));

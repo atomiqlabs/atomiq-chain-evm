@@ -1,6 +1,11 @@
 import { IntermediaryReputationType } from "@atomiqlabs/base";
 import { EVMSwapModule } from "../EVMSwapModule";
 import { EVMTx } from "../../chain/modules/EVMTransactions";
+/**
+ * LP vault helper for intermediary balances, reputation and LP deposit/withdraw transactions.
+ *
+ * @category Internal/Swaps
+ */
 export declare class EVMLpVault extends EVMSwapModule {
     private static readonly GasCosts;
     /**

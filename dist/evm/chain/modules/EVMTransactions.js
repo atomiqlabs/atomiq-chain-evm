@@ -7,6 +7,8 @@ const Utils_1 = require("../../../utils/Utils");
 const base_1 = require("@atomiqlabs/base");
 const MAX_UNCONFIRMED_TXNS = 10;
 /**
+ * Transaction service for preparing, signing, broadcasting and confirming EVM transactions.
+ *
  * @category Internal/Chain
  */
 class EVMTransactions extends EVMModule_1.EVMModule {
@@ -59,7 +61,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
                 }
                 this.logger.warn("confirmTransaction(): All transactions not found, fetching the latest account nonce...");
                 const _latestConfirmedNonce = this.latestConfirmedNonces[tx.from];
-                const currentLatestNonce = await this.provider.getTransactionCount(tx.from, this.root.config.safeBlockTag);
+                const currentLatestNonce = await this.provider.getTransactionCount(tx.from, this.root._config.safeBlockTag);
                 if (_latestConfirmedNonce == null || _latestConfirmedNonce < currentLatestNonce) {
                     this.latestConfirmedNonces[tx.from] = currentLatestNonce;
                 }
@@ -97,9 +99,9 @@ class EVMTransactions extends EVMModule_1.EVMModule {
                         value: (0, ethers_1.toBeHex)(tx.value ?? 0n),
                         input: tx.data,
                         data: tx.data,
-                        accessList: this.root.config.defaultAccessListAddresses == null
+                        accessList: this.root._config.defaultAccessListAddresses == null
                             ? undefined
-                            : this.root.config.defaultAccessListAddresses.map(val => ({ address: val, storageKeys: [] }))
+                            : this.root._config.defaultAccessListAddresses.map(val => ({ address: val, storageKeys: [] }))
                     }, "pending"]);
             }
             catch (e) {
@@ -112,7 +114,8 @@ class EVMTransactions extends EVMModule_1.EVMModule {
             tx.accessList = accessListResponse.accessList;
     }
     /**
-     * Prepares starknet transactions, checks if the account is deployed, assigns nonces if needed & calls beforeTxSigned callback
+     * Prepares EVM transactions, assigns nonces when needed, and optionally applies access lists
+     * before signing.
      *
      * @param signer
      * @param txs
@@ -188,7 +191,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
      * @param useAccessLists
      */
     async sendAndConfirm(signer, txs, waitForConfirmation, abortSignal, parallel, onBeforePublish, useAccessLists) {
-        await this.prepareTransactions(signer, txs, useAccessLists ?? this.root.config.useAccessLists);
+        await this.prepareTransactions(signer, txs, useAccessLists ?? this.root._config.useAccessLists);
         const signedTxs = [];
         //Don't separate the signing process from the sending when using browser-based wallet
         if (signer.signTransaction != null)
@@ -361,7 +364,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
         return ethers_1.Transaction.from(signedTxData);
     }
     /**
-     * Gets the status of the raw starknet transaction
+     * Gets the status of a raw signed EVM transaction.
      *
      * @param tx
      */
@@ -381,9 +384,9 @@ class EVMTransactions extends EVMModule_1.EVMModule {
         if (txResponse.blockHash == null)
             return "pending";
         const [safeBlockNumber, txReceipt] = await Promise.all([
-            this.root.config.safeBlockTag === "latest"
+            this.root._config.safeBlockTag === "latest"
                 ? Promise.resolve(null)
-                : this.provider.getBlock(this.root.config.safeBlockTag).then(res => res?.number ?? 0),
+                : this.provider.getBlock(this.root._config.safeBlockTag).then(res => res?.number ?? 0),
             this.provider.getTransactionReceipt(txId)
         ]);
         if (txReceipt == null || (safeBlockNumber != null && txReceipt.blockNumber > safeBlockNumber))

@@ -1,7 +1,14 @@
 import { EVMModule } from "../EVMModule";
 import { Block } from "ethers";
+/**
+ * Supported EVM block tags used for safety/finality aware reads.
+ *
+ * @category Chain Interface
+ */
 export type EVMBlockTag = "safe" | "pending" | "latest" | "finalized";
 /**
+ * Cached block lookup helper for block and timestamp access.
+ *
  * @category Internal/Chain
  */
 export declare class EVMBlocks extends EVMModule<any> {

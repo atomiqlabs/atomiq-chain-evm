@@ -5,6 +5,9 @@ import {BitcoinVaultTransactionDataStruct} from "./SpvVaultContractTypechain";
 import {AbiCoder, keccak256, ZeroHash} from "ethers";
 
 /**
+ * Represents parsed withdrawal data used for claiming assets from the EVM SPV vault
+ *  (UTXO-controlled vault).
+ *
  * @category Swaps
  */
 export class EVMSpvWithdrawalData extends SpvWithdrawalTransactionData {
@@ -43,10 +46,16 @@ export class EVMSpvWithdrawalData extends SpvWithdrawalTransactionData {
         )).substring(2);
     }
 
+    /**
+     * @inheritDoc
+     */
     getTxHash(): string {
         return "0x"+Buffer.from(this.btcTx.txid, "hex").reverse().toString("hex");
     }
 
+    /**
+     * @inheritDoc
+     */
     getFrontingAmount(): bigint[] {
         return [this.rawAmounts[0] + this.getExecutionFee()[0], this.rawAmounts[1]];
     }
@@ -61,6 +70,9 @@ export class EVMSpvWithdrawalData extends SpvWithdrawalTransactionData {
         };
     }
 
+    /**
+     * Serializes the withdrawal data to the EVM contract struct representation.
+     */
     serializeToStruct(): BitcoinVaultTransactionDataStruct {
         const callerFee = this.getCallerFee();
         const frontingFee = this.getFrontingFee();

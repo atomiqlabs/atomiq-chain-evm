@@ -1,6 +1,11 @@
 import { EVMSpvVaultContract } from "../../evm/spv_swap/EVMSpvVaultContract";
 import { EVMSpvWithdrawalData } from "../../evm/spv_swap/EVMSpvWithdrawalData";
 import { EVMSpvVaultData } from "../../evm/spv_swap/EVMSpvVaultData";
+/**
+ * Citrea SPV vault wrapper with fee estimation adjusted by expected state-diff size.
+ *
+ * @category Networks/Citrea
+ */
 export declare class CitreaSpvVaultContract extends EVMSpvVaultContract<"CITREA"> {
     static readonly StateDiffSize: {
         BASE_DIFF_SIZE: number;

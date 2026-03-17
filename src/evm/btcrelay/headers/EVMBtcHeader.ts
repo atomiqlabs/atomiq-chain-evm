@@ -2,6 +2,11 @@ import {BtcHeader} from "@atomiqlabs/base";
 import {Buffer} from "buffer";
 import {sha256} from "@noble/hashes/sha2";
 
+/**
+ * Constructor payload for EVM bitcoin blockheader representation.
+ *
+ * @category BTC Relay
+ */
 export type EVMBtcHeaderType = {
     version: number;
     previousBlockhash?: Buffer;
@@ -13,21 +18,30 @@ export type EVMBtcHeaderType = {
 };
 
 /**
+ * Representation of a bitcoin blockheader submitted to EVM BTC relay contracts.
+ *
  * @category BTC Relay
  */
 export class EVMBtcHeader implements BtcHeader {
 
-    version: number;
-    previousBlockhash?: Buffer;
-    merkleRoot: Buffer;
-    timestamp: number;
-    nbits: number;
-    nonce: number;
-    hash?: Buffer;
+    private readonly version: number;
+    private readonly merkleRoot: Buffer;
+    private readonly timestamp: number;
+    private readonly nbits: number;
+    private readonly nonce: number;
+    private readonly hash?: Buffer;
 
+    /**
+     * @internal
+     */
+    _previousBlockhash?: Buffer;
+
+    /**
+     * @internal
+     */
     constructor(data: EVMBtcHeaderType) {
         this.version = data.version;
-        this.previousBlockhash = data.previousBlockhash;
+        this._previousBlockhash = data.previousBlockhash;
         this.merkleRoot = data.merkleRoot;
         this.timestamp = data.timestamp;
         this.nbits = data.nbits;
@@ -35,35 +49,60 @@ export class EVMBtcHeader implements BtcHeader {
         this.hash = data.hash;
     }
 
+    /**
+     * @inheritDoc
+     */
     getMerkleRoot(): Buffer {
         return this.merkleRoot;
     }
 
+    /**
+     * @inheritDoc
+     */
     getNbits(): number {
         return this.nbits;
     }
 
+    /**
+     * @inheritDoc
+     */
     getNonce(): number {
         return this.nonce;
     }
 
+    /**
+     * @inheritDoc
+     */
     getReversedPrevBlockhash(): Buffer {
-        if(this.previousBlockhash==null) throw new Error("Previous blockhash is not known from compact blockheader!");
-        return this.previousBlockhash;
+        if(this._previousBlockhash==null) throw new Error("Previous blockhash is not known from compact blockheader!");
+        return this._previousBlockhash;
     }
 
+    /**
+     * @inheritDoc
+     */
     getTimestamp(): number {
         return this.timestamp;
     }
 
+    /**
+     * @inheritDoc
+     */
     getVersion(): number {
         return this.version;
     }
 
+    /**
+     * @inheritDoc
+     */
     getHash(): Buffer {
         return Buffer.from(sha256(sha256(this.serialize())));
     }
 
+    /**
+     * Serializes the bitcoin blockheader into compact 48-byte representation
+     * (without previous blockhash).
+     */
     serializeCompact(): Buffer {
         const buffer = Buffer.alloc(48);
         buffer.writeUInt32LE(this.version, 0);
@@ -74,11 +113,14 @@ export class EVMBtcHeader implements BtcHeader {
         return buffer;
     }
 
+    /**
+     * Serializes the bitcoin blockheader into full 80-byte representation.
+     */
     serialize(): Buffer {
-        if(this.previousBlockhash==null) throw new Error("Cannot serialize compact blockheader without previous blockhash!");
+        if(this._previousBlockhash==null) throw new Error("Cannot serialize compact blockheader without previous blockhash!");
         const buffer = Buffer.alloc(80);
         buffer.writeUInt32LE(this.version, 0);
-        this.previousBlockhash.copy(buffer, 4);
+        this._previousBlockhash.copy(buffer, 4);
         this.merkleRoot.copy(buffer, 36);
         buffer.writeUInt32LE(this.timestamp, 68);
         buffer.writeUInt32LE(this.nbits, 72);
@@ -86,6 +128,11 @@ export class EVMBtcHeader implements BtcHeader {
         return buffer;
     }
 
+    /**
+     * Deserializes a bitcoin blockheader from 80-byte full or 48-byte compact representation.
+     *
+     * @param rawData Serialized blockheader bytes
+     */
     static deserialize(rawData: Buffer): EVMBtcHeader {
         if(rawData.length===80) {
             //Regular blockheader

@@ -5,6 +5,11 @@ import {CitreaFees} from "./CitreaFees";
 
 const logger = getLogger("CitreaBtcRelay: ");
 
+/**
+ * Citrea BTC relay wrapper with fee estimation that includes Citrea state-diff costs.
+ *
+ * @category Networks/Citrea
+ */
 export class CitreaBtcRelay<B extends BtcBlock> extends EVMBtcRelay<B> {
 
     public static StateDiffSize = {
@@ -32,7 +37,7 @@ export class CitreaBtcRelay<B extends BtcBlock> extends EVMBtcRelay<B> {
 
         const synchronizationFee = (BigInt(blockheightDelta) * await this.getFeePerBlock(feeRate))
             + CitreaFees.getGasFee(
-                EVMBtcRelay.GasCosts.GAS_BASE_MAIN * numTxs,
+                EVMBtcRelay._GasCosts.GAS_BASE_MAIN * numTxs,
                 feeRate,
                 CitreaBtcRelay.StateDiffSize.STATE_DIFF_BASE * numTxs
             );
@@ -50,7 +55,7 @@ export class CitreaBtcRelay<B extends BtcBlock> extends EVMBtcRelay<B> {
     public async getFeePerBlock(feeRate?: string): Promise<bigint> {
         feeRate ??= await this.Chain.Fees.getFeeRate();
         return CitreaFees.getGasFee(
-            EVMBtcRelay.GasCosts.GAS_PER_BLOCKHEADER,
+            EVMBtcRelay._GasCosts.GAS_PER_BLOCKHEADER,
             feeRate,
             CitreaBtcRelay.StateDiffSize.STATE_DIFF_PER_BLOCKHEADER
         );

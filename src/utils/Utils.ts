@@ -1,5 +1,9 @@
 
-
+/**
+ * Logger interface used across EVM modules.
+ *
+ * @category Internal/Utils
+ */
 export type LoggerType = {
     debug: (msg: string, ...args: any[]) => void,
     info: (msg: string, ...args: any[]) => void,
@@ -7,6 +11,11 @@ export type LoggerType = {
     error: (msg: string, ...args: any[]) => void,
 }
 
+/**
+ * Returns a promise that resolves after `timeoutMillis` unless aborted first.
+ *
+ * @category Internal/Utils
+ */
 export function timeoutPromise(timeoutMillis: number, abortSignal?: AbortSignal): Promise<void> {
     return new Promise((resolve, reject) => {
         const timeout = setTimeout(resolve, timeoutMillis)
@@ -17,6 +26,11 @@ export function timeoutPromise(timeoutMillis: number, abortSignal?: AbortSignal)
     });
 }
 
+/**
+ * Wraps an async executor so it runs once at a time and reuses the same promise.
+ *
+ * @category Internal/Utils
+ */
 export function onceAsync<T>(executor: () => Promise<T>): () => Promise<T> {
     let promise: Promise<T>;
 
@@ -30,6 +44,11 @@ export function onceAsync<T>(executor: () => Promise<T>): () => Promise<T> {
     }
 }
 
+/**
+ * Creates a prefixed logger that honors the global `atomiqLogLevel`.
+ *
+ * @category Internal/Utils
+ */
 export function getLogger(prefix: string): LoggerType {
     return {
         debug: (msg, ...args) => (global as any).atomiqLogLevel >= 3 && console.debug(prefix+msg, ...args),
@@ -41,6 +60,11 @@ export function getLogger(prefix: string): LoggerType {
 
 const logger = getLogger("Utils: ");
 
+/**
+ * Retries an async function using the provided retry policy.
+ *
+ * @category Internal/Utils
+ */
 export async function tryWithRetries<T>(func: () => Promise<T>, retryPolicy?: {
     maxRetries?: number, delay?: number, exponential?: boolean
 }, errorAllowed?: (e: any) => boolean, abortSignal?: AbortSignal): Promise<T> {
@@ -72,6 +96,11 @@ export async function tryWithRetries<T>(func: () => Promise<T>, retryPolicy?: {
     throw err;
 }
 
+/**
+ * Reverses byte order of a 32-bit unsigned integer.
+ *
+ * @category Internal/Utils
+ */
 export function uint32ReverseEndianness(value: number): number {
     const valueBN = BigInt(value);
     return Number(((valueBN & 0xFFn) << 24n) |
@@ -80,10 +109,20 @@ export function uint32ReverseEndianness(value: number): number {
         ((valueBN >> 24n) & 0xFFn));
 }
 
+/**
+ * Returns the greater of two bigint values.
+ *
+ * @category Internal/Utils
+ */
 export function bigIntMax(a: bigint, b: bigint) {
     return a>b ? a : b;
 }
 
+/**
+ * Ethers.js error codes considered recoverable for retry logic.
+ *
+ * @category Internal/Utils
+ */
 export const allowedEthersErrorCodes: Set<string> = new Set([
     "NOT_IMPLEMENTED", "UNSUPPORTED_OPERATION", "BAD_DATA",
     "NUMERIC_FAULT",
@@ -91,6 +130,11 @@ export const allowedEthersErrorCodes: Set<string> = new Set([
     "CALL_EXCEPTION", "NONCE_EXPIRED", "REPLACEMENT_UNDERPRICED", "TRANSACTION_REPLACED", "UNCONFIGURED_NAME", "OFFCHAIN_FAULT", "ACTION_REJECTED"
 ]);
 
+/**
+ * JSON-RPC error numbers considered recoverable for retry logic.
+ *
+ * @category Internal/Utils
+ */
 export const allowedEthersErrorNumbers: Set<number> = new Set([
     3, //Revertion during eth_getAccessList call
     -32700, //Invalid JSON
@@ -107,6 +151,11 @@ export const allowedEthersErrorNumbers: Set<number> = new Set([
     -32006 //JSON-RPC version not supported
 ]);
 
+/**
+ * RPC error messages considered recoverable for retry logic.
+ *
+ * @category Internal/Utils
+ */
 export const allowedEthersErrorMessages: Set<string> = new Set([
     "already known"
 ]);

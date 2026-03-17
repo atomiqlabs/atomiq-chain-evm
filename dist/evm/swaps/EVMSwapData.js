@@ -8,6 +8,8 @@ const FLAG_PAY_OUT = 0x01n;
 const FLAG_PAY_IN = 0x02n;
 const FLAG_REPUTATION = 0x04n;
 /**
+ * Represents swap data for executing PrTLC (on-chain) or HTLC (lightning) based swaps.
+ *
  * @category Swaps
  */
 class EVMSwapData extends base_1.SwapData {
@@ -325,16 +327,31 @@ class EVMSwapData extends base_1.SwapData {
             address = "0x" + address;
         return this.offerer.toLowerCase() === address.toLowerCase();
     }
+    /**
+     * Checks whether the passed address is specified as the refund handler for the swap.
+     *
+     * @param address
+     */
     isRefundHandler(address) {
         if (!address.startsWith("0x"))
             address = "0x" + address;
         return this.refundHandler.toLowerCase() === address.toLowerCase();
     }
+    /**
+     * Checks whether the passed address is specified as the claim handler for the swap.
+     *
+     * @param address
+     */
     isClaimHandler(address) {
         if (!address.startsWith("0x"))
             address = "0x" + address;
         return this.claimHandler.toLowerCase() === address.toLowerCase();
     }
+    /**
+     * Checks if the passed data matches the swap's claim data.
+     *
+     * @param data
+     */
     isClaimData(data) {
         if (!data.startsWith("0x"))
             data = "0x" + data;
@@ -360,6 +377,9 @@ class EVMSwapData extends base_1.SwapData {
             other.claimerBounty === this.claimerBounty &&
             other.successActionCommitment.toLowerCase() === this.successActionCommitment.toLowerCase();
     }
+    /**
+     * Serializes the swap data into the EVM escrow-manager struct representation.
+     */
     toEscrowStruct() {
         return {
             offerer: this.offerer,
@@ -383,6 +403,12 @@ class EVMSwapData extends base_1.SwapData {
     hasSuccessAction() {
         return this.successActionCommitment !== ethers_1.ZeroHash;
     }
+    /**
+     * Deserializes swap data from an on-chain escrow struct.
+     *
+     * @param struct Escrow struct as returned by the contract
+     * @param claimHandlerImpl Claim handler implementation used to resolve swap type
+     */
     static deserializeFromStruct(struct, claimHandlerImpl) {
         const { payOut, payIn, reputation, sequence } = EVMSwapData.toFlags(BigInt(struct.flags));
         return new EVMSwapData(struct.offerer, struct.claimer, struct.token, struct.refundHandler, struct.claimHandler, payOut, payIn, reputation, sequence, (0, ethers_1.hexlify)(struct.claimData), (0, ethers_1.hexlify)(struct.refundData), BigInt(struct.amount), struct.depositToken, BigInt(struct.securityDeposit), BigInt(struct.claimerBounty), claimHandlerImpl.getType(), undefined, struct.successActionCommitment);

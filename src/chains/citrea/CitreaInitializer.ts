@@ -1,6 +1,6 @@
 import {BaseTokenType, BitcoinNetwork, BitcoinRpc, ChainData, ChainInitializer, ChainSwapType} from "@atomiqlabs/base";
-import {JsonRpcApiProvider, JsonRpcProvider, WebSocketProvider} from "ethers";
-import {EVMChainInterface, EVMConfiguration, EVMRetryPolicy} from "../../evm/chain/EVMChainInterface";
+import {JsonRpcProvider, WebSocketProvider} from "ethers";
+import {EVMChainInterface} from "../../evm/chain/EVMChainInterface";
 import {CitreaChainType} from "./CitreaChainType";
 import {EVMChainEventsBrowser} from "../../evm/events/EVMChainEventsBrowser";
 import {EVMSwapData} from "../../evm/swaps/EVMSwapData";
@@ -11,6 +11,7 @@ import {CitreaBtcRelay} from "./CitreaBtcRelay";
 import {CitreaSwapContract} from "./CitreaSwapContract";
 import {CitreaTokens} from "./CitreaTokens";
 import {CitreaSpvVaultContract} from "./CitreaSpvVaultContract";
+import {EVMOptions} from "../EVMOptions";
 
 const CitreaChainIds = {
     MAINNET: 4114,
@@ -75,7 +76,7 @@ export type CitreaAssetsType = BaseTokenType<"CBTC" | "WBTC" | "USDC">;
  * Default Citrea token assets configuration
  * @category Networks/Citrea
  */
-export const CitreaAssets: CitreaAssetsType = {
+const CitreaAssets: CitreaAssetsType = {
     CBTC: {
         address: "0x0000000000000000000000000000000000000000",
         decimals: 18,
@@ -97,30 +98,7 @@ export const CitreaAssets: CitreaAssetsType = {
  * Configuration options for initializing Citrea chain
  * @category Networks/Citrea
  */
-export type CitreaOptions = {
-    rpcUrl: string | JsonRpcApiProvider,
-    retryPolicy?: EVMRetryPolicy,
-    chainType?: "MAINNET" | "TESTNET4",
-
-    swapContract?: string,
-    swapContractDeploymentHeight?: number,
-    btcRelayContract?: string,
-    btcRelayDeploymentHeight?: number,
-    spvVaultContract?: string,
-    spvVaultDeploymentHeight?: number,
-    handlerContracts?: {
-        refund?: {
-            timelock?: string
-        },
-        claim?: {
-            [type in ChainSwapType]?: string
-        }
-    }
-
-    fees?: CitreaFees,
-
-    evmConfig?: Partial<Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag" | "finalityCheckStrategy">>
-}
+export type CitreaOptions = EVMOptions<"MAINNET" | "TESTNET4", CitreaFees>;
 
 /**
  * Initialize Citrea chain integration

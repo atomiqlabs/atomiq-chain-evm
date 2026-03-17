@@ -6,6 +6,11 @@ import {EVMFees} from "../../chain/modules/EVMFees";
 import {EVMSigner} from "../../wallet/EVMSigner";
 import {EVMTx} from "../../chain/modules/EVMTransactions";
 
+/**
+ * Prefetched values used for initialization signature verification.
+ *
+ * @category Internal/Swaps
+ */
 export type EVMPreFetchVerification = {
     safeBlockTime: number
 };
@@ -31,6 +36,11 @@ const Initialize = [
     { name: "extraDataHash", type: "bytes32" }
 ];
 
+/**
+ * Swap initialization helper handling authorization signatures and init transaction construction.
+ *
+ * @category Internal/Swaps
+ */
 export class EVMSwapInit extends EVMSwapModule {
 
     private static readonly GasCosts = {
@@ -76,7 +86,7 @@ export class EVMSwapInit extends EVMSwapModule {
 
     public async preFetchForInitSignatureVerification(): Promise<EVMPreFetchVerification> {
         return {
-            safeBlockTime: await this.root.Blocks.getBlockTime(this.root.config.safeBlockTag)
+            safeBlockTime: await this.root.Blocks.getBlockTime(this.root._config.safeBlockTag)
         };
     }
 
@@ -96,7 +106,7 @@ export class EVMSwapInit extends EVMSwapModule {
     ): Promise<{prefix: string, timeout: string, signature: string}> {
         const authExpiry = Math.floor(Date.now()/1000)+authorizationTimeout;
 
-        const signature = await this.root.Signatures.signTypedMessage(this.contract.contractAddress, signer, Initialize, "Initialize", {
+        const signature = await this.root.Signatures.signTypedMessage(this.contract._contractAddress, signer, Initialize, "Initialize", {
             "swapHash": "0x"+swapData.getEscrowHash(),
             "offerer": swapData.offerer,
             "claimer": swapData.claimer,
@@ -156,11 +166,11 @@ export class EVMSwapInit extends EVMSwapModule {
 
         const currentTimestamp = BigInt(Math.floor(Date.now() / 1000));
         const timeoutBN = BigInt(timeout);
-        const isExpired = (timeoutBN - currentTimestamp) < BigInt(this.contract.authGracePeriod);
+        const isExpired = (timeoutBN - currentTimestamp) < BigInt(this.contract._authGracePeriod);
         if (isExpired) throw new SignatureVerificationError("Authorization expired!");
         if(await this.isSignatureExpired(timeout, preFetchData)) throw new SignatureVerificationError("Authorization expired!");
 
-        const valid = await this.root.Signatures.isValidSignature(this.contract.contractAddress, signature, signer, Initialize, "Initialize", {
+        const valid = await this.root.Signatures.isValidSignature(this.contract._contractAddress, signature, signer, Initialize, "Initialize", {
             "swapHash": "0x"+swapData.getEscrowHash(),
             "offerer": swapData.offerer,
             "claimer": swapData.claimer,
@@ -196,7 +206,7 @@ export class EVMSwapInit extends EVMSwapModule {
         timeout: string
     ): Promise<number> {
         const now = Date.now();
-        const timeoutExpiryTime = (parseInt(timeout)-this.contract.authGracePeriod)*1000;
+        const timeoutExpiryTime = (parseInt(timeout)-this.contract._authGracePeriod)*1000;
 
         if(timeoutExpiryTime<now) return 0;
 
@@ -272,7 +282,7 @@ export class EVMSwapInit extends EVMSwapModule {
         }
 
         const requiredApprovalTxns = await Promise.all(
-            Object.keys(requiredApprovals).map(token => this.root.Tokens.checkAndGetApproveTx(sender, token, requiredApprovals[token], this.contract.contractAddress, feeRate))
+            Object.keys(requiredApprovals).map(token => this.root.Tokens.checkAndGetApproveTx(sender, token, requiredApprovals[token], this.contract._contractAddress, feeRate))
         );
         requiredApprovalTxns.forEach(tx => tx!=null && txs.push(tx));
 

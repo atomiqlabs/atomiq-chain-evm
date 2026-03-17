@@ -17,6 +17,9 @@ import { EVMPreFetchVerification, EVMSwapInit } from "./modules/EVMSwapInit";
 import { EVMSwapRefund } from "./modules/EVMSwapRefund";
 import { EVMSwapClaim } from "./modules/EVMSwapClaim";
 /**
+ * EVM swap contract (escrow manager) representation handling PrTLC (on-chain) and HTLC (lightning)
+ *  based swaps.
+ *
  * @category Swaps
  */
 export declare class EVMSwapContract<ChainId extends string = string> extends EVMContractBase<EscrowManager> implements SwapContract<EVMSwapData, EVMTx, never, EVMPreFetchVerification, EVMSigner, ChainId> {
@@ -25,24 +28,54 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
     readonly claimWithSecretTimeout: number;
     readonly claimWithTxDataTimeout: number;
     readonly refundTimeout: number;
-    readonly claimGracePeriod: number;
-    readonly refundGracePeriod: number;
-    readonly authGracePeriod: number;
-    readonly Init: EVMSwapInit;
-    readonly Refund: EVMSwapRefund;
-    readonly Claim: EVMSwapClaim;
-    readonly LpVault: EVMLpVault;
-    readonly claimHandlersByAddress: {
+    private readonly claimGracePeriod;
+    private readonly refundGracePeriod;
+    /**
+     * @internal
+     */
+    readonly _authGracePeriod: number;
+    /**
+     * @internal
+     */
+    readonly _Init: EVMSwapInit;
+    /**
+     * @internal
+     */
+    readonly _Refund: EVMSwapRefund;
+    /**
+     * @internal
+     */
+    readonly _Claim: EVMSwapClaim;
+    /**
+     * @internal
+     */
+    readonly _LpVault: EVMLpVault;
+    /**
+     * @internal
+     */
+    readonly _claimHandlersByAddress: {
         [address: string]: IClaimHandler<any, any>;
     };
-    readonly claimHandlersBySwapType: {
+    /**
+     * @internal
+     */
+    readonly _claimHandlersBySwapType: {
         [type in ChainSwapType]?: IClaimHandler<any, any>;
     };
-    readonly refundHandlersByAddress: {
+    /**
+     * @internal
+     */
+    readonly _refundHandlersByAddress: {
         [address: string]: IHandler<any, any>;
     };
-    readonly timelockRefundHandler: IHandler<any, any>;
-    readonly btcRelay: EVMBtcRelay<any>;
+    /**
+     * @internal
+     */
+    readonly _timelockRefundHandler: IHandler<any, any>;
+    /**
+     * @internal
+     */
+    readonly _btcRelay: EVMBtcRelay<any>;
     constructor(chainInterface: EVMChainInterface<ChainId>, btcRelay: EVMBtcRelay<any>, contractAddress: string, handlerAddresses: {
         refund: {
             timelock: string;
@@ -136,6 +169,9 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
     }[]): Promise<{
         [p: string]: SwapCommitState;
     }>;
+    /**
+     * @inheritDoc
+     */
     getHistoricalSwaps(signer: string, startBlockheight?: number): Promise<{
         swaps: {
             [escrowHash: string]: {
@@ -156,6 +192,15 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
      * @inheritDoc
      */
     createSwapData(type: ChainSwapType, offerer: string, claimer: string, token: string, amount: bigint, paymentHash: string, sequence: bigint, expiry: bigint, payIn: boolean, payOut: boolean, securityDeposit: bigint, claimerBounty: bigint, depositToken?: string): Promise<EVMSwapData>;
+    /**
+     * Recursively scans call traces and extracts swap data from `initialize(...)` calldata
+     * for the specified escrow hash.
+     *
+     * @param call Trace call node to inspect
+     * @param escrowHash Escrow hash to match
+     * @param claimHandler Claim handler used to deserialize claim-specific fields
+     * @private
+     */
     findInitSwapData(call: EVMTxTrace, escrowHash: string, claimHandler: IClaimHandler<any, any>): EVMSwapData | null;
     /**
      * @inheritDoc
@@ -172,7 +217,7 @@ export declare class EVMSwapContract<ChainId extends string = string> extends EV
      * @inheritDoc
      */
     getIntermediaryReputation(address: string, token: string): Promise<IntermediaryReputationType>;
-    getIntermediaryBalance(address: string, token: string): Promise<bigint>;
+    private getIntermediaryBalance;
     /**
      * @inheritDoc
      */

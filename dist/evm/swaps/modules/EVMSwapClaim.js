@@ -4,6 +4,11 @@ exports.EVMSwapClaim = void 0;
 const base_1 = require("@atomiqlabs/base");
 const EVMSwapModule_1 = require("../EVMSwapModule");
 const EVMFees_1 = require("../../chain/modules/EVMFees");
+/**
+ * Swap claim helper for HTLC and BTC on-chain claim paths.
+ *
+ * @category Internal/Swaps
+ */
 class EVMSwapClaim extends EVMSwapModule_1.EVMSwapModule {
     /**
      * Claim action which uses the provided witness for claiming the swap
@@ -38,7 +43,7 @@ class EVMSwapClaim extends EVMSwapModule_1.EVMSwapModule {
         if (checkExpiry && await this.contract.isExpired(swapData.claimer.toString(), swapData)) {
             throw new base_1.SwapDataVerificationError("Not enough time to reliably pay the invoice");
         }
-        const claimHandler = this.contract.claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
+        const claimHandler = this.contract._claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
         if (claimHandler == null)
             throw new base_1.SwapDataVerificationError("Unknown claim handler!");
         if (claimHandler.getType() !== base_1.ChainSwapType.HTLC)
@@ -57,12 +62,12 @@ class EVMSwapClaim extends EVMSwapModule_1.EVMSwapModule {
      * @param tx bitcoin transaction that satisfies the swap condition
      * @param requiredConfirmations
      * @param vout vout of the bitcoin transaction that satisfies the swap condition
-     * @param commitedHeader commited header data from btc relay (fetched internally if null)
+     * @param commitedHeader committed header data from BTC relay (fetched internally if null)
      * @param synchronizer optional synchronizer to use in case we need to sync up the btc relay ourselves
      * @param feeRate fee rate to be used for the transactions
      */
     async txsClaimWithTxData(signer, swapData, tx, requiredConfirmations, vout, commitedHeader, synchronizer, feeRate) {
-        const claimHandler = this.contract.claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
+        const claimHandler = this.contract._claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
         if (claimHandler == null)
             throw new base_1.SwapDataVerificationError("Unknown claim handler!");
         if (claimHandler.getType() !== base_1.ChainSwapType.CHAIN_NONCED &&
@@ -75,7 +80,7 @@ class EVMSwapClaim extends EVMSwapModule_1.EVMSwapModule {
             vout,
             requiredConfirmations,
             commitedHeader,
-            btcRelay: this.contract.btcRelay,
+            btcRelay: this.contract._btcRelay,
             synchronizer,
         }, feeRate);
         const claimTx = await this.Claim(signer, swapData, witness, feeRate, claimHandler.getGas(swapData));
@@ -115,13 +120,13 @@ class EVMSwapClaim extends EVMSwapModule_1.EVMSwapModule {
         return totalGas;
     }
     /**
-     * Get the estimated starknet transaction fee of the claim transaction
+     * Returns the estimated fee of the claim transaction.
      */
     async getClaimFee(swapData, feeRate) {
         feeRate ?? (feeRate = await this.root.Fees.getFeeRate());
         //TODO: Claim with success action not supported yet!
         let gasRequired = this.getClaimGas(swapData);
-        const claimHandler = this.contract.claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
+        const claimHandler = this.contract._claimHandlersByAddress[swapData.claimHandler.toLowerCase()];
         if (claimHandler != null)
             gasRequired += claimHandler.getGas(swapData);
         return EVMFees_1.EVMFees.getGasFee(gasRequired, feeRate);

@@ -58,17 +58,17 @@ class EVMEvents extends EVMModule_1.EVMModule {
             events = await this.root.provider.getLogs({
                 address: contract,
                 fromBlock: startBlock,
-                toBlock: endBlock == null ? this.root.config.safeBlockTag : endBlock,
+                toBlock: endBlock == null ? this.root._config.safeBlockTag : endBlock,
                 topics
             });
         }
         else if (endBlock == null) {
-            const safeBlock = await this.root.provider.getBlock(this.root.config.safeBlockTag);
+            const safeBlock = await this.root.provider.getBlock(this.root._config.safeBlockTag);
             if (safeBlock == null)
-                throw new Error(`Cannot retrieve '${this.root.config.safeBlockTag}' block`);
-            if (safeBlock.number - startBlock > this.root.config.maxLogsBlockRange) {
-                for (let i = startBlock + this.root.config.maxLogsBlockRange; i < safeBlock.number; i += this.root.config.maxLogsBlockRange) {
-                    events.push(...await this.getLogs(contract, topics, i - this.root.config.maxLogsBlockRange, i));
+                throw new Error(`Cannot retrieve '${this.root._config.safeBlockTag}' block`);
+            if (safeBlock.number - startBlock > this.root._config.maxLogsBlockRange) {
+                for (let i = startBlock + this.root._config.maxLogsBlockRange; i < safeBlock.number; i += this.root._config.maxLogsBlockRange) {
+                    events.push(...await this.getLogs(contract, topics, i - this.root._config.maxLogsBlockRange, i));
                     startBlock = i;
                 }
             }
@@ -76,9 +76,9 @@ class EVMEvents extends EVMModule_1.EVMModule {
         }
         else {
             //Both numeric
-            if (endBlock - startBlock > this.root.config.maxLogsBlockRange) {
-                for (let i = startBlock + this.root.config.maxLogsBlockRange; i < endBlock; i += this.root.config.maxLogsBlockRange) {
-                    events.push(...await this.getLogs(contract, topics, i - this.root.config.maxLogsBlockRange, i));
+            if (endBlock - startBlock > this.root._config.maxLogsBlockRange) {
+                for (let i = startBlock + this.root._config.maxLogsBlockRange; i < endBlock; i += this.root._config.maxLogsBlockRange) {
+                    events.push(...await this.getLogs(contract, topics, i - this.root._config.maxLogsBlockRange, i));
                     startBlock = i;
                 }
             }
@@ -97,13 +97,13 @@ class EVMEvents extends EVMModule_1.EVMModule {
      * @param genesisHeight Height when the contract was deployed
      */
     async findInEvents(contract, topics, processor, abortSignal, genesisHeight) {
-        const latestBlock = await this.provider.getBlock(this.root.config.safeBlockTag);
+        const latestBlock = await this.provider.getBlock(this.root._config.safeBlockTag);
         if (latestBlock == null)
-            throw new Error(`Cannot find block ${this.root.config.safeBlockTag}`);
+            throw new Error(`Cannot find block ${this.root._config.safeBlockTag}`);
         let promises = [];
-        for (let blockNumber = latestBlock.number; blockNumber >= (genesisHeight ?? 0); blockNumber -= this.root.config.maxLogsBlockRange) {
-            promises.push(this.getLogs(contract, topics, Math.max(blockNumber - this.root.config.maxLogsBlockRange, 0), blockNumber));
-            if (promises.length >= this.root.config.maxParallelLogRequests) {
+        for (let blockNumber = latestBlock.number; blockNumber >= (genesisHeight ?? 0); blockNumber -= this.root._config.maxLogsBlockRange) {
+            promises.push(this.getLogs(contract, topics, Math.max(blockNumber - this.root._config.maxLogsBlockRange, 0), blockNumber));
+            if (promises.length >= this.root._config.maxParallelLogRequests) {
                 const eventsResult = (await Promise.all(promises)).map(arr => arr.reverse() //Oldest events first
                 ).flat();
                 promises = [];
@@ -134,13 +134,13 @@ class EVMEvents extends EVMModule_1.EVMModule {
      * @param startHeight Blockheight at which to start
      */
     async findInEventsForward(contract, topics, processor, abortSignal, startHeight) {
-        const latestBlock = await this.provider.getBlock(this.root.config.safeBlockTag);
+        const latestBlock = await this.provider.getBlock(this.root._config.safeBlockTag);
         if (latestBlock == null)
-            throw new Error(`Cannot find block ${this.root.config.safeBlockTag}`);
+            throw new Error(`Cannot find block ${this.root._config.safeBlockTag}`);
         let promises = [];
-        for (let blockNumber = startHeight ?? 0; blockNumber < latestBlock.number; blockNumber += this.root.config.maxLogsBlockRange) {
-            promises.push(this.getLogs(contract, topics, blockNumber, Math.min(blockNumber + this.root.config.maxLogsBlockRange, latestBlock.number)));
-            if (promises.length >= this.root.config.maxParallelLogRequests) {
+        for (let blockNumber = startHeight ?? 0; blockNumber < latestBlock.number; blockNumber += this.root._config.maxLogsBlockRange) {
+            promises.push(this.getLogs(contract, topics, blockNumber, Math.min(blockNumber + this.root._config.maxLogsBlockRange, latestBlock.number)));
+            if (promises.length >= this.root._config.maxParallelLogRequests) {
                 const eventsResult = (await Promise.all(promises)).flat();
                 promises = [];
                 if (abortSignal != null)

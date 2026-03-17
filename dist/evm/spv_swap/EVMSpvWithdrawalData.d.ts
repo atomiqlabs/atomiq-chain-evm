@@ -4,6 +4,9 @@ import { SpvWithdrawalTransactionData } from "@atomiqlabs/base";
 import { Buffer } from "buffer";
 import { BitcoinVaultTransactionDataStruct } from "./SpvVaultContractTypechain";
 /**
+ * Represents parsed withdrawal data used for claiming assets from the EVM SPV vault
+ *  (UTXO-controlled vault).
+ *
  * @category Swaps
  */
 export declare class EVMSpvWithdrawalData extends SpvWithdrawalTransactionData {
@@ -24,11 +27,20 @@ export declare class EVMSpvWithdrawalData extends SpvWithdrawalTransactionData {
      * @inheritDoc
      */
     getFrontingId(): string;
+    /**
+     * @inheritDoc
+     */
     getTxHash(): string;
+    /**
+     * @inheritDoc
+     */
     getFrontingAmount(): bigint[];
     /**
      * @inheritDoc
      */
     serialize(): any;
+    /**
+     * Serializes the withdrawal data to the EVM contract struct representation.
+     */
     serializeToStruct(): BitcoinVaultTransactionDataStruct;
 }

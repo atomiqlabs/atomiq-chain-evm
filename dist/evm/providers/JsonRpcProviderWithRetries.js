@@ -5,9 +5,18 @@ const ethers_1 = require("ethers");
 const ethers_2 = require("ethers");
 const Utils_1 = require("../../utils/Utils");
 /**
+ * JSON-RPC provider with built-in retry functionality for transient RPC failures.
+ *
  * @category Providers
  */
 class JsonRpcProviderWithRetries extends ethers_1.JsonRpcProvider {
+    /**
+     * Creates a new JSON-RPC provider which retries RPC calls based on the provided policy.
+     *
+     * @param url
+     * @param network
+     * @param options
+     */
     constructor(url, network, options) {
         if (typeof (url) === "string")
             url = new ethers_2.FetchRequest(url);

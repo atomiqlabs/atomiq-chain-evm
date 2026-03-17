@@ -1,7 +1,6 @@
 /// <reference types="node" />
 /// <reference types="node" />
 import { BitcoinNetwork, BitcoinRpc, BtcBlock, BtcRelay, RelaySynchronizer } from "@atomiqlabs/base";
-import { EVMBtcHeader } from "./headers/EVMBtcHeader";
 import { EVMContractBase } from "../contract/EVMContractBase";
 import { BtcRelay as BtcRelayTypechain } from "./BtcRelayTypechain";
 import { EVMBtcStoredHeader } from "./headers/EVMBtcStoredHeader";
@@ -9,27 +8,59 @@ import { EVMSigner } from "../wallet/EVMSigner";
 import { EVMTx } from "../chain/modules/EVMTransactions";
 import { EVMChainInterface } from "../chain/EVMChainInterface";
 /**
+ * EVM BTC Relay bitcoin light client contract representation.
+ *
  * @category BTC Relay
  */
 export declare class EVMBtcRelay<B extends BtcBlock> extends EVMContractBase<BtcRelayTypechain> implements BtcRelay<EVMBtcStoredHeader, EVMTx, B, EVMSigner> {
-    static GasCosts: {
+    /**
+     * @internal
+     */
+    static _GasCosts: {
         GAS_PER_BLOCKHEADER: number;
         GAS_BASE_MAIN: number;
         GAS_PER_BLOCKHEADER_FORK: number;
         GAS_PER_BLOCKHEADER_FORKED: number;
         GAS_BASE_FORK: number;
     };
-    SaveMainHeaders(signer: string, mainHeaders: EVMBtcHeader[], storedHeader: EVMBtcStoredHeader, feeRate: string): Promise<EVMTx>;
-    SaveShortForkHeaders(signer: string, forkHeaders: EVMBtcHeader[], storedHeader: EVMBtcStoredHeader, feeRate: string): Promise<EVMTx>;
-    SaveLongForkHeaders(signer: string, forkId: number, forkHeaders: EVMBtcHeader[], storedHeader: EVMBtcStoredHeader, feeRate: string, totalForkHeaders?: number): Promise<EVMTx>;
-    bitcoinRpc: BitcoinRpc<B>;
+    /**
+     * Returns a transaction that submits new main-chain bitcoin blockheaders to the light client.
+     *
+     * @param signer EVM signer address
+     * @param mainHeaders New bitcoin blockheaders to submit
+     * @param storedHeader Current latest committed and stored bitcoin blockheader in the light client
+     * @param feeRate Fee rate to apply to the transaction
+     */
+    private SaveMainHeaders;
+    /**
+     * Returns a transaction that submits a short competing branch.
+     * If the submitted chain has higher total chainwork than the current canonical chain, it becomes canonical.
+     *
+     * @param signer EVM signer address
+     * @param forkHeaders Fork bitcoin blockheaders to submit
+     * @param storedHeader Committed and stored bitcoin blockheader from which to fork the light client
+     * @param feeRate Fee rate to apply to the transaction
+     */
+    private SaveShortForkHeaders;
+    /**
+     * Returns a transaction that submits blockheaders to an existing long fork.
+     *
+     * @param signer EVM signer address
+     * @param forkId Fork ID to submit the fork blockheaders to
+     * @param forkHeaders Fork bitcoin blockheaders to submit
+     * @param storedHeader Either a committed and stored blockheader from which to fork, or the current fork tip
+     * @param feeRate Fee rate to apply to the transaction
+     * @param totalForkHeaders Total blockheaders in the fork, used for gas estimation when reorg happens
+     */
+    private SaveLongForkHeaders;
+    readonly _bitcoinRpc: BitcoinRpc<B>;
     readonly maxHeadersPerTx: number;
     readonly maxForkHeadersPerTx: number;
     readonly maxShortForkHeadersPerTx: number;
     constructor(chainInterface: EVMChainInterface<any>, bitcoinRpc: BitcoinRpc<B>, bitcoinNetwork: BitcoinNetwork, contractAddress: string, contractDeploymentHeight?: number);
     /**
-     * Computes subsequent commited headers as they will appear on the blockchain when transactions
-     *  are submitted & confirmed
+     * Computes subsequent committed headers as they will appear on-chain once transactions
+     * are submitted and confirmed.
      *
      * @param initialStoredHeader
      * @param syncedHeaders
@@ -149,8 +180,8 @@ export declare class EVMBtcRelay<B extends BtcBlock> extends EVMContractBase<Btc
      * @param signer
      * @param btcRelay
      * @param btcTxs
-     * @param txs solana transaction array, in case we need to synchronize the btc relay ourselves the synchronization
-     *  txns are added here
+     * @param txs EVM transaction array. If BTC relay synchronization is needed, synchronization
+     * transactions are appended here.
      * @param synchronizer optional synchronizer to use to synchronize the btc relay in case it is not yet synchronized
      *  to the required blockheight
      * @param feeRate Fee rate to use for synchronization transactions

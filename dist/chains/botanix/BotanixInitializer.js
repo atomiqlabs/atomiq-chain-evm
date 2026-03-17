@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BotanixInitializer = exports.initializeBotanix = exports.BotanixAssets = void 0;
+exports.BotanixInitializer = exports.initializeBotanix = void 0;
 const base_1 = require("@atomiqlabs/base");
 const ethers_1 = require("ethers");
 const EVMChainInterface_1 = require("../../evm/chain/EVMChainInterface");
@@ -66,7 +66,7 @@ const chainTypeMapping = {
  * Default Botanix token assets configuration
  * @category Networks/Botanix
  */
-exports.BotanixAssets = {
+const BotanixAssets = {
     BTC: {
         address: "0x0000000000000000000000000000000000000000",
         decimals: 18,
@@ -138,6 +138,6 @@ exports.BotanixInitializer = {
     chainId: "BOTANIX",
     chainType: null,
     initializer: initializeBotanix,
-    tokens: exports.BotanixAssets,
+    tokens: BotanixAssets,
     options: null
 };

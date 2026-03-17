@@ -7,6 +7,11 @@ const Utils_1 = require("../../../../../utils/Utils");
 const ethers_1 = require("ethers");
 const buffer_1 = require("buffer");
 const logger = (0, Utils_1.getLogger)("IBitcoinClaimHandler: ");
+/**
+ * Shared base implementation for bitcoin-backed claim handlers.
+ *
+ * @category Internal/Handlers
+ */
 class IBitcoinClaimHandler {
     constructor(address) {
         this.address = address;
@@ -14,7 +19,7 @@ class IBitcoinClaimHandler {
     serializeCommitment(data) {
         const buffer = buffer_1.Buffer.alloc(24);
         buffer.writeUint32BE(data.confirmations, 0);
-        buffer_1.Buffer.from(data.btcRelay.contractAddress.substring(2), "hex").copy(buffer, 4, 0, 20);
+        buffer_1.Buffer.from(data.btcRelay._contractAddress.substring(2), "hex").copy(buffer, 4, 0, 20);
         return buffer;
     }
     getCommitment(data) {
@@ -29,7 +34,7 @@ class IBitcoinClaimHandler {
         const commitmentHash = (0, ethers_1.keccak256)(serializedCommitment);
         if (!swapData.isClaimData(commitmentHash))
             throw new Error("Invalid commit data");
-        const merkleProof = await btcRelay.bitcoinRpc.getMerkleProof(tx.txid, tx.blockhash);
+        const merkleProof = await btcRelay._bitcoinRpc.getMerkleProof(tx.txid, tx.blockhash);
         if (merkleProof == null)
             throw new Error(`Failed to generate merkle proof for tx: ${tx.txid}!`);
         logger.debug("getWitness(): merkle proof computed: ", merkleProof);

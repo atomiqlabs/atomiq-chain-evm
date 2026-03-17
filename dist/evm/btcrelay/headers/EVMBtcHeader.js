@@ -4,41 +4,71 @@ exports.EVMBtcHeader = void 0;
 const buffer_1 = require("buffer");
 const sha2_1 = require("@noble/hashes/sha2");
 /**
+ * Representation of a bitcoin blockheader submitted to EVM BTC relay contracts.
+ *
  * @category BTC Relay
  */
 class EVMBtcHeader {
+    /**
+     * @internal
+     */
     constructor(data) {
         this.version = data.version;
-        this.previousBlockhash = data.previousBlockhash;
+        this._previousBlockhash = data.previousBlockhash;
         this.merkleRoot = data.merkleRoot;
         this.timestamp = data.timestamp;
         this.nbits = data.nbits;
         this.nonce = data.nonce;
         this.hash = data.hash;
     }
+    /**
+     * @inheritDoc
+     */
     getMerkleRoot() {
         return this.merkleRoot;
     }
+    /**
+     * @inheritDoc
+     */
     getNbits() {
         return this.nbits;
     }
+    /**
+     * @inheritDoc
+     */
     getNonce() {
         return this.nonce;
     }
+    /**
+     * @inheritDoc
+     */
     getReversedPrevBlockhash() {
-        if (this.previousBlockhash == null)
+        if (this._previousBlockhash == null)
             throw new Error("Previous blockhash is not known from compact blockheader!");
-        return this.previousBlockhash;
+        return this._previousBlockhash;
     }
+    /**
+     * @inheritDoc
+     */
     getTimestamp() {
         return this.timestamp;
     }
+    /**
+     * @inheritDoc
+     */
     getVersion() {
         return this.version;
     }
+    /**
+     * @inheritDoc
+     */
     getHash() {
         return buffer_1.Buffer.from((0, sha2_1.sha256)((0, sha2_1.sha256)(this.serialize())));
     }
+    /**
+     * Serializes the bitcoin blockheader into compact 48-byte representation
+     * (without previous blockhash).
+     */
     serializeCompact() {
         const buffer = buffer_1.Buffer.alloc(48);
         buffer.writeUInt32LE(this.version, 0);
@@ -48,18 +78,26 @@ class EVMBtcHeader {
         buffer.writeUInt32LE(this.nonce, 44);
         return buffer;
     }
+    /**
+     * Serializes the bitcoin blockheader into full 80-byte representation.
+     */
     serialize() {
-        if (this.previousBlockhash == null)
+        if (this._previousBlockhash == null)
             throw new Error("Cannot serialize compact blockheader without previous blockhash!");
         const buffer = buffer_1.Buffer.alloc(80);
         buffer.writeUInt32LE(this.version, 0);
-        this.previousBlockhash.copy(buffer, 4);
+        this._previousBlockhash.copy(buffer, 4);
         this.merkleRoot.copy(buffer, 36);
         buffer.writeUInt32LE(this.timestamp, 68);
         buffer.writeUInt32LE(this.nbits, 72);
         buffer.writeUInt32LE(this.nonce, 76);
         return buffer;
     }
+    /**
+     * Deserializes a bitcoin blockheader from 80-byte full or 48-byte compact representation.
+     *
+     * @param rawData Serialized blockheader bytes
+     */
     static deserialize(rawData) {
         if (rawData.length === 80) {
             //Regular blockheader

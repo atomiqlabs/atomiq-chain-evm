@@ -2,6 +2,11 @@ import {EVMSwapContract} from "../../evm/swaps/EVMSwapContract";
 import {EVMSwapData} from "../../evm/swaps/EVMSwapData";
 import {CitreaFees} from "./CitreaFees";
 
+/**
+ * Citrea swap contract wrapper with fee estimation adjusted by expected state-diff size.
+ *
+ * @category Networks/Citrea
+ */
 export class CitreaSwapContract extends EVMSwapContract<"CITREA"> {
 
     public static readonly StateDiffSize = {
@@ -27,7 +32,7 @@ export class CitreaSwapContract extends EVMSwapContract<"CITREA"> {
     }
 
     /**
-     * Get the estimated solana fee of the commit transaction
+     * Returns estimated fee of the commit transaction, including Citrea state-diff overhead.
      */
     async getCommitFee(signer: string, swapData: EVMSwapData, feeRate?: string): Promise<bigint> {
         feeRate ??= await this.Chain.Fees.getFeeRate();
@@ -45,7 +50,7 @@ export class CitreaSwapContract extends EVMSwapContract<"CITREA"> {
         }
         diffSize += this.calculateStateDiff(signer, tokenStateChanges);
 
-        const gasFee = await this.Init.getInitFee(swapData, feeRate);
+        const gasFee = await this._Init.getInitFee(swapData, feeRate);
         return gasFee + CitreaFees.getGasFee(0, feeRate, diffSize);
     }
 
@@ -69,12 +74,12 @@ export class CitreaSwapContract extends EVMSwapContract<"CITREA"> {
         }
         diffSize += this.calculateStateDiff(signer, tokenStateChanges);
 
-        const gasFee = await this.Claim.getClaimFee(swapData, feeRate);
+        const gasFee = await this._Claim.getClaimFee(swapData, feeRate);
         return gasFee + CitreaFees.getGasFee(0, feeRate, diffSize);
     }
 
     /**
-     * Get the estimated solana transaction fee of the refund transaction
+     * Returns estimated fee of the refund transaction, including Citrea state-diff overhead.
      */
     async getRefundFee(signer: string, swapData: EVMSwapData, feeRate?: string): Promise<bigint> {
         feeRate ??= await this.Chain.Fees.getFeeRate();
@@ -96,7 +101,7 @@ export class CitreaSwapContract extends EVMSwapContract<"CITREA"> {
         }
         diffSize += this.calculateStateDiff(signer, tokenStateChanges);
 
-        const gasFee = await this.Refund.getRefundFee(swapData, feeRate);
+        const gasFee = await this._Refund.getRefundFee(swapData, feeRate);
         return gasFee + CitreaFees.getGasFee(0, feeRate, diffSize);
     }
 

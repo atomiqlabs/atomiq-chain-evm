@@ -1,6 +1,6 @@
 import {BaseTokenType, BitcoinNetwork, BitcoinRpc, ChainData, ChainInitializer, ChainSwapType} from "@atomiqlabs/base";
-import {JsonRpcApiProvider, JsonRpcProvider, WebSocketProvider} from "ethers";
-import {EVMChainInterface, EVMConfiguration, EVMRetryPolicy} from "../../evm/chain/EVMChainInterface";
+import {JsonRpcProvider, WebSocketProvider} from "ethers";
+import {EVMChainInterface} from "../../evm/chain/EVMChainInterface";
 import {EVMFees} from "../../evm/chain/modules/EVMFees";
 import {EVMBtcRelay} from "../../evm/btcrelay/EVMBtcRelay";
 import {EVMSwapContract} from "../../evm/swaps/EVMSwapContract";
@@ -10,6 +10,7 @@ import {EVMSwapData} from "../../evm/swaps/EVMSwapData";
 import {EVMSpvVaultData} from "../../evm/spv_swap/EVMSpvVaultData";
 import {EVMSpvWithdrawalData} from "../../evm/spv_swap/EVMSpvWithdrawalData";
 import {AlpenChainType} from "./AlpenChainType";
+import {EVMOptions} from "../EVMOptions";
 
 const AlpenChainIds = {
     MAINNET: -1,
@@ -96,7 +97,7 @@ export type AlpenAssetsType = BaseTokenType<"BTC">;
  * Default Alpen token assets configuration
  * @category Networks/Alpen
  */
-export const AlpenAssets: AlpenAssetsType = {
+const AlpenAssets: AlpenAssetsType = {
     BTC: {
         address: "0x0000000000000000000000000000000000000000",
         decimals: 18,
@@ -108,30 +109,7 @@ export const AlpenAssets: AlpenAssetsType = {
  * Configuration options for initializing Alpen chain
  * @category Networks/Alpen
  */
-export type AlpenOptions = {
-    rpcUrl: string | JsonRpcApiProvider,
-    retryPolicy?: EVMRetryPolicy,
-    chainType?: "MAINNET" | "TESTNET" | "TESTNET4",
-
-    swapContract?: string,
-    swapContractDeploymentHeight?: number,
-    btcRelayContract?: string,
-    btcRelayDeploymentHeight?: number,
-    spvVaultContract?: string,
-    spvVaultDeploymentHeight?: number,
-    handlerContracts?: {
-        refund?: {
-            timelock?: string
-        },
-        claim?: {
-            [type in ChainSwapType]?: string
-        }
-    }
-
-    fees?: EVMFees,
-
-    evmConfig?: Partial<Omit<EVMConfiguration, "safeBlockTag" | "finalizedBlockTag" | "finalityCheckStrategy">>
-}
+export type AlpenOptions = EVMOptions<"MAINNET" | "TESTNET" | "TESTNET4">
 
 /**
  * Initialize Alpen chain integration

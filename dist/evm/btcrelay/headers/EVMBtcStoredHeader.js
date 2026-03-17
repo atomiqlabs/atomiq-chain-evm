@@ -6,9 +6,14 @@ const EVMBtcHeader_1 = require("./EVMBtcHeader");
 const buffer_1 = require("buffer");
 const ethers_1 = require("ethers");
 /**
+ * Represents a bitcoin header already committed inside EVM BTC relay contract state.
+ *
  * @category BTC Relay
  */
 class EVMBtcStoredHeader {
+    /**
+     * @internal
+     */
     constructor(obj) {
         this.blockheader = obj.blockheader instanceof EVMBtcHeader_1.EVMBtcHeader ? obj.blockheader : new EVMBtcHeader_1.EVMBtcHeader(obj.blockheader);
         this.blockHash = obj.blockHash;
@@ -17,21 +22,39 @@ class EVMBtcStoredHeader {
         this.lastDiffAdjustment = obj.lastDiffAdjustment;
         this.prevBlockTimestamps = obj.prevBlockTimestamps;
     }
+    /**
+     * @inheritDoc
+     */
     getBlockheight() {
         return this.blockHeight;
     }
+    /**
+     * @inheritDoc
+     */
     getChainWork() {
         return buffer_1.Buffer.from(this.chainWork.toString(16).padStart(64, "0"), "hex");
     }
+    /**
+     * @inheritDoc
+     */
     getHeader() {
         return this.blockheader;
     }
+    /**
+     * @inheritDoc
+     */
     getLastDiffAdjustment() {
         return this.lastDiffAdjustment;
     }
+    /**
+     * @inheritDoc
+     */
     getPrevBlockTimestamps() {
         return this.prevBlockTimestamps;
     }
+    /**
+     * @inheritDoc
+     */
     getBlockHash() {
         return buffer_1.Buffer.from([...this.blockHash]).reverse();
     }
@@ -72,8 +95,11 @@ class EVMBtcStoredHeader {
         }
         return lastDiffAdjustment;
     }
+    /**
+     * @inheritDoc
+     */
     computeNext(header) {
-        header.previousBlockhash = this.blockHash;
+        header._previousBlockhash = this.blockHash;
         return new EVMBtcStoredHeader({
             chainWork: this.computeNextChainWork(header.getNbits()),
             prevBlockTimestamps: this.computeNextBlockTimestamps(),
@@ -83,9 +109,15 @@ class EVMBtcStoredHeader {
             blockheader: header
         });
     }
+    /**
+     * Returns the commitment of this stored head (keccak256 hash), this is what's actually stored on-chain
+     */
     getCommitHash() {
         return (0, ethers_1.keccak256)(this.serialize());
     }
+    /**
+     * Serializes the stored blockheader into the 160-byte binary layout used by the EVM contracts.
+     */
     serialize() {
         const buffer = buffer_1.Buffer.alloc(160);
         this.blockheader.serialize().copy(buffer, 0, 0, 80);
@@ -97,6 +129,9 @@ class EVMBtcStoredHeader {
         }
         return buffer;
     }
+    /**
+     * Serializes the stored blockheader into the contract tuple form (`bytes32[5]` payload).
+     */
     serializeToStruct() {
         const buffer = this.serialize();
         const result = [];
@@ -105,6 +140,11 @@ class EVMBtcStoredHeader {
         }
         return { data: result };
     }
+    /**
+     * Deserializes a stored blockheader from the 160-byte binary representation.
+     *
+     * @param data Serialized stored blockheader bytes
+     */
     static deserialize(data) {
         if (data.length !== 160)
             throw new Error(`Invalid size Expected 160, got: ${data.length}!`);

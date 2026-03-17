@@ -6,6 +6,11 @@ import {CitreaFees} from "./CitreaFees";
 import {EVMAddresses} from "../../evm/chain/modules/EVMAddresses";
 
 
+/**
+ * Citrea SPV vault wrapper with fee estimation adjusted by expected state-diff size.
+ *
+ * @category Networks/Citrea
+ */
 export class CitreaSpvVaultContract extends EVMSpvVaultContract<"CITREA"> {
 
     public static readonly StateDiffSize = {
@@ -30,7 +35,7 @@ export class CitreaSpvVaultContract extends EVMSpvVaultContract<"CITREA"> {
     }
 
     async getClaimFee(signer: string, vault?: EVMSpvVaultData, data?: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint> {
-        vault ??= EVMSpvVaultData.randomVault();
+        vault ??= EVMSpvVaultData._randomVault();
         feeRate ??= await this.Chain.Fees.getFeeRate();
         const tokenStateChanges: Set<string> = new Set();
 
@@ -56,7 +61,7 @@ export class CitreaSpvVaultContract extends EVMSpvVaultContract<"CITREA"> {
     }
 
     async getFrontFee(signer: string, vault?: EVMSpvVaultData, data?: EVMSpvWithdrawalData, feeRate?: string): Promise<bigint> {
-        vault ??= EVMSpvVaultData.randomVault();
+        vault ??= EVMSpvVaultData._randomVault();
         feeRate ??= await this.Chain.Fees.getFeeRate();
         const tokenStateChanges: Set<string> = new Set();
 

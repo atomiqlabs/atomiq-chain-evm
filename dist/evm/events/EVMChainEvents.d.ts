@@ -2,6 +2,11 @@ import { EVMChainEventsBrowser } from "./EVMChainEventsBrowser";
 import { EVMChainInterface } from "../chain/EVMChainInterface";
 import { EVMSwapContract } from "../swaps/EVMSwapContract";
 import { EVMSpvVaultContract } from "../spv_swap/EVMSpvVaultContract";
+/**
+ * Backend event listener with persisted polling cursor stored on filesystem.
+ *
+ * @category Events
+ */
 export declare class EVMChainEvents extends EVMChainEventsBrowser {
     private readonly directory;
     private readonly BLOCKHEIGHT_FILENAME;
@@ -18,5 +23,8 @@ export declare class EVMChainEvents extends EVMChainEventsBrowser {
      * @private
      */
     private saveLastEventData;
+    /**
+     * @inheritDoc
+     */
     init(noAutomaticPoll?: boolean): Promise<void>;
 }

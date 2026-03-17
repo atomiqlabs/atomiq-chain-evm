@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CitreaInitializer = exports.initializeCitrea = exports.CitreaAssets = void 0;
+exports.CitreaInitializer = exports.initializeCitrea = void 0;
 const base_1 = require("@atomiqlabs/base");
 const ethers_1 = require("ethers");
 const EVMChainInterface_1 = require("../../evm/chain/EVMChainInterface");
@@ -67,7 +67,7 @@ const chainTypeMapping = {
  * Default Citrea token assets configuration
  * @category Networks/Citrea
  */
-exports.CitreaAssets = {
+const CitreaAssets = {
     CBTC: {
         address: "0x0000000000000000000000000000000000000000",
         decimals: 18,
@@ -148,6 +148,6 @@ exports.CitreaInitializer = {
     chainId: "CITREA",
     chainType: null,
     initializer: initializeCitrea,
-    tokens: exports.CitreaAssets,
+    tokens: CitreaAssets,
     options: null
 };

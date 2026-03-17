@@ -1,8 +1,8 @@
-import {BaseContract, Log} from "ethers";
+import {BaseContract, EventFragment, EventLog, Log} from "ethers";
 import {EVMEvents} from "../../chain/modules/EVMEvents";
-import {EVMContractBase} from "../EVMContractBase";
+import {EVMContractBase, TypedFunctionCall} from "../EVMContractBase";
 import {EVMChainInterface} from "../../chain/EVMChainInterface";
-import {TypedEventLog} from "../../typechain/common";
+import {TypedContractMethod, TypedEventLog} from "../../typechain/common";
 
 function normalizeTopic(topic: string) {
     if(topic.length!==66) {
@@ -12,9 +12,14 @@ function normalizeTopic(topic: string) {
 }
 
 
+/**
+ * Typed contract event utilities built on top of generic EVM log querying helpers.
+ *
+ * @category Internal/Contracts
+ */
 export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
 
-    readonly contract: EVMContractBase<T>;
+    private readonly contract: EVMContractBase<T>;
     readonly baseContract: T;
 
     constructor(chainInterface: EVMChainInterface<any>, contract: EVMContractBase<T>) {
@@ -23,8 +28,22 @@ export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
         this.baseContract = contract.contract;
     }
 
-    public toTypedEvents<TEventName extends keyof T["filters"]>(blockEvents: Log[]): (TypedEventLog<T["filters"][TEventName]> | null)[] {
-        return blockEvents.map(log => this.contract.toTypedEvent<TEventName>(log));
+    private toTypedEvent<TEventName extends keyof T["filters"] = keyof T["filters"]>(log: Log): TypedEventLog<T["filters"][TEventName]> | null {
+        let foundFragment: EventFragment | null = null;
+        try {
+            foundFragment = this.baseContract.interface.getEvent(log.topics[0]);
+        } catch (error) { }
+        if(!foundFragment) return null;
+
+        try {
+            return new EventLog(log, this.baseContract.interface, foundFragment) as unknown as TypedEventLog<T["filters"][TEventName]>;
+        } catch (error: any) { }
+
+        return null;
+    }
+
+    toTypedEvents<TEventName extends keyof T["filters"]>(blockEvents: Log[]): (TypedEventLog<T["filters"][TEventName]> | null)[] {
+        return blockEvents.map(log => this.toTypedEvent<TEventName>(log));
     }
 
     private toFilter<TEventName extends keyof T["filters"]>(
@@ -83,7 +102,7 @@ export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
                 if(result!=null) return result;
             }
             return null;
-        }, abortSignal, this.contract.contractDeploymentHeight);
+        }, abortSignal, this.contract._contractDeploymentHeight);
     }
 
     /**
@@ -111,7 +130,7 @@ export class EVMContractEvents<T extends BaseContract> extends EVMEvents {
                 if(result!=null) return result;
             }
             return null;
-        }, abortSignal, Math.max(this.contract.contractDeploymentHeight ?? 0, startHeight ?? 0));
+        }, abortSignal, Math.max(this.contract._contractDeploymentHeight ?? 0, startHeight ?? 0));
     }
 
 }

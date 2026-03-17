@@ -7,10 +7,20 @@ import { EVMBtcStoredHeader } from "../../../../btcrelay/headers/EVMBtcStoredHea
 import { EVMTx } from "../../../../chain/modules/EVMTransactions";
 import { Buffer } from "buffer";
 import { EVMSwapData } from "../../../EVMSwapData";
+/**
+ * Common commitment fields used by all bitcoin-based claim handlers.
+ *
+ * @category Internal/Handlers
+ */
 export type BitcoinCommitmentData = {
     btcRelay: EVMBtcRelay<any>;
     confirmations: number;
 };
+/**
+ * Common witness input for bitcoin-based claim handlers.
+ *
+ * @category Internal/Handlers
+ */
 export type BitcoinWitnessData = {
     tx: {
         blockhash: string;
@@ -24,6 +34,11 @@ export type BitcoinWitnessData = {
     commitedHeader?: EVMBtcStoredHeader;
     synchronizer?: RelaySynchronizer<EVMBtcStoredHeader, EVMTx, any>;
 };
+/**
+ * Shared base implementation for bitcoin-backed claim handlers.
+ *
+ * @category Internal/Handlers
+ */
 export declare abstract class IBitcoinClaimHandler<C, W extends BitcoinWitnessData> implements IClaimHandler<C & BitcoinCommitmentData, W> {
     readonly address: string;
     constructor(address: string);
