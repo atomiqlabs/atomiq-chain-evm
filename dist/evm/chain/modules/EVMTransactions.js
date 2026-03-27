@@ -117,19 +117,24 @@ class EVMTransactions extends EVMModule_1.EVMModule {
      * Prepares EVM transactions, assigns nonces when needed, and optionally applies access lists
      * before signing.
      *
-     * @param signer
      * @param txs
+     * @param signer
      * @param useAccessList Whether to use access lists for sending txns
-     * @private
      */
-    async prepareTransactions(signer, txs, useAccessList) {
+    async prepareTransactions(txs, signer, useAccessList) {
+        if (txs.length === 0)
+            return;
+        const signerAddress = signer?.getAddress()
+            ?? (txs[0].from == null ? null : await (0, ethers_1.resolveAddress)(txs[0].from, this.provider));
+        if (signerAddress == null)
+            throw new Error("Cannot get tx sender address!");
         for (let tx of txs) {
             tx.chainId = this.root.evmChainId;
-            tx.from = signer.getAddress();
+            tx.from = signerAddress;
         }
-        if (!signer.isManagingNoncesInternally) {
-            let nonce = await this.root.provider.getTransactionCount(signer.getAddress(), "pending");
-            const latestKnownNonce = this.latestPendingNonces[signer.getAddress()];
+        if (signer == null || !signer.isManagingNoncesInternally) {
+            let nonce = await this.root.provider.getTransactionCount(signerAddress, "pending");
+            const latestKnownNonce = this.latestPendingNonces[signerAddress];
             if (latestKnownNonce != null && latestKnownNonce > nonce) {
                 this.logger.debug("prepareTransactions(): Using nonce from local cache!");
                 nonce = latestKnownNonce;
@@ -139,20 +144,21 @@ class EVMTransactions extends EVMModule_1.EVMModule {
                 if (tx.nonce != null)
                     nonce = tx.nonce; //Take the nonce from last tx
                 if (nonce == null)
-                    nonce = await this.root.provider.getTransactionCount(signer.getAddress(), "pending"); //Fetch the nonce
+                    nonce = await this.root.provider.getTransactionCount(signerAddress, "pending"); //Fetch the nonce
                 if (tx.nonce == null)
                     tx.nonce = nonce;
                 this.logger.debug("sendAndConfirm(): transaction prepared (" + (i + 1) + "/" + txs.length + "), nonce: " + tx.nonce);
                 nonce++;
             }
         }
-        for (let tx of txs) {
-            if (useAccessList)
-                await this.applyAccessList(tx);
-            for (let callback of this.cbksBeforeTxSigned) {
-                await callback(tx);
+        if (signer != null)
+            for (let tx of txs) {
+                if (useAccessList)
+                    await this.applyAccessList(tx);
+                for (let callback of this.cbksBeforeTxSigned) {
+                    await callback(tx);
+                }
             }
-        }
     }
     /**
      * Sends out a signed transaction to the RPC
@@ -191,7 +197,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
      * @param useAccessLists
      */
     async sendAndConfirm(signer, txs, waitForConfirmation, abortSignal, parallel, onBeforePublish, useAccessLists) {
-        await this.prepareTransactions(signer, txs, useAccessLists ?? this.root._config.useAccessLists);
+        await this.prepareTransactions(txs, signer, useAccessLists ?? this.root._config.useAccessLists);
         const signedTxs = [];
         //Don't separate the signing process from the sending when using browser-based wallet
         if (signer.signTransaction != null)

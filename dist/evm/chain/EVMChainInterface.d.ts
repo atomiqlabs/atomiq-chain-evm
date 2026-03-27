@@ -163,6 +163,10 @@ export declare class EVMChainInterface<ChainId extends string = string> implemen
     /**
      * @inheritDoc
      */
+    prepareTxs(txs: EVMTx[]): Promise<EVMTx[]>;
+    /**
+     * @inheritDoc
+     */
     serializeTx(tx: TransactionRequest): Promise<string>;
     /**
      * @inheritDoc

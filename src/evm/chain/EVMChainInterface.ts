@@ -267,6 +267,14 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
     /**
      * @inheritDoc
      */
+    async prepareTxs(txs: EVMTx[]): Promise<EVMTx[]> {
+        await this.Transactions.prepareTransactions(txs);
+        return txs;
+    }
+
+    /**
+     * @inheritDoc
+     */
     serializeTx(tx: TransactionRequest): Promise<string> {
         return this.Transactions.serializeUnsignedTx(tx);
     }
