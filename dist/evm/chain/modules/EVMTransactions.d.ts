@@ -56,12 +56,11 @@ export declare class EVMTransactions extends EVMModule<any> {
      * Prepares EVM transactions, assigns nonces when needed, and optionally applies access lists
      * before signing.
      *
-     * @param signer
      * @param txs
+     * @param signer
      * @param useAccessList Whether to use access lists for sending txns
-     * @private
      */
-    private prepareTransactions;
+    prepareTransactions(txs: TransactionRequest[], signer?: EVMSigner, useAccessList?: boolean): Promise<void>;
     /**
      * Sends out a signed transaction to the RPC
      *

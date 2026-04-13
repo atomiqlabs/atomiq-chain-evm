@@ -67,7 +67,7 @@ const Factory = new SwapperFactory<SupportedChains>(chains); //Create swapper fa
 const swapper: TypedSwapper<SupportedChains> = Factory.newSwapper({
   chains: {
     CITREA: {
-      rpcUrl: citreaRpc, //You can also pass JsonApiProvider object here
+      rpcUrl: citreaRpc, //You can also pass JsonRpcApiProvider object here
     }
   },
   bitcoinNetwork: BitcoinNetwork.MAINNET //or BitcoinNetwork.TESTNET3, BitcoinNetwork.TESTNET4 - this also sets the deployment to use for EVM chains

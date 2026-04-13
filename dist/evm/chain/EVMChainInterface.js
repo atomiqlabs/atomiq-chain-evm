@@ -121,6 +121,13 @@ class EVMChainInterface {
     /**
      * @inheritDoc
      */
+    async prepareTxs(txs) {
+        await this.Transactions.prepareTransactions(txs);
+        return txs;
+    }
+    /**
+     * @inheritDoc
+     */
     serializeTx(tx) {
         return this.Transactions.serializeUnsignedTx(tx);
     }
