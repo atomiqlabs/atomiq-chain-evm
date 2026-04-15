@@ -335,7 +335,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
         const tx = ethers_1.Transaction.from({
             ...unsignedTx,
             to: unsignedTx.to == null ? null : await (0, ethers_1.resolveAddress)(unsignedTx.to),
-            from: unsignedTx.from == null ? null : await (0, ethers_1.resolveAddress)(unsignedTx.from),
+            from: null,
             authorizationList: unsignedTx.authorizationList == null ? null : unsignedTx.authorizationList.map(val => ({
                 ...val,
                 nonce: BigInt(val.nonce),
@@ -343,7 +343,7 @@ class EVMTransactions extends EVMModule_1.EVMModule {
                 signature: ethers_1.Signature.from(val.signature)
             }))
         });
-        return this.serializeSignedTx(tx);
+        return tx.unsignedSerialized;
     }
     /**
      * Serializes the signed EVM transaction

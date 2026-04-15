@@ -399,7 +399,7 @@ export class EVMTransactions extends EVMModule<any> {
         const tx = Transaction.from({
             ...unsignedTx,
             to: unsignedTx.to==null ? null : await resolveAddress(unsignedTx.to),
-            from: unsignedTx.from==null ? null : await resolveAddress(unsignedTx.from),
+            from: null, // Unsigned transaction cannot have its `from` field populated
             authorizationList: unsignedTx.authorizationList==null ? null : unsignedTx.authorizationList.map(val => ({
                 ...val,
                 nonce: BigInt(val.nonce),
@@ -407,7 +407,7 @@ export class EVMTransactions extends EVMModule<any> {
                 signature: Signature.from(val.signature)
             }))
         });
-        return this.serializeSignedTx(tx);
+        return tx.unsignedSerialized;
     }
 
     /**
