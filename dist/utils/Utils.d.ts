@@ -1,3 +1,6 @@
+export type ReplaceBigInt<T> = T extends bigint ? string : T extends (infer U)[] ? ReplaceBigInt<U>[] : T extends readonly (infer U)[] ? readonly ReplaceBigInt<U>[] : T extends object ? {
+    [K in keyof T]: ReplaceBigInt<T[K]>;
+} : T;
 /**
  * Logger interface used across EVM modules.
  *
@@ -67,3 +70,4 @@ export declare const allowedEthersErrorNumbers: Set<number>;
  * @category Internal/Utils
  */
 export declare const allowedEthersErrorMessages: Set<string>;
+export declare function replaceBigInts<T>(obj: T): ReplaceBigInt<T>;

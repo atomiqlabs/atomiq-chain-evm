@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.allowedEthersErrorMessages = exports.allowedEthersErrorNumbers = exports.allowedEthersErrorCodes = exports.bigIntMax = exports.uint32ReverseEndianness = exports.tryWithRetries = exports.getLogger = exports.onceAsync = exports.timeoutPromise = void 0;
+exports.replaceBigInts = exports.allowedEthersErrorMessages = exports.allowedEthersErrorNumbers = exports.allowedEthersErrorCodes = exports.bigIntMax = exports.uint32ReverseEndianness = exports.tryWithRetries = exports.getLogger = exports.onceAsync = exports.timeoutPromise = void 0;
 /**
  * Returns a promise that resolves after `timeoutMillis` unless aborted first.
  *
@@ -142,3 +142,21 @@ exports.allowedEthersErrorNumbers = new Set([
 exports.allowedEthersErrorMessages = new Set([
     "already known"
 ]);
+function replaceBigInts(obj) {
+    const replace = (value) => {
+        if (typeof (value) === "bigint")
+            return "0x" + value.toString(16);
+        if (value == null || typeof (value) !== "object")
+            return value;
+        if (Array.isArray(value)) {
+            return value.map(replace);
+        }
+        const mapped = {};
+        for (const key of Object.keys(value)) {
+            mapped[key] = replace(value[key]);
+        }
+        return mapped;
+    };
+    return replace(obj);
+}
+exports.replaceBigInts = replaceBigInts;

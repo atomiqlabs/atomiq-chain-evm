@@ -1,4 +1,16 @@
 
+
+export type ReplaceBigInt<T> =
+    T extends bigint
+        ? string
+        : T extends (infer U)[]
+            ? ReplaceBigInt<U>[]
+            : T extends readonly (infer U)[]
+                ? readonly ReplaceBigInt<U>[]
+                : T extends object
+                    ? { [K in keyof T]: ReplaceBigInt<T[K]> }
+                    : T;
+
 /**
  * Logger interface used across EVM modules.
  *
@@ -159,3 +171,23 @@ export const allowedEthersErrorNumbers: Set<number> = new Set([
 export const allowedEthersErrorMessages: Set<string> = new Set([
     "already known"
 ]);
+
+export function replaceBigInts<T>(obj: T): ReplaceBigInt<T> {
+    const replace = (value: any): any => {
+        if(typeof(value)==="bigint") return "0x"+value.toString(16);
+        if(value==null || typeof(value)!=="object") return value;
+
+        if(Array.isArray(value)) {
+            return value.map(replace);
+        }
+
+        const mapped: any = {};
+        for(const key of Object.keys(value)) {
+            mapped[key] = replace(value[key]);
+        }
+        return mapped;
+    };
+
+    return replace(obj);
+}
+

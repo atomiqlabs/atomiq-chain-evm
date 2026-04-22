@@ -4,6 +4,7 @@ exports.EVMSwapData = void 0;
 const base_1 = require("@atomiqlabs/base");
 const ethers_1 = require("ethers");
 const TimelockRefundHandler_1 = require("./handlers/refund/TimelockRefundHandler");
+const Utils_1 = require("../../utils/Utils");
 const FLAG_PAY_OUT = 0x01n;
 const FLAG_PAY_IN = 0x02n;
 const FLAG_REPUTATION = 0x04n;
@@ -412,6 +413,12 @@ class EVMSwapData extends base_1.SwapData {
     static deserializeFromStruct(struct, claimHandlerImpl) {
         const { payOut, payIn, reputation, sequence } = EVMSwapData.toFlags(BigInt(struct.flags));
         return new EVMSwapData(struct.offerer, struct.claimer, struct.token, struct.refundHandler, struct.claimHandler, payOut, payIn, reputation, sequence, (0, ethers_1.hexlify)(struct.claimData), (0, ethers_1.hexlify)(struct.refundData), BigInt(struct.amount), struct.depositToken, BigInt(struct.securityDeposit), BigInt(struct.claimerBounty), claimHandlerImpl.getType(), undefined, struct.successActionCommitment);
+    }
+    /**
+     * @inheritDoc
+     */
+    getEscrowStruct() {
+        return (0, Utils_1.replaceBigInts)(this.toEscrowStruct());
     }
 }
 exports.EVMSwapData = EVMSwapData;

@@ -178,4 +178,8 @@ export declare class EVMSwapData extends SwapData {
      * @param claimHandlerImpl Claim handler implementation used to resolve swap type
      */
     static deserializeFromStruct(struct: EscrowDataStruct, claimHandlerImpl: IClaimHandler<any, any>): EVMSwapData;
+    /**
+     * @inheritDoc
+     */
+    getEscrowStruct(): any;
 }

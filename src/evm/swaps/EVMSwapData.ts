@@ -3,6 +3,7 @@ import {AbiCoder, hexlify, keccak256, ZeroHash} from "ethers";
 import {EscrowDataStruct, EscrowDataStructOutput} from "./EscrowManagerTypechain";
 import {IClaimHandler} from "./handlers/claim/ClaimHandlers";
 import {TimelockRefundHandler} from "./handlers/refund/TimelockRefundHandler";
+import {replaceBigInts} from "../../utils/Utils";
 
 const FLAG_PAY_OUT: bigint = 0x01n;
 const FLAG_PAY_IN: bigint = 0x02n;
@@ -511,6 +512,13 @@ export class EVMSwapData extends SwapData {
             undefined,
             struct.successActionCommitment as string
         );
+    }
+
+    /**
+     * @inheritDoc
+     */
+    getEscrowStruct(): any {
+        return replaceBigInts(this.toEscrowStruct());
     }
 
 }
