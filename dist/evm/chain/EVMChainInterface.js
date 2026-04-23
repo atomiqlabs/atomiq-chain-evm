@@ -160,6 +160,15 @@ class EVMChainInterface {
     /**
      * @inheritDoc
      */
+    getTxId(signedTX) {
+        const txId = signedTX.hash;
+        if (txId == null)
+            throw new Error("Passed transaction is not signed!");
+        return Promise.resolve(txId);
+    }
+    /**
+     * @inheritDoc
+     */
     getTxStatus(tx) {
         return this.Transactions.getTxStatus(tx);
     }

@@ -333,14 +333,35 @@ export class EVMSwapContract<ChainId extends string = string>
         const escrowHash = data.getEscrowHash();
         const stateData = await this.contract.getHashState("0x"+escrowHash);
         const state = Number(stateData.state);
+        const initBlockHeight = Number(stateData.initBlockheight);
         const blockHeight = Number(stateData.finishBlockheight);
+
+        const getInitTxId = async () => {
+            const events = await this._Events.getContractBlockEvents(
+                ["Initialize"],
+                [null, null, "0x"+escrowHash],
+                initBlockHeight, initBlockHeight
+            );
+            if(events.length===0) throw new Error("Initialize event not found!");
+            return events[0].transactionHash;
+        }
+
         switch(state) {
             case ESCROW_STATE_COMMITTED:
-                if(data.isOfferer(signer) && await this.isExpired(signer,data)) return {type: SwapCommitStateType.REFUNDABLE};
-                return {type: SwapCommitStateType.COMMITED};
+                if(data.isOfferer(signer) && await this.isExpired(signer,data)) {
+                    return {
+                        type: SwapCommitStateType.REFUNDABLE,
+                        getInitTxId
+                    };
+                }
+                return {
+                    type: SwapCommitStateType.COMMITED,
+                    getInitTxId
+                };
             case ESCROW_STATE_CLAIMED:
                 return {
                     type: SwapCommitStateType.PAID,
+                    getInitTxId,
                     getTxBlock: async () => {
                         return {
                             blockTime: await this.Chain.Blocks.getBlockTime(blockHeight),
@@ -369,6 +390,7 @@ export class EVMSwapContract<ChainId extends string = string>
             case ESCROW_STATE_REFUNDED:
                 return {
                     type: await this.isExpired(signer, data) ? SwapCommitStateType.EXPIRED : SwapCommitStateType.NOT_COMMITED,
+                    getInitTxId,
                     getTxBlock: async () => {
                         return {
                             blockTime: await this.Chain.Blocks.getBlockTime(blockHeight),
@@ -493,6 +515,7 @@ export class EVMSwapContract<ChainId extends string = string>
                     init: foundSwapData,
                     state: {
                         type: SwapCommitStateType.PAID,
+                        getInitTxId: foundSwapData?.getInitTxId,
                         getClaimTxId: () => Promise.resolve(event.transactionHash),
                         getClaimResult: () => Promise.resolve(event.args.witnessResult.substring(2)),
                         getTxBlock: async () => {
@@ -513,6 +536,7 @@ export class EVMSwapContract<ChainId extends string = string>
                     init: foundSwapData,
                     state: {
                         type: isExpired ? SwapCommitStateType.EXPIRED : SwapCommitStateType.NOT_COMMITED,
+                        getInitTxId: foundSwapData?.getInitTxId,
                         getRefundTxId: () => Promise.resolve(event.transactionHash),
                         getTxBlock: async () => {
                             return {
@@ -547,8 +571,8 @@ export class EVMSwapContract<ChainId extends string = string>
             resultingSwaps[escrowHash] = {
                 init: foundSwapData,
                 state: foundSwapData.data.isOfferer(signer) && await this.isExpired(signer, foundSwapData.data)
-                    ? {type: SwapCommitStateType.REFUNDABLE}
-                    : {type: SwapCommitStateType.COMMITED}
+                    ? {type: SwapCommitStateType.REFUNDABLE, getInitTxId: foundSwapData.getInitTxId}
+                    : {type: SwapCommitStateType.COMMITED, getInitTxId: foundSwapData.getInitTxId}
             }
         }
 

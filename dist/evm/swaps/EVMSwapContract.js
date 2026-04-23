@@ -247,15 +247,30 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
         const escrowHash = data.getEscrowHash();
         const stateData = await this.contract.getHashState("0x" + escrowHash);
         const state = Number(stateData.state);
+        const initBlockHeight = Number(stateData.initBlockheight);
         const blockHeight = Number(stateData.finishBlockheight);
+        const getInitTxId = async () => {
+            const events = await this._Events.getContractBlockEvents(["Initialize"], [null, null, "0x" + escrowHash], initBlockHeight, initBlockHeight);
+            if (events.length === 0)
+                throw new Error("Initialize event not found!");
+            return events[0].transactionHash;
+        };
         switch (state) {
             case ESCROW_STATE_COMMITTED:
-                if (data.isOfferer(signer) && await this.isExpired(signer, data))
-                    return { type: base_1.SwapCommitStateType.REFUNDABLE };
-                return { type: base_1.SwapCommitStateType.COMMITED };
+                if (data.isOfferer(signer) && await this.isExpired(signer, data)) {
+                    return {
+                        type: base_1.SwapCommitStateType.REFUNDABLE,
+                        getInitTxId
+                    };
+                }
+                return {
+                    type: base_1.SwapCommitStateType.COMMITED,
+                    getInitTxId
+                };
             case ESCROW_STATE_CLAIMED:
                 return {
                     type: base_1.SwapCommitStateType.PAID,
+                    getInitTxId,
                     getTxBlock: async () => {
                         return {
                             blockTime: await this.Chain.Blocks.getBlockTime(blockHeight),
@@ -278,6 +293,7 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
             case ESCROW_STATE_REFUNDED:
                 return {
                     type: await this.isExpired(signer, data) ? base_1.SwapCommitStateType.EXPIRED : base_1.SwapCommitStateType.NOT_COMMITED,
+                    getInitTxId,
                     getTxBlock: async () => {
                         return {
                             blockTime: await this.Chain.Blocks.getBlockTime(blockHeight),
@@ -358,6 +374,7 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
                     init: foundSwapData,
                     state: {
                         type: base_1.SwapCommitStateType.PAID,
+                        getInitTxId: foundSwapData?.getInitTxId,
                         getClaimTxId: () => Promise.resolve(event.transactionHash),
                         getClaimResult: () => Promise.resolve(event.args.witnessResult.substring(2)),
                         getTxBlock: async () => {
@@ -378,6 +395,7 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
                     init: foundSwapData,
                     state: {
                         type: isExpired ? base_1.SwapCommitStateType.EXPIRED : base_1.SwapCommitStateType.NOT_COMMITED,
+                        getInitTxId: foundSwapData?.getInitTxId,
                         getRefundTxId: () => Promise.resolve(event.transactionHash),
                         getTxBlock: async () => {
                             return {
@@ -399,8 +417,8 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
             resultingSwaps[escrowHash] = {
                 init: foundSwapData,
                 state: foundSwapData.data.isOfferer(signer) && await this.isExpired(signer, foundSwapData.data)
-                    ? { type: base_1.SwapCommitStateType.REFUNDABLE }
-                    : { type: base_1.SwapCommitStateType.COMMITED }
+                    ? { type: base_1.SwapCommitStateType.REFUNDABLE, getInitTxId: foundSwapData.getInitTxId }
+                    : { type: base_1.SwapCommitStateType.COMMITED, getInitTxId: foundSwapData.getInitTxId }
             };
         }
         return {
