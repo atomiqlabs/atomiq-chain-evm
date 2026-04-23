@@ -128,13 +128,16 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
      */
     protected logger: LoggerType;
 
+    private readonly bitcoinNetwork?: BitcoinNetwork;
+
     constructor(
         chainId: ChainId,
         evmChainId: number,
         provider: JsonRpcApiProvider,
         config: EVMConfiguration,
         retryPolicy?: EVMRetryPolicy,
-        evmFeeEstimator: EVMFees = new EVMFees(provider)
+        evmFeeEstimator: EVMFees = new EVMFees(provider),
+        bitcoinNetwork?: BitcoinNetwork
     ) {
         this.chainId = chainId;
         this.evmChainId = evmChainId;
@@ -145,6 +148,8 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
         this._config.finalizedBlockTag ??= "finalized";
         this._config.finalityCheckStrategy ??= {type: "timer"};
         this._config.finalityCheckStrategy.delayMs ??= 1000;
+
+        this.bitcoinNetwork = bitcoinNetwork;
 
         this.logger = getLogger("EVMChainInterface("+this.evmChainId+"): ");
 
@@ -359,6 +364,9 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
     }
 
     async verifyNetwork(bitcoinNetwork: BitcoinNetwork): Promise<void> {
+        if(this.bitcoinNetwork!=null && bitcoinNetwork!==this.bitcoinNetwork)
+            throw new Error(`Network mismatch, the chain interface was not setup for ${BitcoinNetwork[bitcoinNetwork]}, chain interface network: ${BitcoinNetwork[this.bitcoinNetwork]}`);
+
         const network = await this.provider.getNetwork();
         if(network.chainId!==BigInt(this.evmChainId))
             throw new Error(`Network mismatch, the underlying RPC provider isn't using the correct chainId, expected: ${this.evmChainId}, provider returned: ${network.chainId.toString(10)}`);

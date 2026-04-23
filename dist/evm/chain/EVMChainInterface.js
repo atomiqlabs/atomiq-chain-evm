@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EVMChainInterface = void 0;
+const base_1 = require("@atomiqlabs/base");
 const Utils_1 = require("../../utils/Utils");
 const ethers_1 = require("ethers");
 const EVMBlocks_1 = require("./modules/EVMBlocks");
@@ -17,7 +18,7 @@ const EVMBrowserSigner_1 = require("../wallet/EVMBrowserSigner");
  * @category Chain Interface
  */
 class EVMChainInterface {
-    constructor(chainId, evmChainId, provider, config, retryPolicy, evmFeeEstimator = new EVMFees_1.EVMFees(provider)) {
+    constructor(chainId, evmChainId, provider, config, retryPolicy, evmFeeEstimator = new EVMFees_1.EVMFees(provider), bitcoinNetwork) {
         var _a, _b, _c, _d;
         this.chainId = chainId;
         this.evmChainId = evmChainId;
@@ -28,6 +29,7 @@ class EVMChainInterface {
         (_b = this._config).finalizedBlockTag ?? (_b.finalizedBlockTag = "finalized");
         (_c = this._config).finalityCheckStrategy ?? (_c.finalityCheckStrategy = { type: "timer" });
         (_d = this._config.finalityCheckStrategy).delayMs ?? (_d.delayMs = 1000);
+        this.bitcoinNetwork = bitcoinNetwork;
         this.logger = (0, Utils_1.getLogger)("EVMChainInterface(" + this.evmChainId + "): ");
         this.Fees = evmFeeEstimator;
         this.Tokens = new EVMTokens_1.EVMTokens(this);
@@ -196,6 +198,8 @@ class EVMChainInterface {
         return new EVMSigner_1.EVMSigner(signer, address);
     }
     async verifyNetwork(bitcoinNetwork) {
+        if (this.bitcoinNetwork != null && bitcoinNetwork !== this.bitcoinNetwork)
+            throw new Error(`Network mismatch, the chain interface was not setup for ${base_1.BitcoinNetwork[bitcoinNetwork]}, chain interface network: ${base_1.BitcoinNetwork[this.bitcoinNetwork]}`);
         const network = await this.provider.getNetwork();
         if (network.chainId !== BigInt(this.evmChainId))
             throw new Error(`Network mismatch, the underlying RPC provider isn't using the correct chainId, expected: ${this.evmChainId}, provider returned: ${network.chainId.toString(10)}`);

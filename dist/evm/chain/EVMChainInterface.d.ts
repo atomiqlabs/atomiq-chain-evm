@@ -107,7 +107,8 @@ export declare class EVMChainInterface<ChainId extends string = string> implemen
      * @internal
      */
     protected logger: LoggerType;
-    constructor(chainId: ChainId, evmChainId: number, provider: JsonRpcApiProvider, config: EVMConfiguration, retryPolicy?: EVMRetryPolicy, evmFeeEstimator?: EVMFees);
+    private readonly bitcoinNetwork?;
+    constructor(chainId: ChainId, evmChainId: number, provider: JsonRpcApiProvider, config: EVMConfiguration, retryPolicy?: EVMRetryPolicy, evmFeeEstimator?: EVMFees, bitcoinNetwork?: BitcoinNetwork);
     /**
      * @inheritDoc
      */

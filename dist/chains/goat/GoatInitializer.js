@@ -130,7 +130,7 @@ function initializeGoat(options, bitcoinRpc, network) {
         maxParallelCalls: options?.evmConfig?.maxParallelCalls ?? 5,
         useAccessLists: options?.evmConfig?.useAccessLists,
         defaultAccessListAddresses: options?.evmConfig?.defaultAccessListAddresses
-    }, options.retryPolicy, Fees);
+    }, options.retryPolicy, Fees, network);
     const btcRelay = new EVMBtcRelay_1.EVMBtcRelay(chainInterface, bitcoinRpc, network, options.btcRelayContract ?? defaultContractAddresses.btcRelayContract, options.btcRelayDeploymentHeight ?? defaultContractAddresses.btcRelayDeploymentHeight);
     const swapContract = new EVMSwapContract_1.EVMSwapContract(chainInterface, btcRelay, options.swapContract ?? defaultContractAddresses.swapContract, {
         refund: {

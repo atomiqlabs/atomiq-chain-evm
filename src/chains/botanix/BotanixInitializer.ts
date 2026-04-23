@@ -127,7 +127,7 @@ export function initializeBotanix(
             type: "timer",
             delayMs: 1000
         }
-    }, options.retryPolicy, Fees);
+    }, options.retryPolicy, Fees, network);
 
     const btcRelay = new EVMBtcRelay(
         chainInterface, bitcoinRpc, network, options.btcRelayContract ?? defaultContractAddresses.btcRelayContract,
