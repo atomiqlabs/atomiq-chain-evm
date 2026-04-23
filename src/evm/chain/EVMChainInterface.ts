@@ -1,4 +1,4 @@
-import {ChainInterface, TransactionConfirmationOptions} from "@atomiqlabs/base";
+import {BitcoinNetwork, ChainInterface, TransactionConfirmationOptions} from "@atomiqlabs/base";
 import {getLogger, LoggerType} from "../../utils/Utils";
 import {
     BrowserProvider,
@@ -356,6 +356,12 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
             return new EVMBrowserSigner(signer, address);
         }
         return new EVMSigner(signer, address);
+    }
+
+    async verifyNetwork(bitcoinNetwork: BitcoinNetwork): Promise<void> {
+        const network = await this.provider.getNetwork();
+        if(network.chainId!==BigInt(this.evmChainId))
+            throw new Error(`Network mismatch, the underlying RPC provider isn't using the correct chainId, expected: ${this.evmChainId}, provider returned: ${network.chainId.toString(10)}`);
     }
 
 }

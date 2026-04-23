@@ -195,5 +195,10 @@ class EVMChainInterface {
         }
         return new EVMSigner_1.EVMSigner(signer, address);
     }
+    async verifyNetwork(bitcoinNetwork) {
+        const network = await this.provider.getNetwork();
+        if (network.chainId !== BigInt(this.evmChainId))
+            throw new Error(`Network mismatch, the underlying RPC provider isn't using the correct chainId, expected: ${this.evmChainId}, provider returned: ${network.chainId.toString(10)}`);
+    }
 }
 exports.EVMChainInterface = EVMChainInterface;

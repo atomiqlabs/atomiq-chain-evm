@@ -1,4 +1,4 @@
-import { ChainInterface, TransactionConfirmationOptions } from "@atomiqlabs/base";
+import { BitcoinNetwork, ChainInterface, TransactionConfirmationOptions } from "@atomiqlabs/base";
 import { LoggerType } from "../../utils/Utils";
 import { JsonRpcApiProvider, Signer, Transaction, TransactionRequest } from "ethers";
 import { EVMBlocks, EVMBlockTag } from "./modules/EVMBlocks";
@@ -207,4 +207,5 @@ export declare class EVMChainInterface<ChainId extends string = string> implemen
      * @inheritDoc
      */
     wrapSigner(signer: Signer): Promise<EVMSigner>;
+    verifyNetwork(bitcoinNetwork: BitcoinNetwork): Promise<void>;
 }
