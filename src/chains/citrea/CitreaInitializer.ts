@@ -135,7 +135,7 @@ export function initializeCitrea(
         maxParallelCalls: options?.evmConfig?.maxParallelCalls ?? 5,
         useAccessLists: options?.evmConfig?.useAccessLists,
         defaultAccessListAddresses: options?.evmConfig?.defaultAccessListAddresses
-    }, options.retryPolicy, Fees);
+    }, options.retryPolicy, Fees, network);
     chainInterface.Tokens = new CitreaTokens(chainInterface); //Override with custom token module allowing l1 state diff based fee calculation
 
     const btcRelay = new CitreaBtcRelay(

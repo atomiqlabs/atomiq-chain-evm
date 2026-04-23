@@ -145,7 +145,7 @@ export function initializeAlpen(
         maxParallelCalls: options?.evmConfig?.maxParallelCalls ?? 5,
         useAccessLists: options?.evmConfig?.useAccessLists,
         defaultAccessListAddresses: options?.evmConfig?.defaultAccessListAddresses
-    }, options.retryPolicy, Fees);
+    }, options.retryPolicy, Fees, network);
 
     const btcRelay = new EVMBtcRelay(
         chainInterface, bitcoinRpc, network, options.btcRelayContract ?? defaultContractAddresses.btcRelayContract,
