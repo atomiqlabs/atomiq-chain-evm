@@ -315,6 +315,15 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
     /**
      * @inheritDoc
      */
+    getTxId(signedTX: Transaction): Promise<string> {
+        const txId = signedTX.hash;
+        if(txId==null) throw new Error("Passed transaction is not signed!");
+        return Promise.resolve(txId);
+    }
+
+    /**
+     * @inheritDoc
+     */
     getTxStatus(tx: string): Promise<"not_found" | "pending" | "success" | "reverted"> {
         return this.Transactions.getTxStatus(tx);
     }

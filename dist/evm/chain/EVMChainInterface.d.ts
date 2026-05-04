@@ -188,6 +188,10 @@ export declare class EVMChainInterface<ChainId extends string = string> implemen
     /**
      * @inheritDoc
      */
+    getTxId(signedTX: Transaction): Promise<string>;
+    /**
+     * @inheritDoc
+     */
     getTxStatus(tx: string): Promise<"not_found" | "pending" | "success" | "reverted">;
     /**
      * @inheritDoc
