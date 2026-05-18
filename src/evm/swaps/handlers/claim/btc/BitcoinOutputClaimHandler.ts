@@ -31,7 +31,7 @@ export type BitcoinOutputWitnessData = BitcoinWitnessData & {
 export class BitcoinOutputClaimHandler extends IBitcoinClaimHandler<BitcoinOutputCommitmentData, BitcoinOutputWitnessData> {
 
     public static readonly type: ChainSwapType = ChainSwapType.CHAIN;
-    public static readonly gas: number = 40_000;
+    public static readonly gas: number = 150_000;
 
     protected serializeCommitment(data: BitcoinOutputCommitmentData & BitcoinCommitmentData): Buffer {
         const txoHash = solidityPackedKeccak256(["uint64", "bytes32"], [data.amount, keccak256(data.output)]);

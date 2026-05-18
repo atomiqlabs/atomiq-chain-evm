@@ -59,4 +59,4 @@ class BitcoinNoncedOutputClaimHandler extends IBitcoinClaimHandler_1.IBitcoinCla
 }
 exports.BitcoinNoncedOutputClaimHandler = BitcoinNoncedOutputClaimHandler;
 BitcoinNoncedOutputClaimHandler.type = base_1.ChainSwapType.CHAIN_NONCED;
-BitcoinNoncedOutputClaimHandler.gas = 40000;
+BitcoinNoncedOutputClaimHandler.gas = 150000;

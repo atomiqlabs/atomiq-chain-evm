@@ -51,4 +51,4 @@ class BitcoinOutputClaimHandler extends IBitcoinClaimHandler_1.IBitcoinClaimHand
 }
 exports.BitcoinOutputClaimHandler = BitcoinOutputClaimHandler;
 BitcoinOutputClaimHandler.type = base_1.ChainSwapType.CHAIN;
-BitcoinOutputClaimHandler.gas = 40000;
+BitcoinOutputClaimHandler.gas = 150000;
