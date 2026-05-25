@@ -23,6 +23,7 @@ import { EVMSwapClaim } from "./modules/EVMSwapClaim";
  * @category Swaps
  */
 export declare class EVMSwapContract<ChainId extends string = string> extends EVMContractBase<EscrowManager> implements SwapContract<EVMSwapData, EVMTx, never, EVMPreFetchVerification, EVMSigner, ChainId> {
+    private readonly logger;
     readonly supportsInitWithoutClaimer = true;
     readonly chainId: ChainId;
     readonly claimWithSecretTimeout: number;

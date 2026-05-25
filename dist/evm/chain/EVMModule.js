@@ -9,10 +9,10 @@ const Utils_1 = require("../../utils/Utils");
  */
 class EVMModule {
     constructor(root) {
-        this.logger = (0, Utils_1.getLogger)(this.constructor.name + ": ");
         this.provider = root.provider;
         this.retryPolicy = root._retryPolicy;
         this.root = root;
+        this.logger = (0, Utils_1.getLogger)(this.constructor.name + "(" + root.chainId + "): ");
     }
 }
 exports.EVMModule = EVMModule;

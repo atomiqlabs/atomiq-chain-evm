@@ -31,7 +31,7 @@ export type BitcoinWitnessData = {
     synchronizer?: RelaySynchronizer<EVMBtcStoredHeader, EVMTx, any>
 };
 
-const logger = getLogger("IBitcoinClaimHandler: ");
+const logger = getLogger("IBitcoinClaimHandler");
 
 /**
  * Shared base implementation for bitcoin-backed claim handlers.
@@ -85,7 +85,7 @@ export abstract class IBitcoinClaimHandler<C, W extends BitcoinWitnessData> impl
 
         const merkleProof = await btcRelay._bitcoinRpc.getMerkleProof(tx.txid, tx.blockhash);
         if(merkleProof==null) throw new Error(`Failed to generate merkle proof for tx: ${tx.txid}!`);
-        logger.debug("getWitness(): merkle proof computed: ", merkleProof);
+        logger.debug("("+btcRelay.chainId+"): getWitness(): merkle proof computed: ", merkleProof);
 
         const txs: EVMTx[] = [];
         if(commitedHeader==null) {

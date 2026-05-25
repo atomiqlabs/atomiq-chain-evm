@@ -1,5 +1,4 @@
 import {ChainSwapType} from "@atomiqlabs/base";
-import {getLogger} from "../../../../../utils/Utils";
 import {BitcoinCommitmentData, BitcoinWitnessData, IBitcoinClaimHandler} from "./IBitcoinClaimHandler";
 import {Buffer} from "buffer";
 import {EVMSwapData} from "../../../EVMSwapData";

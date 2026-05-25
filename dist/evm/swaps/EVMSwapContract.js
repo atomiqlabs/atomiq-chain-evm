@@ -18,7 +18,6 @@ const Utils_1 = require("../../utils/Utils");
 const ESCROW_STATE_COMMITTED = 1;
 const ESCROW_STATE_CLAIMED = 2;
 const ESCROW_STATE_REFUNDED = 3;
-const logger = (0, Utils_1.getLogger)("EVMSwapContract: ");
 /**
  * EVM swap contract (escrow manager) representation handling PrTLC (on-chain) and HTLC (lightning)
  *  based swaps.
@@ -67,6 +66,7 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
         });
         this._timelockRefundHandler = new TimelockRefundHandler_1.TimelockRefundHandler(handlerAddresses.refund.timelock);
         this._refundHandlersByAddress[this._timelockRefundHandler.address.toLowerCase()] = this._timelockRefundHandler;
+        this.logger = (0, Utils_1.getLogger)("EVMSwapContract(" + this.chainId + "): ");
     }
     /**
      * @inheritDoc
@@ -346,13 +346,13 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
                 const claimHandlerHex = event.args.claimHandler;
                 const claimHandler = this._claimHandlersByAddress[claimHandlerHex.toLowerCase()];
                 if (claimHandler == null) {
-                    logger.warn(`getHistoricalSwaps(): Unknown claim handler in tx ${event.transactionHash} with claim handler: ` + claimHandlerHex);
+                    this.logger.warn(`getHistoricalSwaps(): Unknown claim handler in tx ${event.transactionHash} with claim handler: ` + claimHandlerHex);
                     return null;
                 }
                 const txTrace = await this.Chain.Transactions.traceTransaction(event.transactionHash);
                 const data = this.findInitSwapData(txTrace, event.args.escrowHash, claimHandler);
                 if (data == null) {
-                    logger.warn(`getHistoricalSwaps(): Cannot parse swap data from tx ${event.transactionHash} with escrow hash: ` + escrowHash);
+                    this.logger.warn(`getHistoricalSwaps(): Cannot parse swap data from tx ${event.transactionHash} with escrow hash: ` + escrowHash);
                     return null;
                 }
                 swapsOpened[escrowHash] = {
@@ -410,8 +410,8 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
         //We have to fetch separately the different directions
         await this._Events.findInContractEventsForward(["Initialize", "Claim", "Refund"], [signer, null], processor, startBlockheight);
         await this._Events.findInContractEventsForward(["Initialize", "Claim", "Refund"], [null, signer], processor, startBlockheight);
-        logger.debug(`getHistoricalSwaps(): Found ${Object.keys(resultingSwaps).length} settled swaps!`);
-        logger.debug(`getHistoricalSwaps(): Found ${Object.keys(swapsOpened).length} unsettled swaps!`);
+        this.logger.debug(`getHistoricalSwaps(): Found ${Object.keys(resultingSwaps).length} settled swaps!`);
+        this.logger.debug(`getHistoricalSwaps(): Found ${Object.keys(swapsOpened).length} unsettled swaps!`);
         for (let escrowHash in swapsOpened) {
             const foundSwapData = swapsOpened[escrowHash];
             resultingSwaps[escrowHash] = {

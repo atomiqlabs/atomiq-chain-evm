@@ -6,7 +6,7 @@ const EVMBtcRelay_1 = require("../../../../btcrelay/EVMBtcRelay");
 const Utils_1 = require("../../../../../utils/Utils");
 const ethers_1 = require("ethers");
 const buffer_1 = require("buffer");
-const logger = (0, Utils_1.getLogger)("IBitcoinClaimHandler: ");
+const logger = (0, Utils_1.getLogger)("IBitcoinClaimHandler");
 /**
  * Shared base implementation for bitcoin-backed claim handlers.
  *
@@ -37,7 +37,7 @@ class IBitcoinClaimHandler {
         const merkleProof = await btcRelay._bitcoinRpc.getMerkleProof(tx.txid, tx.blockhash);
         if (merkleProof == null)
             throw new Error(`Failed to generate merkle proof for tx: ${tx.txid}!`);
-        logger.debug("getWitness(): merkle proof computed: ", merkleProof);
+        logger.debug("(" + btcRelay.chainId + "): getWitness(): merkle proof computed: ", merkleProof);
         const txs = [];
         if (commitedHeader == null) {
             const headers = await EVMBtcRelay_1.EVMBtcRelay.getCommitedHeadersAndSynchronize(signer, btcRelay, [{ blockheight: tx.height, requiredConfirmations, blockhash: tx.blockhash }], txs, synchronizer, feeRate);

@@ -1,4 +1,4 @@
-import {getLogger} from "../../utils/Utils";
+import {getLogger, LoggerType} from "../../utils/Utils";
 import {JsonRpcApiProvider} from "ethers";
 import {EVMChainInterface, EVMRetryPolicy} from "./EVMChainInterface";
 
@@ -13,7 +13,7 @@ export class EVMModule<ChainId extends string = string> {
     protected readonly retryPolicy?: EVMRetryPolicy;
     protected readonly root: EVMChainInterface<ChainId>;
 
-    protected readonly logger = getLogger(this.constructor.name+": ");
+    protected readonly logger: LoggerType;
 
     constructor(
         root: EVMChainInterface<ChainId>
@@ -21,6 +21,7 @@ export class EVMModule<ChainId extends string = string> {
         this.provider = root.provider;
         this.retryPolicy = root._retryPolicy;
         this.root = root;
+        this.logger = getLogger(this.constructor.name+"("+root.chainId+"): ");
     }
 
 }

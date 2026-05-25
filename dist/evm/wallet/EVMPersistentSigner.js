@@ -32,7 +32,7 @@ class EVMPersistentSigner extends EVMSigner_1.EVMSigner {
         this.minFeeIncreasePpm = minFeeIncreasePpm ?? MIN_FEE_INCREASE_PPM;
         this.waitBeforeBump = waitBeforeBumpMillis ?? WAIT_BEFORE_BUMP;
         this.safeBlockTag = chainInterface._config.safeBlockTag;
-        this.logger = (0, Utils_1.getLogger)("EVMPersistentSigner(" + address + "): ");
+        this.logger = (0, Utils_1.getLogger)("EVMPersistentSigner(" + this.chainInterface.chainId + "," + address + "): ");
     }
     async load() {
         const fileExists = await fs.access(this.directory + "/txs.json", fs.constants.F_OK).then(() => true).catch(() => false);

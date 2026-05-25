@@ -151,7 +151,7 @@ export class EVMChainInterface<ChainId extends string = string> implements Chain
 
         this.bitcoinNetwork = bitcoinNetwork;
 
-        this.logger = getLogger("EVMChainInterface("+this.evmChainId+"): ");
+        this.logger = getLogger("EVMChainInterface("+this.chainId+"): ");
 
         this.Fees = evmFeeEstimator;
         this.Tokens = new EVMTokens(this);

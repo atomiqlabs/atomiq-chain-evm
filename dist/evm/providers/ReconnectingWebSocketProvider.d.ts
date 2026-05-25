@@ -1,6 +1,7 @@
 import { JsonRpcApiProviderOptions } from "ethers";
 import type { Networkish, WebSocketLike } from "ethers";
 import { SocketProvider } from "./SocketProvider";
+import { LoggerType } from "../../utils/Utils";
 /**
  * WebSocket RPC provider with automatic reconnect, heartbeat ping and connection timeout handling.
  *
@@ -19,6 +20,7 @@ export declare class ReconnectingWebSocketProvider extends SocketProvider {
         onclose?: (...args: any[]) => void;
         ping?: () => void;
     });
+    readonly logger: LoggerType;
     constructor(url: string | (() => WebSocketLike), network?: Networkish, options?: JsonRpcApiProviderOptions);
     private connect;
     private disconnectedAndScheduleReconnect;

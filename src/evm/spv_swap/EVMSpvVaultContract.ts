@@ -20,7 +20,7 @@ import {EVMSigner} from "../wallet/EVMSigner";
 import {SpvVaultContractAbi} from "./SpvVaultContractAbi";
 import {SpvVaultManager, SpvVaultParametersStructOutput} from "./SpvVaultContractTypechain";
 import {EVMBtcRelay} from "../btcrelay/EVMBtcRelay";
-import {getLogger} from "../../utils/Utils";
+import {getLogger, LoggerType} from "../../utils/Utils";
 import {EVMChainInterface} from "../chain/EVMChainInterface";
 import {AbiCoder, getAddress, hexlify, keccak256, TransactionRequest, ZeroAddress, ZeroHash} from "ethers";
 import {EVMAddresses} from "../chain/modules/EVMAddresses";
@@ -96,7 +96,7 @@ export class EVMSpvVaultContract<ChainId extends string>
     private readonly btcRelay: EVMBtcRelay<any>;
     private readonly bitcoinRpc: BitcoinRpc<any>;
 
-    private readonly logger = getLogger("EVMSpvVaultContract: ");
+    private readonly logger: LoggerType;
 
     constructor(
         chainInterface: EVMChainInterface<ChainId>,
@@ -106,6 +106,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         contractDeploymentHeight?: number
     ) {
         super(chainInterface, contractAddress, SpvVaultContractAbi, contractDeploymentHeight);
+        this.logger = getLogger("EVMSpvVaultContract("+chainInterface.chainId+"): ");
         this.chainId = chainInterface.chainId;
         this.btcRelay = btcRelay;
         this.bitcoinRpc = bitcoinRpc;

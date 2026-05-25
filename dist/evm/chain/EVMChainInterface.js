@@ -30,7 +30,7 @@ class EVMChainInterface {
         (_c = this._config).finalityCheckStrategy ?? (_c.finalityCheckStrategy = { type: "timer" });
         (_d = this._config.finalityCheckStrategy).delayMs ?? (_d.delayMs = 1000);
         this.bitcoinNetwork = bitcoinNetwork;
-        this.logger = (0, Utils_1.getLogger)("EVMChainInterface(" + this.evmChainId + "): ");
+        this.logger = (0, Utils_1.getLogger)("EVMChainInterface(" + this.chainId + "): ");
         this.Fees = evmFeeEstimator;
         this.Tokens = new EVMTokens_1.EVMTokens(this);
         this.Transactions = new EVMTransactions_1.EVMTransactions(this);

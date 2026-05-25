@@ -49,8 +49,8 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
     constructor(chainInterface, btcRelay, bitcoinRpc, contractAddress, contractDeploymentHeight) {
         super(chainInterface, contractAddress, SpvVaultContractAbi_1.SpvVaultContractAbi, contractDeploymentHeight);
         this.claimTimeout = 180;
-        this.logger = (0, Utils_1.getLogger)("EVMSpvVaultContract: ");
         this.vaultParamsCache = new promise_cache_ts_1.PromiseLruCache(5000);
+        this.logger = (0, Utils_1.getLogger)("EVMSpvVaultContract(" + chainInterface.chainId + "): ");
         this.chainId = chainInterface.chainId;
         this.btcRelay = btcRelay;
         this.bitcoinRpc = bitcoinRpc;

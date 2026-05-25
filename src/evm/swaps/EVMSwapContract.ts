@@ -27,13 +27,11 @@ import {EVMPreFetchVerification, EVMSwapInit} from "./modules/EVMSwapInit";
 import { EVMSwapRefund } from "./modules/EVMSwapRefund";
 import {EVMSwapClaim} from "./modules/EVMSwapClaim";
 import {TypedEventLog} from "../typechain/common";
-import {getLogger} from "../../utils/Utils";
+import {getLogger, LoggerType} from "../../utils/Utils";
 
 const ESCROW_STATE_COMMITTED = 1;
 const ESCROW_STATE_CLAIMED = 2;
 const ESCROW_STATE_REFUNDED = 3;
-
-const logger = getLogger("EVMSwapContract: ");
 
 /**
  * EVM swap contract (escrow manager) representation handling PrTLC (on-chain) and HTLC (lightning)
@@ -51,6 +49,8 @@ export class EVMSwapContract<ChainId extends string = string>
         EVMSigner,
         ChainId
     > {
+
+    private readonly logger: LoggerType;
 
     readonly supportsInitWithoutClaimer = true;
 
@@ -145,6 +145,8 @@ export class EVMSwapContract<ChainId extends string = string>
 
         this._timelockRefundHandler = new TimelockRefundHandler(handlerAddresses.refund.timelock);
         this._refundHandlersByAddress[this._timelockRefundHandler.address.toLowerCase()] = this._timelockRefundHandler;
+
+        this.logger = getLogger("EVMSwapContract("+this.chainId+"): ");
     }
 
     /**
@@ -485,14 +487,14 @@ export class EVMSwapContract<ChainId extends string = string>
 
                 const claimHandler = this._claimHandlersByAddress[claimHandlerHex.toLowerCase()];
                 if(claimHandler==null) {
-                    logger.warn(`getHistoricalSwaps(): Unknown claim handler in tx ${event.transactionHash} with claim handler: `+claimHandlerHex);
+                    this.logger.warn(`getHistoricalSwaps(): Unknown claim handler in tx ${event.transactionHash} with claim handler: `+claimHandlerHex);
                     return null;
                 }
 
                 const txTrace = await this.Chain.Transactions.traceTransaction(event.transactionHash);
                 const data = this.findInitSwapData(txTrace, event.args.escrowHash, claimHandler);
                 if(data==null) {
-                    logger.warn(`getHistoricalSwaps(): Cannot parse swap data from tx ${event.transactionHash} with escrow hash: `+escrowHash);
+                    this.logger.warn(`getHistoricalSwaps(): Cannot parse swap data from tx ${event.transactionHash} with escrow hash: `+escrowHash);
                     return null;
                 }
 
@@ -563,8 +565,8 @@ export class EVMSwapContract<ChainId extends string = string>
             startBlockheight
         );
 
-        logger.debug(`getHistoricalSwaps(): Found ${Object.keys(resultingSwaps).length} settled swaps!`);
-        logger.debug(`getHistoricalSwaps(): Found ${Object.keys(swapsOpened).length} unsettled swaps!`);
+        this.logger.debug(`getHistoricalSwaps(): Found ${Object.keys(resultingSwaps).length} settled swaps!`);
+        this.logger.debug(`getHistoricalSwaps(): Found ${Object.keys(swapsOpened).length} unsettled swaps!`);
 
         for(let escrowHash in swapsOpened) {
             const foundSwapData = swapsOpened[escrowHash];

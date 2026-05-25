@@ -25,10 +25,6 @@ class EVMChainEventsBrowser {
         /**
          * @internal
          */
-        this.logger = (0, Utils_1.getLogger)("EVMChainEventsBrowser: ");
-        /**
-         * @internal
-         */
         this.stopped = true;
         /**
          * @internal
@@ -47,6 +43,7 @@ class EVMChainEventsBrowser {
         this.evmSwapContract = evmSwapContract;
         this.evmSpvVaultContract = evmSpvVaultContract;
         this.pollIntervalSeconds = pollIntervalSeconds;
+        this.logger = (0, Utils_1.getLogger)("EVMChainEventsBrowser(" + evmSwapContract.chainId + "): ");
         this.spvVaultContractLogFilter = {
             address: this.evmSpvVaultContract._contractAddress
         };

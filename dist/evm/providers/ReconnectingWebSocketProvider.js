@@ -1,9 +1,22 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReconnectingWebSocketProvider = void 0;
+const ethers_1 = require("ethers");
 const SocketProvider_1 = require("./SocketProvider");
 const Utils_1 = require("../../utils/Utils");
-const logger = (0, Utils_1.getLogger)("ReconnectingWebSocketProvider: ");
+function getChainIdentifier(network) {
+    if (network == null)
+        return "UNKNOWN";
+    if (typeof (network) === "bigint")
+        return network.toString(10);
+    if (typeof (network) === "number")
+        return network.toString(10);
+    if (typeof (network) === "string")
+        return network;
+    if (network instanceof ethers_1.Network)
+        return network.name ?? network.chainId.toString(10);
+    return network.name ?? network.chainId?.toString(10) ?? "UNKNOWN";
+}
 /**
  * WebSocket RPC provider with automatic reconnect, heartbeat ping and connection timeout handling.
  *
@@ -17,6 +30,7 @@ class ReconnectingWebSocketProvider extends SocketProvider_1.SocketProvider {
         this.pingIntervalSeconds = 30;
         this.connectionTimeout = 10;
         this.websocket = null;
+        this.logger = (0, Utils_1.getLogger)("ReconnectingWebSocketProvider(" + getChainIdentifier(network) + "): ");
         this.wsCtor = typeof (url) === "string" ? () => new WebSocket(url) : url;
         this.connect();
     }
@@ -31,7 +45,7 @@ class ReconnectingWebSocketProvider extends SocketProvider_1.SocketProvider {
                 this._send({ method: "eth_chainId", params: [], id: 1000000000, jsonrpc: "2.0" }).catch(e => {
                     //Error
                     if (e.code === "NETWORK_ERROR") {
-                        logger.error("connect(): pingInterval: Websocket ping error: ", e);
+                        this.logger.error("connect(): pingInterval: Websocket ping error: ", e);
                         if (this.websocket != null) {
                             this.websocket.close();
                             this.disconnectedAndScheduleReconnect();
@@ -39,21 +53,21 @@ class ReconnectingWebSocketProvider extends SocketProvider_1.SocketProvider {
                     }
                 });
             }, this.pingIntervalSeconds * 1000);
-            logger.info("connect(): Websocket connected!");
+            this.logger.info("connect(): Websocket connected!");
         };
         this.websocket.onerror = (err) => {
-            logger.error(`connect(): onerror: Websocket connection error: `, err.error ?? err);
+            this.logger.error(`connect(): onerror: Websocket connection error: `, err.error ?? err);
             this.disconnectedAndScheduleReconnect();
         };
         this.websocket.onmessage = (message) => {
             this._processMessage(message.data);
         };
         this.websocket.onclose = (event) => {
-            logger.error(`connect(): onclose: Websocket connection closed: `, event);
+            this.logger.error(`connect(): onclose: Websocket connection closed: `, event);
             this.disconnectedAndScheduleReconnect();
         };
         this.connectTimer = setTimeout(() => {
-            logger.warn("connect(): Websocket connection taking too long, (above " + this.connectionTimeout + " seconds!), closing and re-attempting connection");
+            this.logger.warn("connect(): Websocket connection taking too long, (above " + this.connectionTimeout + " seconds!), closing and re-attempting connection");
             this.websocket.close();
             this.disconnectedAndScheduleReconnect();
         }, this.connectionTimeout * 1000);
@@ -65,7 +79,7 @@ class ReconnectingWebSocketProvider extends SocketProvider_1.SocketProvider {
             return;
         this.websocket.onclose = undefined;
         //Register dummy handler, otherwise we get unhandled `error` event which crashes the whole thing
-        this.websocket.onerror = (err) => logger.error("disconnectedAndScheduleReconnect(): Post-close onerror: ", err.error ?? err);
+        this.websocket.onerror = (err) => this.logger.error("disconnectedAndScheduleReconnect(): Post-close onerror: ", err.error ?? err);
         this.websocket.onmessage = null;
         this.websocket.onopen = null;
         this.websocket = null;
@@ -74,7 +88,7 @@ class ReconnectingWebSocketProvider extends SocketProvider_1.SocketProvider {
         if (this.connectTimer != null)
             clearInterval(this.connectTimer);
         this._disconnected();
-        logger.info(`disconnectedAndScheduleReconnect(): Retrying in ${this.reconnectSeconds} seconds...`);
+        this.logger.info(`disconnectedAndScheduleReconnect(): Retrying in ${this.reconnectSeconds} seconds...`);
         this.reconnectTimer = setTimeout(() => this.connect(), this.reconnectSeconds * 1000);
     }
     async _write(message) {

@@ -11,7 +11,7 @@ import {IClaimHandler} from "../swaps/handlers/claim/ClaimHandlers";
 import {EVMSwapData} from "../swaps/EVMSwapData";
 import {Block, hexlify, JsonRpcApiProvider, EventFilter, Log} from "ethers";
 import { EVMSwapContract } from "../swaps/EVMSwapContract";
-import {getLogger, onceAsync} from "../../utils/Utils";
+import {getLogger, LoggerType, onceAsync} from "../../utils/Utils";
 import {EVMSpvVaultContract, unpackOwnerAndVaultId} from "../spv_swap/EVMSpvVaultContract";
 import { EVMChainInterface } from "../chain/EVMChainInterface";
 import {TypedEventLog} from "../typechain/common";
@@ -75,7 +75,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventL
     /**
      * @internal
      */
-    protected readonly logger = getLogger("EVMChainEventsBrowser: ");
+    protected readonly logger: LoggerType;
 
     /**
      * @internal
@@ -118,6 +118,7 @@ export class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, EVMEventL
         this.evmSwapContract = evmSwapContract;
         this.evmSpvVaultContract = evmSpvVaultContract;
         this.pollIntervalSeconds = pollIntervalSeconds;
+        this.logger = getLogger("EVMChainEventsBrowser("+evmSwapContract.chainId+"): ");
 
         this.spvVaultContractLogFilter = {
             address: this.evmSpvVaultContract._contractAddress

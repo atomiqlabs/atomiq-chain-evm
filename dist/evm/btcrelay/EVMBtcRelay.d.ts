@@ -13,6 +13,8 @@ import { EVMChainInterface } from "../chain/EVMChainInterface";
  * @category BTC Relay
  */
 export declare class EVMBtcRelay<B extends BtcBlock> extends EVMContractBase<BtcRelayTypechain> implements BtcRelay<EVMBtcStoredHeader, EVMTx, B, EVMSigner> {
+    private readonly logger;
+    readonly chainId: string;
     /**
      * @internal
      */

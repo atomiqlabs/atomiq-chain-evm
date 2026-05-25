@@ -2,6 +2,7 @@ import { ChainEvents, EventListener } from "@atomiqlabs/base";
 import { EVMSwapData } from "../swaps/EVMSwapData";
 import { Block, JsonRpcApiProvider, EventFilter, Log } from "ethers";
 import { EVMSwapContract } from "../swaps/EVMSwapContract";
+import { LoggerType } from "../../utils/Utils";
 import { EVMSpvVaultContract } from "../spv_swap/EVMSpvVaultContract";
 import { EVMChainInterface } from "../chain/EVMChainInterface";
 import { TypedEventLog } from "../typechain/common";
@@ -55,7 +56,7 @@ export declare class EVMChainEventsBrowser implements ChainEvents<EVMSwapData, E
     /**
      * @internal
      */
-    protected readonly logger: import("../../utils/Utils").LoggerType;
+    protected readonly logger: LoggerType;
     /**
      * @internal
      */
