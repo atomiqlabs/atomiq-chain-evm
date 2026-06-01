@@ -236,9 +236,16 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
             return null;
         const [storedBlockHeader, commitHash] = result;
         //Check if block is part of the main chain
-        const chainCommitment = await this.contract.getCommitHash(storedBlockHeader.getBlockheight());
-        if (chainCommitment !== commitHash)
-            return null;
+        try {
+            const chainCommitment = await this.contract.getCommitHash(storedBlockHeader.getBlockheight());
+            if (chainCommitment !== commitHash)
+                return null;
+        }
+        catch (e) {
+            if ((0, ethers_1.isCallException)(e) && e.action === "call")
+                return null;
+            throw e;
+        }
         this.logger.debug("retrieveLogAndBlockheight(): block found," +
             " commit hash: " + commitHash + " blockhash: " + blockData.blockhash + " current btc relay height: " + blockHeight);
         return { header: storedBlockHeader, height: blockHeight };
@@ -252,9 +259,16 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
             return null;
         const [storedBlockHeader, commitHash] = result;
         //Check if block is part of the main chain
-        const chainCommitment = await this.contract.getCommitHash(storedBlockHeader.getBlockheight());
-        if (chainCommitment !== commitHash)
-            return null;
+        try {
+            const chainCommitment = await this.contract.getCommitHash(storedBlockHeader.getBlockheight());
+            if (chainCommitment !== commitHash)
+                return null;
+        }
+        catch (e) {
+            if ((0, ethers_1.isCallException)(e) && e.action === "call")
+                return null;
+            throw e;
+        }
         this.logger.debug("retrieveLogByCommitHash(): block found," +
             " commit hash: " + commitmentHashStr + " blockhash: " + blockData.blockhash + " height: " + storedBlockHeader.getBlockheight());
         return storedBlockHeader;
@@ -266,14 +280,21 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
         const data = await this._Events.findInContractEvents(["StoreHeader", "StoreForkHeader"], null, async (event) => {
             const blockHashHex = Buffer.from(event.args.blockHash.substring(2), "hex").reverse().toString("hex");
             const commitHash = event.args.commitHash;
-            const isInBtcMainChain = await this._bitcoinRpc.isInMainChain(blockHashHex).catch(() => false);
+            const isInBtcMainChain = await this._bitcoinRpc.isInMainChain(blockHashHex);
             if (!isInBtcMainChain)
                 return null;
             const blockHeader = await this._bitcoinRpc.getBlockHeader(blockHashHex);
             if (blockHeader == null)
                 return null;
-            if (commitHash !== await this.contract.getCommitHash(blockHeader.getHeight()))
-                return null;
+            try {
+                if (commitHash !== await this.contract.getCommitHash(blockHeader.getHeight()))
+                    return null;
+            }
+            catch (e) {
+                if ((0, ethers_1.isCallException)(e) && e.action === "call")
+                    return null;
+                throw e;
+            }
             const txTrace = await this.Chain.Transactions.traceTransaction(event.transactionHash);
             const storedHeader = await this.findStoredBlockheaderInTraces(txTrace, commitHash);
             if (storedHeader == null)
