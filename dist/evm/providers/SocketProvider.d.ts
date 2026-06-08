@@ -95,6 +95,12 @@ export declare class SocketProvider extends JsonRpcApiProvider {
      *  and generally is unecessary unless extending capabilities.
      */
     _register(filterId: number | string, subscriber: SocketSubscriber): void;
+    /**
+     *  Resolves once the [[_start]] has been called. This can be used in
+     *  sub-classes to defer sending data until the connection has been
+     *  established.
+     */
+    _waitUntilReady(timeoutSeconds?: number): Promise<void>;
     _send(payload: JsonRpcPayload | Array<JsonRpcPayload>): Promise<Array<JsonRpcResult | JsonRpcError>>;
     _connected(): void;
     _disconnected(): void;

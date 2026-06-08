@@ -242,6 +242,25 @@ class SocketProvider extends ethers_1.JsonRpcApiProvider {
             __classPrivateFieldGet(this, _SocketProvider_pending, "f").delete(filterId);
         }
     }
+    /**
+     *  Resolves once the [[_start]] has been called. This can be used in
+     *  sub-classes to defer sending data until the connection has been
+     *  established.
+     */
+    async _waitUntilReady(timeoutSeconds = 5) {
+        let timeout;
+        try {
+            await Promise.race([
+                super._waitUntilReady(),
+                new Promise((_, reject) => {
+                    timeout = setTimeout(() => reject((0, ethers_1.makeError)("Timed out waiting for websocket readiness!", "NETWORK_ERROR")), timeoutSeconds * 1000);
+                })
+            ]);
+        }
+        finally {
+            clearTimeout(timeout);
+        }
+    }
     async _send(payload) {
         // WebSocket provider doesn't accept batches
         (0, ethers_1.assertArgument)(!Array.isArray(payload), "WebSocket does not support batch send", "payload", payload);

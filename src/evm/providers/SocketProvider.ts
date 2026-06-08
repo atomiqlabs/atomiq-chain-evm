@@ -267,6 +267,28 @@ export class SocketProvider extends JsonRpcApiProvider {
         }
     }
 
+    /**
+     *  Resolves once the [[_start]] has been called. This can be used in
+     *  sub-classes to defer sending data until the connection has been
+     *  established.
+     */
+    async _waitUntilReady(timeoutSeconds: number = 5): Promise<void> {
+        let timeout;
+        try {
+            await Promise.race([
+                super._waitUntilReady(),
+                new Promise<void>((_, reject) => {
+                    timeout = setTimeout(
+                        () => reject(makeError("Timed out waiting for websocket readiness!", "NETWORK_ERROR")),
+                        timeoutSeconds * 1000
+                    );
+                })
+            ]);
+        } finally {
+            clearTimeout(timeout);
+        }
+    }
+
     async _send(payload: JsonRpcPayload | Array<JsonRpcPayload>): Promise<Array<JsonRpcResult | JsonRpcError>> {
         // WebSocket provider doesn't accept batches
         assertArgument(!Array.isArray(payload), "WebSocket does not support batch send", "payload", payload);
