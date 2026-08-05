@@ -188,7 +188,7 @@ class EVMSwapContract extends EVMContractBase_1.EVMContractBase {
      */
     getHashForOnchain(outputScript, amount, confirmations, nonce) {
         let result;
-        if (nonce == null || nonce === 0n) {
+        if (nonce == null) {
             const chainHandler = this._claimHandlersBySwapType[base_1.ChainSwapType.CHAIN];
             if (chainHandler == null)
                 throw new Error("Claim handler for CHAIN not found!");

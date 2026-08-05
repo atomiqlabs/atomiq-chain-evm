@@ -277,7 +277,7 @@ export class EVMSwapContract<ChainId extends string = string>
      */
     getHashForOnchain(outputScript: Buffer, amount: bigint, confirmations: number, nonce?: bigint): Buffer {
         let result: string;
-        if(nonce==null || nonce === 0n) {
+        if(nonce==null) {
             const chainHandler = this._claimHandlersBySwapType[ChainSwapType.CHAIN];
             if(chainHandler==null) throw new Error("Claim handler for CHAIN not found!");
             result = chainHandler.getCommitment({
