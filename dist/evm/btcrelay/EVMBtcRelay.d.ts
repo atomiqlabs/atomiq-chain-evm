@@ -86,6 +86,7 @@ export declare class EVMBtcRelay<B extends BtcBlock> extends EVMContractBase<Btc
     private blockHashCache;
     private getBlock;
     private getBlockHeight;
+    private isCommitHashInMainChain;
     /**
      * @inheritDoc
      */
@@ -107,7 +108,7 @@ export declare class EVMBtcRelay<B extends BtcBlock> extends EVMContractBase<Btc
     /**
      * @inheritDoc
      */
-    retrieveLogByCommitHash(commitmentHashStr: string, blockData: {
+    retrieveLogByCommitHash(commitmentHashStr: string | undefined, blockData: {
         blockhash: string;
     }): Promise<EVMBtcStoredHeader | null>;
     /**
