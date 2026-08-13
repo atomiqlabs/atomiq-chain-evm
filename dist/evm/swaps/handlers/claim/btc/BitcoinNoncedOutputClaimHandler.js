@@ -50,8 +50,9 @@ class BitcoinNoncedOutputClaimHandler extends IBitcoinClaimHandler_1.IBitcoinCla
             ])
         };
     }
-    getGas(data) {
-        return BitcoinNoncedOutputClaimHandler.gas;
+    getGas(data, witnessData) {
+        return BitcoinNoncedOutputClaimHandler.gas +
+            BitcoinNoncedOutputClaimHandler.gasPerTxByte * (witnessData != null ? witnessData.tx.hex.length / 2 : 3000);
     }
     getType() {
         return BitcoinNoncedOutputClaimHandler.type;
@@ -59,4 +60,5 @@ class BitcoinNoncedOutputClaimHandler extends IBitcoinClaimHandler_1.IBitcoinCla
 }
 exports.BitcoinNoncedOutputClaimHandler = BitcoinNoncedOutputClaimHandler;
 BitcoinNoncedOutputClaimHandler.type = base_1.ChainSwapType.CHAIN_NONCED;
-BitcoinNoncedOutputClaimHandler.gas = 150000;
+BitcoinNoncedOutputClaimHandler.gas = 50000;
+BitcoinNoncedOutputClaimHandler.gasPerTxByte = 50;

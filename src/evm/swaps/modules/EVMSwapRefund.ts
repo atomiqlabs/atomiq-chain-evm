@@ -147,7 +147,7 @@ export class EVMSwapRefund extends EVMSwapModule {
 
         const {initialTxns, witness} = await refundHandler.getWitness(signer, swapData, witnessData, feeRate);
 
-        const tx = await this.Refund(signer, swapData, witness, feeRate, refundHandler.getGas(swapData));
+        const tx = await this.Refund(signer, swapData, witness, feeRate, refundHandler.getGas(swapData, witnessData));
 
         this.logger.debug("txsRefund(): creating refund transaction, swap: "+swapData.getClaimHash());
 

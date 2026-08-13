@@ -22,11 +22,12 @@ export type BitcoinNoncedOutputCommitmentData = {
 export declare class BitcoinNoncedOutputClaimHandler extends IBitcoinClaimHandler<BitcoinNoncedOutputCommitmentData, BitcoinOutputWitnessData> {
     static readonly type: ChainSwapType;
     static readonly gas: number;
+    static readonly gasPerTxByte: number;
     protected serializeCommitment(data: BitcoinNoncedOutputCommitmentData & BitcoinCommitmentData): Buffer;
     getWitness(signer: string, swapData: EVMSwapData, witnessData: BitcoinOutputWitnessData, feeRate?: string): Promise<{
         initialTxns: EVMTx[];
         witness: Buffer;
     }>;
-    getGas(data: EVMSwapData): number;
+    getGas(data: EVMSwapData, witnessData?: BitcoinOutputWitnessData): number;
     getType(): ChainSwapType;
 }

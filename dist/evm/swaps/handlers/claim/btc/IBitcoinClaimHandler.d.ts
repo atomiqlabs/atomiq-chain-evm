@@ -58,6 +58,6 @@ export declare abstract class IBitcoinClaimHandler<C, W extends BitcoinWitnessDa
         initialTxns: EVMTx[];
         witness: Buffer;
     }>;
-    abstract getGas(data: EVMSwapData): number;
+    abstract getGas(data: EVMSwapData, witnessData?: W): number;
     abstract getType(): ChainSwapType;
 }

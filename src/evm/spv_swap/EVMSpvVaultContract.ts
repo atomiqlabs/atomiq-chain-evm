@@ -83,6 +83,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         CLAIM_NATIVE_TRANSFER: 85_000,
         CLAIM_ERC20_TRANSFER: 40_000,
         CLAIM_EXECUTION_SCHEDULE: 30_000,
+        GAS_PER_TX_BYTE: 50,
 
         FRONT_BASE: 75_000 + 21_000,
         FRONT_NATIVE_TRANSFER: 85_000,
@@ -893,6 +894,7 @@ export class EVMSpvVaultContract<ChainId extends string>
             if (data==null || (data.callerFeeRate > 0n && !data.isRecipient(signer))) totalGas += transferFee; //Also needs to pay out to caller
         }
         if (data==null || (data.executionHash != null && data.executionHash !== ZeroHash)) totalGas += EVMSpvVaultContract.GasCosts.CLAIM_EXECUTION_SCHEDULE;
+        if (data!=null) totalGas += EVMSpvVaultContract.GasCosts.GAS_PER_TX_BYTE * data.btcTx.hex.length/2;
 
         return totalGas;
     }
