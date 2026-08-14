@@ -71,15 +71,33 @@ export class EVMChainEvents extends EVMChainEventsBrowser {
      *
      * @private
      */
-    private saveLastEventData(newState: EVMEventListenerState[]): Promise<void> {
-        return fs.writeFile(this.directory+this.BLOCKHEIGHT_FILENAME, newState.map(val => {
+    private async saveLastEventData(newState: EVMEventListenerState[]): Promise<void> {
+        const filename = this.directory+this.BLOCKHEIGHT_FILENAME;
+        const content = newState.map(val => {
             if(val==null) return "null";
             if(val.lastEvent==null) {
                 return val.lastBlockNumber.toString(10);
             } else {
                 return val.lastBlockNumber.toString(10)+","+val.lastEvent.blockHash+","+val.lastEvent.logIndex.toString(10);
             }
-        }).join(";"));
+        }).join(";");
+        const tmp = `${filename}.${Math.floor(Math.random() * 2**32)}.tmp`;
+
+        try {
+            await fs.writeFile(tmp, content, {
+                flag: 'wx',
+                flush: true, //fsync
+            });
+
+            //Rename atomically
+            await fs.rename(tmp, filename);
+        } catch (e) {
+            //Remove tmp file on failure
+            try {
+                await fs.unlink(tmp)
+            } catch (e) {}
+            throw e;
+        }
     }
 
     /**
