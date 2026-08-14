@@ -412,6 +412,13 @@ class EVMBtcRelay extends EVMContractBase_1.EVMContractBase {
      * @private
      */
     static async getCommitedHeadersAndSynchronize(signer, btcRelay, btcTxs, txs, synchronizer, feeRate) {
+        if (btcTxs.length === 0)
+            return {};
+        btcTxs.forEach(btcTx => {
+            if (!Number.isSafeInteger(btcTx.requiredConfirmations) ||
+                btcTx.requiredConfirmations <= 0)
+                throw new Error("Transaction required confirmations must be a strictly positive integer!");
+        });
         const leavesTxs = [];
         const blockheaders = {};
         const btcRelayHeight = await btcRelay.getBlockHeight();
