@@ -471,19 +471,19 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         let rawAmount1 = 0n;
         let executionHash;
         if (data.length === 28) {
-            rawAmount0 = data.readBigInt64BE(20).valueOf();
+            rawAmount0 = data.readBigUInt64BE(20).valueOf();
         }
         else if (data.length === 36) {
-            rawAmount0 = data.readBigInt64BE(20).valueOf();
-            rawAmount1 = data.readBigInt64BE(28).valueOf();
+            rawAmount0 = data.readBigUInt64BE(20).valueOf();
+            rawAmount1 = data.readBigUInt64BE(28).valueOf();
         }
         else if (data.length === 60) {
-            rawAmount0 = data.readBigInt64BE(20).valueOf();
+            rawAmount0 = data.readBigUInt64BE(20).valueOf();
             executionHash = data.slice(28, 60).toString("hex");
         }
         else if (data.length === 68) {
-            rawAmount0 = data.readBigInt64BE(20).valueOf();
-            rawAmount1 = data.readBigInt64BE(28).valueOf();
+            rawAmount0 = data.readBigUInt64BE(20).valueOf();
+            rawAmount1 = data.readBigUInt64BE(28).valueOf();
             executionHash = data.slice(36, 68).toString("hex");
         }
         else {
