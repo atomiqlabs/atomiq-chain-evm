@@ -42,8 +42,9 @@ class BitcoinOutputClaimHandler extends IBitcoinClaimHandler_1.IBitcoinClaimHand
             ])
         };
     }
-    getGas(data) {
-        return BitcoinOutputClaimHandler.gas;
+    getGas(data, witnessData) {
+        return BitcoinOutputClaimHandler.gas +
+            BitcoinOutputClaimHandler.gasPerTxByte * (witnessData != null ? witnessData.tx.hex.length / 2 : 3000);
     }
     getType() {
         return BitcoinOutputClaimHandler.type;
@@ -51,4 +52,5 @@ class BitcoinOutputClaimHandler extends IBitcoinClaimHandler_1.IBitcoinClaimHand
 }
 exports.BitcoinOutputClaimHandler = BitcoinOutputClaimHandler;
 BitcoinOutputClaimHandler.type = base_1.ChainSwapType.CHAIN;
-BitcoinOutputClaimHandler.gas = 150000;
+BitcoinOutputClaimHandler.gas = 50000;
+BitcoinOutputClaimHandler.gasPerTxByte = 50;

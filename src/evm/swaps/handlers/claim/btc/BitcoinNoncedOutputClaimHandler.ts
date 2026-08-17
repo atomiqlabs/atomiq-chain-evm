@@ -31,7 +31,8 @@ function getTransactionNonce(btcTx: Transaction): bigint {
 export class BitcoinNoncedOutputClaimHandler extends IBitcoinClaimHandler<BitcoinNoncedOutputCommitmentData, BitcoinOutputWitnessData> {
 
     public static readonly type: ChainSwapType = ChainSwapType.CHAIN_NONCED;
-    public static readonly gas: number = 150_000;
+    public static readonly gas: number = 50_000;
+    public static readonly gasPerTxByte: number = 50;
 
     protected serializeCommitment(data: BitcoinNoncedOutputCommitmentData & BitcoinCommitmentData): Buffer {
         const txoHash = solidityPackedKeccak256(["uint64", "uint64", "bytes32"], [data.nonce, data.amount, keccak256(data.output)]);
@@ -79,8 +80,9 @@ export class BitcoinNoncedOutputClaimHandler extends IBitcoinClaimHandler<Bitcoi
         };
     }
 
-    getGas(data: EVMSwapData): number {
-        return BitcoinNoncedOutputClaimHandler.gas;
+    getGas(data: EVMSwapData, witnessData?: BitcoinOutputWitnessData): number {
+        return BitcoinNoncedOutputClaimHandler.gas +
+            BitcoinNoncedOutputClaimHandler.gasPerTxByte * (witnessData!=null ? witnessData.tx.hex.length/2 : 3000);
     }
 
     getType(): ChainSwapType {

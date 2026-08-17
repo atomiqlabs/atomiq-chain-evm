@@ -118,15 +118,16 @@ export class EVMSwapClaim extends EVMSwapModule {
 
         feeRate ??= await this.root.Fees.getFeeRate();
 
-        const {initialTxns, witness} = await claimHandler.getWitness(signer, swapData, {
+        const witnessData = {
             tx,
             vout,
             requiredConfirmations,
             commitedHeader,
             btcRelay: this.contract._btcRelay,
             synchronizer,
-        }, feeRate);
-        const claimTx = await this.Claim(signer, swapData, witness, feeRate, claimHandler.getGas(swapData));
+        };
+        const {initialTxns, witness} = await claimHandler.getWitness(signer, swapData, witnessData, feeRate);
+        const claimTx = await this.Claim(signer, swapData, witness, feeRate, claimHandler.getGas(swapData, witnessData));
 
         return [...initialTxns, claimTx];
     }

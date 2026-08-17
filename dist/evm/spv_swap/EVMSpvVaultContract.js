@@ -471,19 +471,19 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         let rawAmount1 = 0n;
         let executionHash;
         if (data.length === 28) {
-            rawAmount0 = data.readBigInt64BE(20).valueOf();
+            rawAmount0 = data.readBigUInt64BE(20).valueOf();
         }
         else if (data.length === 36) {
-            rawAmount0 = data.readBigInt64BE(20).valueOf();
-            rawAmount1 = data.readBigInt64BE(28).valueOf();
+            rawAmount0 = data.readBigUInt64BE(20).valueOf();
+            rawAmount1 = data.readBigUInt64BE(28).valueOf();
         }
         else if (data.length === 60) {
-            rawAmount0 = data.readBigInt64BE(20).valueOf();
+            rawAmount0 = data.readBigUInt64BE(20).valueOf();
             executionHash = data.slice(28, 60).toString("hex");
         }
         else if (data.length === 68) {
-            rawAmount0 = data.readBigInt64BE(20).valueOf();
-            rawAmount1 = data.readBigInt64BE(28).valueOf();
+            rawAmount0 = data.readBigUInt64BE(20).valueOf();
+            rawAmount1 = data.readBigUInt64BE(28).valueOf();
             executionHash = data.slice(36, 68).toString("hex");
         }
         else {
@@ -717,6 +717,8 @@ class EVMSpvVaultContract extends EVMContractBase_1.EVMContractBase {
         }
         if (data == null || (data.executionHash != null && data.executionHash !== ethers_1.ZeroHash))
             totalGas += EVMSpvVaultContract.GasCosts.CLAIM_EXECUTION_SCHEDULE;
+        if (data != null)
+            totalGas += EVMSpvVaultContract.GasCosts.GAS_PER_TX_BYTE * data.btcTx.hex.length / 2;
         return totalGas;
     }
     /**
@@ -778,6 +780,7 @@ EVMSpvVaultContract.GasCosts = {
     CLAIM_NATIVE_TRANSFER: 85000,
     CLAIM_ERC20_TRANSFER: 40000,
     CLAIM_EXECUTION_SCHEDULE: 30000,
+    GAS_PER_TX_BYTE: 50,
     FRONT_BASE: 75000 + 21000,
     FRONT_NATIVE_TRANSFER: 85000,
     FRONT_ERC20_TRANSFER: 40000,

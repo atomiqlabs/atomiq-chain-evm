@@ -261,6 +261,17 @@ export class EVMBtcRelay<B extends BtcBlock>
         return Number(await this.contract.getBlockheight());
     }
 
+    private async isCommitHashInMainChain(blockheight: number, commitHash: string): Promise<boolean> {
+        try {
+            const chainCommitment = await this.contract.getCommitHash(blockheight);
+            if(chainCommitment!==commitHash) return false;
+        } catch (e) {
+            if(isCallException(e) && e.action==="call") return false;
+            throw e;
+        }
+        return true;
+    }
+
     /**
      * @inheritDoc
      */
@@ -299,13 +310,7 @@ export class EVMBtcRelay<B extends BtcBlock>
         const [storedBlockHeader, commitHash] = result;
 
         //Check if block is part of the main chain
-        try {
-            const chainCommitment = await this.contract.getCommitHash(storedBlockHeader.getBlockheight());
-            if(chainCommitment!==commitHash) return null;
-        } catch (e) {
-            if(isCallException(e) && e.action==="call") return null;
-            throw e;
-        }
+        if(!(await this.isCommitHashInMainChain(storedBlockHeader.getBlockheight(), commitHash))) return null;
 
         this.logger.debug("retrieveLogAndBlockheight(): block found," +
             " commit hash: "+commitHash+" blockhash: "+blockData.blockhash+" current btc relay height: "+blockHeight);
@@ -316,20 +321,14 @@ export class EVMBtcRelay<B extends BtcBlock>
     /**
      * @inheritDoc
      */
-    public async retrieveLogByCommitHash(commitmentHashStr: string, blockData: {blockhash: string}): Promise<EVMBtcStoredHeader | null> {
+    public async retrieveLogByCommitHash(commitmentHashStr: string | undefined, blockData: {blockhash: string}): Promise<EVMBtcStoredHeader | null> {
         const result = await this.getBlock(commitmentHashStr, Buffer.from(blockData.blockhash, "hex"));
         if(result==null) return null;
 
         const [storedBlockHeader, commitHash] = result;
 
         //Check if block is part of the main chain
-        try {
-            const chainCommitment = await this.contract.getCommitHash(storedBlockHeader.getBlockheight());
-            if(chainCommitment!==commitHash) return null;
-        } catch (e) {
-            if(isCallException(e) && e.action==="call") return null;
-            throw e;
-        }
+        if(!(await this.isCommitHashInMainChain(storedBlockHeader.getBlockheight(), commitHash))) return null;
 
         this.logger.debug("retrieveLogByCommitHash(): block found," +
             " commit hash: "+commitmentHashStr+" blockhash: "+blockData.blockhash+" height: "+storedBlockHeader.getBlockheight());
@@ -357,12 +356,7 @@ export class EVMBtcRelay<B extends BtcBlock>
                 const blockHeader = await this._bitcoinRpc.getBlockHeader(blockHashHex);
                 if(blockHeader==null) return null;
 
-                try {
-                    if(commitHash !== await this.contract.getCommitHash(blockHeader.getHeight())) return null;
-                } catch (e) {
-                    if(isCallException(e) && e.action==="call") return null;
-                    throw e;
-                }
+                if(!(await this.isCommitHashInMainChain(blockHeader.getHeight(), commitHash))) return null;
 
                 const txTrace = await this.Chain.Transactions.traceTransaction(event.transactionHash);
                 const storedHeader = await this.findStoredBlockheaderInTraces(txTrace, commitHash);
@@ -521,23 +515,40 @@ export class EVMBtcRelay<B extends BtcBlock>
     ): Promise<{
         [blockhash: string]: EVMBtcStoredHeader
     } | null> {
+        if(btcTxs.length===0) return {};
+        btcTxs.forEach(btcTx => {
+            if(
+                !Number.isSafeInteger(btcTx.requiredConfirmations) ||
+                btcTx.requiredConfirmations<=0
+            ) throw new Error("Transaction required confirmations must be a strictly positive integer!");
+        });
+
         const leavesTxs: {blockheight: number, requiredConfirmations: number, blockhash: string}[] = [];
 
         const blockheaders: {
             [blockhash: string]: EVMBtcStoredHeader
         } = {};
 
+        const btcRelayHeight = await btcRelay.getBlockHeight();
+
+        let topRequiredBlockheight = 0;
+
         for(let btcTx of btcTxs) {
             const requiredBlockheight = btcTx.blockheight+btcTx.requiredConfirmations-1;
 
-            const result = await btcRelay.retrieveLogAndBlockheight({
-                blockhash: btcTx.blockhash
-            }, requiredBlockheight);
+            if(btcRelayHeight < requiredBlockheight) {
+                leavesTxs.push(btcTx);
+                topRequiredBlockheight = Math.max(topRequiredBlockheight, requiredBlockheight);
+                continue;
+            }
 
-            if(result!=null) {
-                blockheaders[result.header.getBlockHash().toString("hex")] = result.header;
+            const header = await btcRelay.retrieveLogByCommitHash(undefined, btcTx);
+
+            if(header!=null) {
+                blockheaders[header.getBlockHash().toString("hex")] = header;
             } else {
                 leavesTxs.push(btcTx);
+                topRequiredBlockheight = Math.max(topRequiredBlockheight, requiredBlockheight);
             }
         }
 
@@ -546,13 +557,15 @@ export class EVMBtcRelay<B extends BtcBlock>
         //Need to synchronize
         if(synchronizer==null) return null;
 
-        //TODO: We don't have to synchronize to tip, only to our required blockheight
-        const resp = await synchronizer.syncToLatestTxs(signer.toString(), feeRate);
+        //We don't have to synchronize to tip, only to our required blockheight
+        const resp = await synchronizer.syncToLatestTxs(signer.toString(), feeRate, topRequiredBlockheight);
         const logger = getLogger("EVMBtcRelay("+btcRelay.Chain.chainId+"): ");
-        logger.debug("getCommitedHeaderAndSynchronize(): BTC Relay not synchronized to required blockheight, "+
-            "synchronizing ourselves in "+resp.txs.length+" txs");
-        logger.debug("getCommitedHeaderAndSynchronize(): BTC Relay computed header map: ",resp.computedHeaderMap);
-        txs.push(...resp.txs);
+        const syncedToBlockheight = resp.targetCommitedHeader.getBlockheight();
+        if(syncedToBlockheight < topRequiredBlockheight) {
+            logger.warn("getCommitedHeaderAndSynchronize(): BTC Relay cannot be synced to required blockheight, "+
+              "required height: "+topRequiredBlockheight+" syncable blockheight: "+syncedToBlockheight);
+            return null;
+        }
 
         for(let key in resp.computedHeaderMap) {
             const header = resp.computedHeaderMap[key];
@@ -561,8 +574,17 @@ export class EVMBtcRelay<B extends BtcBlock>
 
         //Check that blockhashes of all the rest txs are included
         for(let btcTx of leavesTxs) {
-            if(blockheaders[btcTx.blockhash]==null) return null;
+            if(blockheaders[btcTx.blockhash]==null) {
+                const result = await btcRelay.retrieveLogByCommitHash(undefined, btcTx);
+                if(result==null) return null;
+                blockheaders[btcTx.blockhash] = result;
+            }
         }
+
+        logger.debug("getCommitedHeaderAndSynchronize(): BTC Relay not synchronized to required blockheight, "+
+          "synchronizing ourselves in "+resp.txs.length+" txs");
+        logger.debug("getCommitedHeaderAndSynchronize(): BTC Relay computed header map: ",resp.computedHeaderMap);
+        txs.push(...resp.txs);
 
         //Retrieve computed headers
         return blockheaders;

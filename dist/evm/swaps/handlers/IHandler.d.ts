@@ -14,5 +14,5 @@ export interface IHandler<TCommitmentData, TWitnessData> {
         initialTxns: EVMTx[];
         witness: Buffer;
     }>;
-    getGas(data: EVMSwapData): number;
+    getGas(data: EVMSwapData, witnessData?: TWitnessData): number;
 }

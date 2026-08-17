@@ -83,6 +83,7 @@ export class EVMSpvVaultContract<ChainId extends string>
         CLAIM_NATIVE_TRANSFER: 85_000,
         CLAIM_ERC20_TRANSFER: 40_000,
         CLAIM_EXECUTION_SCHEDULE: 30_000,
+        GAS_PER_TX_BYTE: 50,
 
         FRONT_BASE: 75_000 + 21_000,
         FRONT_NATIVE_TRANSFER: 85_000,
@@ -615,16 +616,16 @@ export class EVMSpvVaultContract<ChainId extends string>
         let rawAmount1: bigint = 0n;
         let executionHash: string | undefined;
         if(data.length===28) {
-            rawAmount0 = data.readBigInt64BE(20).valueOf();
+            rawAmount0 = data.readBigUInt64BE(20).valueOf();
         } else if(data.length===36) {
-            rawAmount0 = data.readBigInt64BE(20).valueOf();
-            rawAmount1 = data.readBigInt64BE(28).valueOf();
+            rawAmount0 = data.readBigUInt64BE(20).valueOf();
+            rawAmount1 = data.readBigUInt64BE(28).valueOf();
         } else if(data.length===60) {
-            rawAmount0 = data.readBigInt64BE(20).valueOf();
+            rawAmount0 = data.readBigUInt64BE(20).valueOf();
             executionHash = data.slice(28, 60).toString("hex");
         } else if(data.length===68) {
-            rawAmount0 = data.readBigInt64BE(20).valueOf();
-            rawAmount1 = data.readBigInt64BE(28).valueOf();
+            rawAmount0 = data.readBigUInt64BE(20).valueOf();
+            rawAmount1 = data.readBigUInt64BE(28).valueOf();
             executionHash = data.slice(36, 68).toString("hex");
         } else {
             throw new Error("Invalid OP_RETURN data length!");
@@ -893,6 +894,7 @@ export class EVMSpvVaultContract<ChainId extends string>
             if (data==null || (data.callerFeeRate > 0n && !data.isRecipient(signer))) totalGas += transferFee; //Also needs to pay out to caller
         }
         if (data==null || (data.executionHash != null && data.executionHash !== ZeroHash)) totalGas += EVMSpvVaultContract.GasCosts.CLAIM_EXECUTION_SCHEDULE;
+        if (data!=null) totalGas += EVMSpvVaultContract.GasCosts.GAS_PER_TX_BYTE * data.btcTx.hex.length/2;
 
         return totalGas;
     }

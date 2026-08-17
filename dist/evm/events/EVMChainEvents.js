@@ -63,8 +63,9 @@ class EVMChainEvents extends EVMChainEventsBrowser_1.EVMChainEventsBrowser {
      *
      * @private
      */
-    saveLastEventData(newState) {
-        return fs.writeFile(this.directory + this.BLOCKHEIGHT_FILENAME, newState.map(val => {
+    async saveLastEventData(newState) {
+        const filename = this.directory + this.BLOCKHEIGHT_FILENAME;
+        const content = newState.map(val => {
             if (val == null)
                 return "null";
             if (val.lastEvent == null) {
@@ -73,7 +74,24 @@ class EVMChainEvents extends EVMChainEventsBrowser_1.EVMChainEventsBrowser {
             else {
                 return val.lastBlockNumber.toString(10) + "," + val.lastEvent.blockHash + "," + val.lastEvent.logIndex.toString(10);
             }
-        }).join(";"));
+        }).join(";");
+        const tmp = `${filename}.${Math.floor(Math.random() * 2 ** 32)}.tmp`;
+        try {
+            await fs.writeFile(tmp, content, {
+                flag: 'wx',
+                flush: true, //fsync
+            });
+            //Rename atomically
+            await fs.rename(tmp, filename);
+        }
+        catch (e) {
+            //Remove tmp file on failure
+            try {
+                await fs.unlink(tmp);
+            }
+            catch (e) { }
+            throw e;
+        }
     }
     /**
      * @inheritDoc
